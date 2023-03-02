@@ -1,0 +1,177 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Interrupt service routines</TITLE>
+<META NAME="description" CONTENT="Interrupt service routines">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node66.html">
+<LINK REL="previous" HREF="node64.html">
+<LINK REL="up" HREF="node60.html">
+<LINK REL="next" HREF="node66.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1067"
+  HREF="node66.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1063"
+  HREF="node60.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1057"
+  HREF="node64.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1065"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1068"
+  HREF="node66.html">Why and how to</A>
+<B> Up:</B> <A NAME="tex2html1064"
+  HREF="node60.html">Extensions</A>
+<B> Previous:</B> <A NAME="tex2html1058"
+  HREF="node64.html">Numeric constants in ROM</A>
+ &nbsp; <B>  <A NAME="tex2html1066"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001312500000000000000"></A>
+<A NAME="ISR"></A>
+<BR>
+Interrupt service routines
+</H3>
+The PIC18 devices use two kind of interrupts: low priority interrupts, and high priority interrupts. 
+The corresponding Interrupt Service Routines (ISR) respectively start at addresses <TT>0x18</TT> and <TT>0x8</TT>.
+cpik automatically put a branch instruction at these addresses, so the code of the ISRs can be located anywhere in memory.
+Two empty interrupt service routines are provided by the run-time library<A NAME="tex2html17"
+  HREF="#foot1659"><SUP><SPAN CLASS="arabic">16</SPAN></SUP></A>. 
+
+<UL>
+<LI><code>hi_pri_ISR</code> for high priority interrupts,
+</LI>
+<LI><code>lo_pri_ISR</code> for low priority interrupts.
+</LI>
+</UL>
+A user who plan to use interrupts must provide a specific interrupt service routine that can be written in C, using  
+the (non-standard) <code>__interrupt__</code> keyword as following:
+<PRE>
+__interrupt__ void hi_pri_ISR()
+{
+  /* interrupt service code */
+}
+</PRE>
+The used-defined routine will shadow the default one, because user libraries are scanned before <code>rtl.slb</code>.
+
+<P>
+The role of the  <code>__interrupt__</code>  keyword is to insure that 
+
+<UL>
+<LI>
+<TT>W, BSR, FSR1, FSR2,  STATUS</TT>, registers are properly saved and restored
+on the data stack<A NAME="tex2html18"
+  HREF="#foot1660"><SUP><SPAN CLASS="arabic">17</SPAN></SUP></A>.
+
+</LI>
+<LI> <TT>retfie 0</TT> is used as return instruction instead of <code>return 0</code> <A NAME="tex2html19"
+  HREF="#foot1661"><SUP><SPAN CLASS="arabic">18</SPAN></SUP></A>.
+</LI>
+</UL>
+
+<P>
+The body of an ISR routine can be written in pure assembly language, using the <TT>__asm__</TT> directive.
+In this case, all previously mentioned registers can be freely altered, 
+as long as  <TT>FSR0</TT> (the software stack pointer) is not altered when the ISR exits.
+
+<P>
+When the interrupt code is written in C (or mix of C and asm code), registers used by the run-time library and user code will be saved if a proper pragma 
+<TT>saved_regs</TT> has be seen by the compiler before the source code of the ISR. 
+
+<P>
+A standard <TT>saved_regs</TT> pragma is provided in the <TT>&lt;interrupt.h&gt;</TT> header, so, generally,  nothing special must be done if  <TT>interrupt.h</TT> is included. However, I recommend to verify that the registers specified by the <TT>saved_regs</TT> pragma match the registers
+that are actually used in the ISR.
+
+<P>
+See section <A HREF="node23.html#saved-regs-pragma">10.4.5</A> about  the <TT>saved_regs</TT> pragma  for details.
+
+<P>
+<DIV ALIGN="LEFT">
+<SPAN ID="fcol1662">
+</DIV><TABLE  WIDTH="97%">
+<TR><TD>
+<SPAN  CLASS="textbf">Note</SPAN>: the <TT>SAVE_REGS</TT> and <TT>RESTORE_REGS</TT> macro that were defined in the <TT>&lt;interrupt.h&gt;</TT> header prior version 0.7.3 <SPAN  CLASS="textit">have been  suppressed and cannot be used anymore</SPAN>. Any call of these macros should be removed from your source code and the  equivalent <TT>saved_regs</TT> pragma
+should be inserted before the concerned ISR.
+</TD></TR>
+</TABLE>
+<DIV ALIGN="LEFT"></SPAN>
+
+</DIV>
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot1659">... library</A><A
+ HREF="node65.html#tex2html17"><SUP><SPAN CLASS="arabic">16</SPAN></SUP></A></DT>
+<DD>The run time library is the file <TT>/usr/share/cpik/&lt;version&gt;/lib/rtl.slb</TT>
+
+</DD>
+<DT><A NAME="foot1660">... stack</A><A
+ HREF="node65.html#tex2html18"><SUP><SPAN CLASS="arabic">17</SPAN></SUP></A></DT>
+<DD><TT>FSR0</TT> is not saved because it is the stack pointer itself.
+
+</DD>
+<DT><A NAME="foot1661">... <code>return 0</code></A><A
+ HREF="node65.html#tex2html19"><SUP><SPAN CLASS="arabic">18</SPAN></SUP></A></DT>
+<DD>The <TT>reftie 1</TT> instruction  is not used 
+because it is explicitly mentioned as
+bogus by errata documents from Microchip.
+
+</DD>
+</DL>
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1067"
+  HREF="node66.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1063"
+  HREF="node60.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1057"
+  HREF="node64.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1065"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1068"
+  HREF="node66.html">Why and how to</A>
+<B> Up:</B> <A NAME="tex2html1064"
+  HREF="node60.html">Extensions</A>
+<B> Previous:</B> <A NAME="tex2html1058"
+  HREF="node64.html">Numeric constants in ROM</A>
+ &nbsp; <B>  <A NAME="tex2html1066"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

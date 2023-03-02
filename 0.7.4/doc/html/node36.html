@@ -1,0 +1,237 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Passing immediate ROM data to a subroutine</TITLE>
+<META NAME="description" CONTENT="Passing immediate ROM data to a subroutine">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node37.html">
+<LINK REL="previous" HREF="node35.html">
+<LINK REL="up" HREF="node34.html">
+<LINK REL="next" HREF="node37.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html681"
+  HREF="node37.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html677"
+  HREF="node34.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html671"
+  HREF="node35.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html679"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html682"
+  HREF="node37.html">Passing ROM data to</A>
+<B> Up:</B> <A NAME="tex2html678"
+  HREF="node34.html">Data in ROM</A>
+<B> Previous:</B> <A NAME="tex2html672"
+  HREF="node35.html">Creating a block of</A>
+ &nbsp; <B>  <A NAME="tex2html680"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000128200000000000000">
+Passing immediate ROM data to a subroutine</A>
+</H3>
+
+<P>
+The first way to access ROM data from program is to embed that data in the code itself, exactly like the immediate operands are hard-coded in instructions. This goal can be achieved by locating  the data at the return address of the subroutine.
+
+<P>
+Since the return address can be found in the <TT>TOSL/TOSH/TOSU</TT> registers, the subroutine is able to access the ROM data. 
+Although it seems freestyle,  this way is very handy from the end-user point of view.
+For example, the LCD library provides the <TT>void lcd_RIprint_() ;</TT> routine that uses this type of parameter passing. As a &#171;first step&#187; example, the following code sends a message to a LCD display:
+
+<P>
+<PRE>
+lcd_RIprint_();
+ROM_TXT("Hello !\0") ;
+</PRE>
+
+<P>
+A  better way to do that is to use a macro that hides the real nature of the message:
+
+<P>
+<PRE>
+#define lcd_RIprint(txt) { lcd_RIprint_() ; ROM_TXT(txt) ; }
+</PRE>
+
+<P>
+Finally, the following code  will send the message:
+
+<P>
+<PRE>
+ lcd_RIprint("Hello !\0") ;
+</PRE>
+
+<P>
+In this example, the <TT>'R'</TT> stands for ROM and the <TT>'I'</TT> stands for immediate.
+
+<P>
+Writing a function such as <code> lcd_RIprint_()</code> is not easy because it needs a clear understanding of  the PIC-18 instruction set and how the program is compiled.
+People interested by this point can read the code in the file <TT>lcd.slb</TT>, that is written in assembly language.
+However, it is perfectly possible to write such a function in C. 
+For this purpose, the <TT>rom.h</TT> header provides several very handy macros:
+
+<P>
+
+<OL>
+<LI><TT>PREPARE_ROM_ACCESS</TT>
+
+<P>
+This macro mainly copy the TOSx registers to the TBLPTRx registers, and set bits needed to access ROM.
+
+<P>
+</LI>
+<LI><TT>READ_ROMBYTE</TT>
+
+<P>
+Reads one byte of data from ROM. The fetched data is stored in the <TT>prodl</TT> C variable, that is just an alias for the <TT>PRODL</TT> register. Consecutive invocations of <TT>READ_ROMBYTE</TT> will read consecutive data from ROM.
+
+<P>
+</LI>
+<LI><TT>READ_ROMWORD</TT>
+
+<P>
+Reads one word of data from ROM. The fetched data is stored in the <TT>prodhl</TT> C variable, that is just an alias for the <TT>PRODL/PRODH</TT> pair of  registers. Consecutive invocations of <TT>READ_ROMWORD</TT> will read consecutive data from ROM.
+
+<P>
+</LI>
+<LI><TT>FINISH_ROM_ACCESS</TT>
+
+<P>
+Ends the transaction with ROM. The TBLPTRx registers are copied back to <TT>TOS</TT>x registers. The macro takes care of alignment, so the address stored in <TT>TOS</TT>x, is always even. Obviously, the use of this macro is mandatory in this  context.
+</LI>
+</OL>
+
+<P>
+Here is an example of how to uses the proposed macros. This example implements a ROM version of the following <TT>puts()</TT> routine.
+<PRE>
+void puts(char *p)
+{
+  for( ; *p ; ++p) 
+    putchar(*p) ;
+}
+</PRE>
+
+<P>
+The first step is to define a macro for convenience.
+
+<P>
+<PRE>
+#define RIputs(str) { RIputs_() ; ROM_TXT(str) ;}
+</PRE>
+The second step is to write a function that reads from ROM  every char to be printed. 
+The number of <TT>char</TT> can be odd or even because the <TT>FINISH_ROM_ACCESS</TT> macro restores a correct parity.
+
+<P>
+<PRE>
+void RIputs_()
+{
+  PREPARE_ROM_ACCESS ;  READ_ROMBYTE ; 
+  while( prodl )
+  {
+    putchar( prodl ) ; READ_ROMBYTE ; 
+  }
+  FINISH_ROM_ACCESS ;
+}
+</PRE>
+
+<P>
+<DIV ALIGN="LEFT">
+<SPAN ID="fcol1651">
+</DIV><TABLE  WIDTH="97%">
+<TR><TD>
+Please note an important point: <I>all the data stored in ROM must be read</I>. Violating this rule will lead the processor to execute data instead of machine code and will crash the program.
+</TD></TR>
+</TABLE>
+<DIV ALIGN="LEFT"></SPAN>
+
+</DIV>
+
+<P>
+Here is another example: this routine fetches 16 bit data from a  ROM table, and displays it. In this example, the data is preceded by a word indicating the size of the table.
+
+<P>
+<PRE>
+#define RIputwords(list) { RIputwords_() ; ROM_WORDS(list) ; }
+
+void RIputwords_()
+{
+  int k ;
+  PREPARE_ROM_ACCESS ; READ_ROMWORD ; 
+  for( k = prodl ; k ; --k)
+  {
+    READ_ROMWORD ;
+    outdec(prodhl) ; putchar(' ' ) ;
+  }
+  FINISH_ROM_ACCESS ;
+}
+</PRE>
+
+<P>
+This function is very simple to use:
+
+<P>
+<PRE>
+RIputwords("3, 1000, 2000, 3000") ;
+</PRE>
+
+<P>
+Notice  that despite the parameter of <TT>RIputwords()</TT> is a literal, the data really stored in ROM is a sequence of words (not a string of chars). Obviously, it is forbidden to nest functions that access  ROM memory.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html681"
+  HREF="node37.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html677"
+  HREF="node34.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html671"
+  HREF="node35.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html679"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html682"
+  HREF="node37.html">Passing ROM data to</A>
+<B> Up:</B> <A NAME="tex2html678"
+  HREF="node34.html">Data in ROM</A>
+<B> Previous:</B> <A NAME="tex2html672"
+  HREF="node35.html">Creating a block of</A>
+ &nbsp; <B>  <A NAME="tex2html680"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Optimizations</TITLE>
+<META NAME="description" CONTENT="Optimizations">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node34.html">
+<LINK REL="previous" HREF="node32.html">
+<LINK REL="up" HREF="node26.html">
+<LINK REL="next" HREF="node34.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html643"
+  HREF="node34.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html639"
+  HREF="node26.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html633"
+  HREF="node32.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html641"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html644"
+  HREF="node34.html">Data in ROM</A>
+<B> Up:</B> <A NAME="tex2html640"
+  HREF="node26.html">Support of C language</A>
+<B> Previous:</B> <A NAME="tex2html634"
+  HREF="node32.html">Stack frame allocation and</A>
+ &nbsp; <B>  <A NAME="tex2html642"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000127000000000000000">
+Optimizations</A>
+</H2>
+
+<P>
+<TT>cpik</TT> performs many optimizations, but not all possible optimizations.
+Optimizations can be performed during code analysis, intermediate code generation, asm code generation and suprisingly <I>after</I> the code generation.
+
+<P>
+
+<OL>
+<LI><I>NOP removal</I> 
+
+<P>
+Most expressions that have no effect are simply removed. For example <TT>i = i + 0 ;</TT> does not produce any code.
+
+<P>
+</LI>
+<LI><I>Register value tracking</I> 
+
+<P>
+Value of <TT>W</TT> register is tracked whenever possible, so it is not reloaded when it contains the proper value. This feature only concern the <TT>W</TT> register, but I plan to extend it to <TT>FSR1</TT> register.
+
+<P>
+</LI>
+<LI><I>Constant folding</I> 
+
+<P>
+Most constant subexpressions are computed by the compiler, so complex expressions are often compiled as a single constant (eg: <TT>x= (1+2*4) &#171; 1 ;</TT>). However, a lot of constant foldings
+are done by the peephole optimizer or the expression simplifier (eg:  <TT>st.a.b.c = 34 ;</TT> is exactly compiled like <TT>x = 34 ;</TT>)
+
+<P>
+</LI>
+<LI><I>Peephole optimization</I> 
+
+<P>
+Intermediate code is analyzed by grouping instructions into slices of  2, 3 or 4 items. Each slice is compared against a library of possible simplifications or transformations. Then, the simplified code is simplified again, and so on. This kind of optimization may lead to 25% to 30% gain.
+
+<P>
+</LI>
+<LI><I>Code generator optimization</I> 
+
+<P>
+This is the only phase that depends on the target architecture. Bit operations are  excellent candidates for optimization.
+For example, consider the following macro to reset a single bit:
+<PRE>
+#define CLRBIT(var,bit) ((var) &amp;= ~(1 &lt;&lt; (bit)))
+</PRE>
+so
+<PRE>
+CLRBIT(i,3) ;
+</PRE>
+is expanded as
+<PRE>
+((i) &amp;= ~(1 &lt;&lt; (3))) ;
+</PRE>
+which is optimally translated as:
+<PRE>
+	bcf INDF0,3,0
+</PRE>
+
+<P>
+This example is a combination of constant folding and code generator optimizations.
+
+<P>
+</LI>
+<LI><I>Dead code removal</I> 
+
+<P>
+<TT>cpik</TT> takes into account constants when testing boolean conditions. 
+For example, instructions like
+<PRE>
+if(0) { ... }
+</PRE>
+or
+<PRE>
+while(0) { ... }
+</PRE>
+do not generate any code. In the same way,
+<PRE>
+while(1) { .. }
+</PRE>
+generates a genuine infinite loop with no test, exactly like
+<code>for(;;) { .. }</code> does.
+
+<P>
+However <TT>cpik</TT> does not perform a global analysis of code, so common subexpression removal are out of scope at this time. 
+
+<P>
+</LI>
+<LI><I>Jumps optimization </I> 
+
+<P>
+<TT>cpik</TT> contains a special optional<A NAME="tex2html10"
+  HREF="#foot1649"><SUP><SPAN CLASS="arabic">9</SPAN></SUP></A> optimizer that allows to use short jumps instead of long ones, whenever possible. This step is executed after the asm source code generation and can reduce the memory size by <SPAN CLASS="MATH"><IMG
+ WIDTH="39" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img6.png"
+ ALT="$ 20\%$"></SPAN>.
+
+<P>
+</LI>
+</OL>
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot1649">... optional</A><A
+ HREF="node33.html#tex2html10"><SUP><SPAN CLASS="arabic">9</SPAN></SUP></A></DT>
+<DD>See section <A HREF="node17.html#opt-jumps">10.3</A>
+
+</DD>
+</DL>
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html643"
+  HREF="node34.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html639"
+  HREF="node26.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html633"
+  HREF="node32.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html641"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html644"
+  HREF="node34.html">Data in ROM</A>
+<B> Up:</B> <A NAME="tex2html640"
+  HREF="node26.html">Support of C language</A>
+<B> Previous:</B> <A NAME="tex2html634"
+  HREF="node32.html">Stack frame allocation and</A>
+ &nbsp; <B>  <A NAME="tex2html642"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

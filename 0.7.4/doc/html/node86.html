@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>IO redirection</TITLE>
+<META NAME="description" CONTENT="IO redirection">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node87.html">
+<LINK REL="previous" HREF="node85.html">
+<LINK REL="up" HREF="node85.html">
+<LINK REL="next" HREF="node87.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1353"
+  HREF="node87.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1349"
+  HREF="node85.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1343"
+  HREF="node85.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1351"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1354"
+  HREF="node87.html">output functions</A>
+<B> Up:</B> <A NAME="tex2html1350"
+  HREF="node85.html">standard IO library</A>
+<B> Previous:</B> <A NAME="tex2html1344"
+  HREF="node85.html">standard IO library</A>
+ &nbsp; <B>  <A NAME="tex2html1352"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000161100000000000000">
+IO redirection</A>
+</H3>
+
+<OL>
+<LI><code>output_hook set_putchar_vector(output_hook)</code>
+
+<P>
+Sets indirection vector for character output. This function gets and returns 
+a pointer to a function receiving <TT>char</TT> and returning <TT>void</TT>.
+This feature allows   redirection of outputs to virtually any device, and to save the previous output vector.
+The output vector is not initialized, 
+so this function must be used prior any output.
+<BR><code>output_hook</code> is defined by <code>typedef void (*output_hook)(char) ;</code>
+
+<P>
+</LI>
+<LI><code>input_hook set_getchar_vector(input_hook) </code>
+
+<P>
+Sets indirection vector for character intput. This function gets and returns 
+a pointer to a function returning <TT>char</TT> and receiving <TT>void</TT>.
+This feature allows   redirection of inputs from virtually any device, and to save the previous intput vector.
+The input vector is not initialized, 
+so this function must be used prior any input.
+<BR><code>input_hook</code> is defined by <code>typedef char (*input_hook)() ;</code>
+</LI>
+</OL>
+
+<P>
+<BR><HR>
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

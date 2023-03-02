@@ -123,7 +123,7 @@ const char * ReturnInstr::process()
   }
 
   // insert a keep pseudo operator
-  // (move result to R0 and avoid spurious "no-effect" warning)
+  // (move result to _r0 and avoid spurious "no-effect" warning)
   expr1 = Cexpr::newCexpr ( Cexpr::Keep,expr ) ;
   expr = expr1 ;
   return expr->process() ;

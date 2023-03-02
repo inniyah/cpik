@@ -73,7 +73,7 @@ class Cexpr
       ZArrow ,  // fake offset+dereferencement for lvalues
       UnpackBF , // convert a bit-field to the corresponding int8 value
       AffBF,    // affectation to bit field
-      AffInit ,    // initialisation (constness  support)
+      AffInit     // initialisation (constness  support)
     } ;
     ~Cexpr();
     static Cexpr *newCexpr()  ;
@@ -176,6 +176,8 @@ class Cexpr
     bool isIntegerConstant ( int& cst );
     /** true if this expression is a floating point  constant  */
     bool isFloatingPointConstant ( float& cst ) ;
+    /** true if this expression is a structure */
+    bool isStructOrUnion(string *structname=0) ;
     /** true if this expression is an integer constant casted to pointer type */
     bool isCastConstant ( int& cst );
     /** No descriptions */

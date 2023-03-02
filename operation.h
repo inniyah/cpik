@@ -64,7 +64,7 @@ class Operation
 
                 PushN,  // push N bytes variable e1 to stack TODO DONE teste
 
-                // Attention: if N=1, pushes W (not R0L)
+                // Attention: if N=1, pushes W (not _r0L)
                 PushNR , // push N bytes data register to stack TODO DONE
 
                 PushP,  // push pointer register to stack
@@ -74,11 +74,11 @@ class Operation
                 PopNR, // pop N bytes value - store to register TODO teste
 
                 PopP ,  // pop address - store to pointer register
-                Push8RL,   // push 8 bit R0L (not W)!)
-                Pop8RL ,  // pop 8  bit, store to R0L (NOT W ! )
+                Push8RL,   // push 8 bit _r0L (not W)!)
+                Pop8RL ,  // pop 8  bit, store to _r0L (NOT W ! )
                 Pop8R,    // pop 8  bit, store to WREG
-                Mov8RLtoTos,  // move R0L to TOS
-                MovNRtoTos , // move N bytes from R0 zone to TOS (ATTN: moves WREG if N==0)TODO DONE TESTED
+                Mov8RLtoTos,  // move r0L to TOS
+                MovNRtoTos , // move N bytes from _r0 zone to TOS (ATTN: moves WREG if N==0)TODO DONE TESTED
 
                 AddN , // TOS + REG -> TOS (N*8 bit)
                 AddFP , // TOS + REG -> TOS (FP)
@@ -91,14 +91,14 @@ class Operation
 
                 IndirectN, // pop ptr from stack - N bytes  deref - push result
                 Mov8toR,  // move 8 bit variable e1 to WREG
-                Mov8toRL, // move 8 bit variable e1 to data register R0L
+                Mov8toRL, // move 8 bit variable e1 to data register _r0L
                 ExtendRL, // extends RL to RH (signed if val = 1)
                 MovNtoR, // move N bytes variable e1 to data register
 
                 MovRLto8, // move 8 bit RL to variable e1
                 MovRtoN, // move N bytes  data register to variable e1
 
-                Mov8RLtoR, // Move R0L to W
+                Mov8RLtoR, // Move _r0L to W
                 MovAddrtoR, // move 16 bit address e1 to data register
                 MovGlobAddrToGlob16, // move 16 bit global addr e1 to 16 bit variable e2
 
@@ -143,9 +143,9 @@ class Operation
 
                 MovPtrIndirectNto,   // move *Ptr to e1 (N bytes)
 
-                IndirectPopNR, // Pop TOS to PTR, then store *PTR to WREG or R0 block
+                IndirectPopNR, // Pop TOS to PTR, then store *PTR to WREG or _r0 block
 
-                IndirectPop8RL, // Pop TOS to PTR, then store *PTR to R0L
+                IndirectPop8RL, // Pop TOS to PTR, then store *PTR to _r0L
 
                 NegN,      // -TOS -> TOS N*8 bit
                 NegF,   // -TOS -> TOS (FP)

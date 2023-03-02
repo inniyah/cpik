@@ -3,4 +3,14 @@ a) bug fix in code generation for structures (missing parenthese, wrong evaluati
 b) modification to cope with new syntax of  .lkr files from gputils 1.0.0
 c) all devices supported by gputils 1.0.0 are supported => new headers
 d) support for devices with SFRs non-reachable in access bank (!) => new inc2h-v3 utility 
+
+0.7.3
+a) stack allocation changes 
+b) new pragma to specify the registers to save during interrupts
+c) improvement to the __asm__() intruction
+
+0.7.4
+a) pseudo register names changed in order to avoid collision with asm symbols coming from Microchip's headers (eg: RO ==> _r0)
+   Compiler itself, prolog code and RTL are impacted.
+
   

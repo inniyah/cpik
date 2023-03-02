@@ -77,7 +77,7 @@ const char * WhileInstr::process()
   loopLabel =  label+"_while";
   exitLabel =  label+"_exit" ;
   // insert a keep pseudo operator
-  // (move result to R0 and avoid spurious "no-effect" warning)
+  // (move result to _r0 and avoid spurious "no-effect" warning)
   // allows to perform test on result
   Cexpr *cond1= Cexpr::newCexpr(Cexpr::Test,cond) ;
   cond = cond1 ;

@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>How to initialize EEPROM data</TITLE>
+<META NAME="description" CONTENT="How to initialize EEPROM data">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node73.html">
+<LINK REL="previous" HREF="node71.html">
+<LINK REL="up" HREF="node69.html">
+<LINK REL="next" HREF="node73.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1155"
+  HREF="node73.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1151"
+  HREF="node69.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1145"
+  HREF="node71.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1153"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1156"
+  HREF="node73.html">Use struct to increase</A>
+<B> Up:</B> <A NAME="tex2html1152"
+  HREF="node69.html">Hints and tips</A>
+<B> Previous:</B> <A NAME="tex2html1146"
+  HREF="node71.html">Access to 16 bit</A>
+ &nbsp; <B>  <A NAME="tex2html1154"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000143000000000000000">
+How to initialize EEPROM data</A>
+</H2>
+
+<P>
+There is currently no specific <code>#pragma</code> to force EEPROM data value during chip programming.
+If you plan to initialize the EEPROM, the following will do the job: 
+use the <code> __asm__()</code> instruction to insert
+one (or more) &#171;<TT>DE</TT>&#187; directive in the emitted code. See the <TT>gpasm</TT> documentation for details
+about this directive.
+
+<P>
+Another option is to explicitly put the data at the correct address, as showed by this example.
+
+<P>
+<PRE>
+void your_function()
+{
+    /* Do the job this function is written for */
+   return ;
+   /* 
+   the following sequence is just a hack to insert 
+   data at eeprom addr in hex file
+   It does not correspond to executable code 
+   (and cannot be reached by execution flow)
+   */
+   __asm__("ee___sav equ $") ;
+   __asm__("\torg 0xF00000") ;
+   __asm__("\tfill 0,1024") ; // 1K byte eeprom memory for 18F2525
+   __asm__("\torg ee___sav") ;
+
+}
+</PRE>
+
+<P>
+Here, I initialize all EEPROM space of a 18F2525 device with 0x00  (the default value for an &#171;erased&#187; chip is all 0xFF). Remember that the function must be used to be included in the final executable file.
+
+<P>
+<BR><HR>
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

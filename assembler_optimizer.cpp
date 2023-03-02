@@ -283,6 +283,12 @@ const char * Assembler::doAsmOptimize ( bool &outOfRange )
   char buffer[40000] ; // sufficient for the error messages - wtn was 1000
 
   cmd=utility::quote(programPath)+" "+GPASM_OPTIONS+" -D JUMP_OPTIMIZING"+ " -o "+utility::quote(hexName)+" "+utility::quote(workName);
+
+  // windows specific patch from Neil Darlow
+#if (defined(_WIN32) || defined(__WIN32__)) && !defined(__CYGWIN__)
+    cmd=utility::quote(cmd);
+#endif
+
   if ( c18.debugOpt() & DEBUG_ASM_PRINT_LOG )
   {
     cout << cmd << endl;
@@ -333,6 +339,11 @@ const char * Assembler::doAsmNoOpt( )
   char buffer[1000] ; // sufficient for the error messages 
 
   cmd=utility::quote(programPath)+" "+GPASM_OPTIONS+" -o "+utility::quote(hexName)+" "+utility::quote(asmName);
+  // windows specific patch from Neil Darlow
+#if (defined(_WIN32) || defined(__WIN32__)) && !defined(__CYGWIN__)
+    cmd=utility::quote(cmd);
+#endif
+
   if ( c18.debugOpt() & DEBUG_ASM_PRINT_LOG )
   {
     cout << cmd << endl;

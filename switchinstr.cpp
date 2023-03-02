@@ -48,7 +48,7 @@ void SwitchInstr::flattenCode()
   c18.flattener()->insertOp(Operation(Operation::PushCaseLabel,caseLabel))  ;
 
   c18.flattener()->flatten(sw,Root) ;
-// value is in R0L, transfer it to W 
+// value is in _r0L, transfer it to W
   c18.flattener()->insertOp ( Operation ( Operation::Mov8RLtoR ) ) ;
 
 
@@ -73,7 +73,7 @@ const char * SwitchInstr::process()
   caseLabel =  label+"_case";
   exitLabel =  label+"_exit" ;
   // insert a keep pseudo operator
-  // move value to R0 
+  // move value to _r0
   Cexpr *cond1= Cexpr::newCexpr(Cexpr::Keep,sw) ;
   sw = cond1 ;
 

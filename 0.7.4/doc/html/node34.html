@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Data in ROM</TITLE>
+<META NAME="description" CONTENT="Data in ROM">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="previous" HREF="node33.html">
+<LINK REL="up" HREF="node26.html">
+<LINK REL="next" HREF="node35.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html653"
+  HREF="node35.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html649"
+  HREF="node26.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html645"
+  HREF="node33.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html651"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html654"
+  HREF="node35.html">Creating a block of</A>
+<B> Up:</B> <A NAME="tex2html650"
+  HREF="node26.html">Support of C language</A>
+<B> Previous:</B> <A NAME="tex2html646"
+  HREF="node33.html">Optimizations</A>
+ &nbsp; <B>  <A NAME="tex2html652"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000128000000000000000"></A>
+<A NAME="ROM"></A>
+<BR>
+Data in ROM
+</H2>
+
+<P>
+The PIC-18 processors are based on  two separate program and data spaces. Data space is RAM, and program space is ROM. 
+This architecture causes problem to keep initialized data<A NAME="tex2html11"
+  HREF="#foot1650"><SUP><SPAN CLASS="arabic">10</SPAN></SUP></A> 
+because it can only be stored in program space.
+
+<P>
+In order to provide access to initialized data, <TT>cpik</TT> adds a loader routine to startup code.  
+This routine is automatically activated before the <TT>main()</TT> function and  copies all initialized data from program space to data space<A NAME="tex2html12"
+  HREF="#foot571"><SUP><SPAN CLASS="arabic">11</SPAN></SUP></A>.
+As a consequence, initialized data is located in RAM during execution. This feature is necessary when the data can be modified, but is not 
+ desirable when the data is read-only because it wastes RAM space.
+
+<P>
+Since version 0.5.3 <TT>cpik</TT> offers several simple ways to use data located in program space (ROM). 
+The ROM support presented here is fully implemented with macros and a couple of run-time routines. These macros are defined in the <TT>rom.h</TT> header.
+This  support is experimental because it prepares a definitive implementation based on a  <code>__rom</code>  keyword. However, it is perfectly usable and very efficient from both time and memory points of view.
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot1650">... data</A><A
+ HREF="node34.html#tex2html11"><SUP><SPAN CLASS="arabic">10</SPAN></SUP></A></DT>
+<DD>such as literals like  <TT>"hello !"</TT>.
+
+</DD>
+<DT><A NAME="foot571">... space</A><A
+ HREF="node34.html#tex2html12"><SUP><SPAN CLASS="arabic">11</SPAN></SUP></A></DT>
+<DD>
+The loader is not included if  your program  does  not use statically initialized data.
+
+</DD>
+</DL>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html655"
+  HREF="node35.html">Creating a block of data in ROM</A>
+<LI><A NAME="tex2html656"
+  HREF="node36.html">Passing immediate ROM data to a subroutine</A>
+<LI><A NAME="tex2html657"
+  HREF="node37.html">Passing ROM data to a subroutine with a pointer to ROM</A>
+<LI><A NAME="tex2html658"
+  HREF="node38.html">Accessing data in ROM with a ROM accessor</A>
+</UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html653"
+  HREF="node35.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html649"
+  HREF="node26.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html645"
+  HREF="node33.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html651"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html654"
+  HREF="node35.html">Creating a block of</A>
+<B> Up:</B> <A NAME="tex2html650"
+  HREF="node26.html">Support of C language</A>
+<B> Previous:</B> <A NAME="tex2html646"
+  HREF="node33.html">Optimizations</A>
+ &nbsp; <B>  <A NAME="tex2html652"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

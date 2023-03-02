@@ -407,7 +407,7 @@ ResultLocation  Flatten::flattenDyadicOperation ( Cexpr *e, Position pos )
   bool e1is0=e1->isIntegerConstant ( cst ) && cst==0;
   bool is0=e0is0 || e1is0;
 
-  // when one of expressions is zero, other value is loaded in R0
+  // when one of expressions is zero, other value is loaded in _r0
   if ( e0is0 )
   {
     flatten ( e->arg ( 1 ), Right ) ;
@@ -652,7 +652,7 @@ ResultLocation   Flatten::flattenMonadicOperation ( Cexpr *e, Position pos )
       break ;
 
     case Cexpr::Keep:
-      // !!! must return 8 bit data in R0L
+      // !!! must return 8 bit data in _r0L
       if ( sz == 1 ) insertOp ( Operation ( Operation::Pop8RL ) ) ;
       else insertOp ( Operation ( sz,  Operation::PopNR ,0,0 ) ) ;
       loc =  ResultLocation ( ResultLocation::DataReg ) ;
@@ -1284,10 +1284,10 @@ ResultLocation Flatten::flattenFunctionCall ( Cexpr * exp, Position pos )
   }
   else if ( pos == Right && sz == 1 )
   {
-    // result is in R0L, transfer it to W - for other sizes, data is already at the good place
+    // result is in _r0L, transfer it to W - for other sizes, data is already at the good place
     insertOp ( Operation ( Operation::Mov8RLtoR ) ) ;
   }
-  //else, it is a Root expression, and result in R0 can be ignored
+  //else, it is a Root expression, and result in _r0 can be ignored
 
   return  r ;
 }

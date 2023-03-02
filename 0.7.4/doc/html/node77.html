@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>device/p18xxxxx.h</TITLE>
+<META NAME="description" CONTENT="device/p18xxxxx.h">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node78.html">
+<LINK REL="previous" HREF="node76.html">
+<LINK REL="up" HREF="node76.html">
+<LINK REL="next" HREF="node78.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1220"
+  HREF="node78.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1216"
+  HREF="node76.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1210"
+  HREF="node76.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1218"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1221"
+  HREF="node78.html">sys/types.h</A>
+<B> Up:</B> <A NAME="tex2html1217"
+  HREF="node76.html">Headers</A>
+<B> Previous:</B> <A NAME="tex2html1211"
+  HREF="node76.html">Headers</A>
+ &nbsp; <B>  <A NAME="tex2html1219"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000151000000000000000"></A>
+<A NAME="headers"></A>
+<BR>
+<TT>device/p18xxxxx.h</TT>
+</H2>
+The <TT>device</TT> directory contains an header file for each flavor of PIC18 device. 
+<code>#</code>include one of these files when you need to access a  register of the the target device (eg: <code>#include &lt;device/p18f2525.h&gt;</code>). Since version V0.7.0, the device headers contain various definitions that allow to access each  bit of registers using a symbolic identifier. These identifiers can be found in Microchip's datasheets. 
+
+<P>
+The following example illustrates how the devices' registers are declared.
+
+<P>
+<PRE>
+// ======================================
+//         PROCESSOR : p18f2525
+// ======================================
+
+// This file has been automatically generated from Microchip's "p18f2525.inc" file.
+// with the inc2h-v3 utility.             Please do not edit.
+// Do not use with cpik versions &lt; V0.7. Please report problems to the author.
+// (C) Alain Gibaud  2012-2013    (alain.gibaud@free.fr)
+
+// Note; All SFRs are reachable via access bank
+#pragma firstsfr 0xf80
+// ... 
+// ...
+// ------------------------------
+//        T3CON
+// ------------------------------
+unsigned int T3CON@0xfb1 ;
+union
+{
+
+struct 
+{
+  unsigned int 
+  TMR3ON : 1 ,
+  TMR3CS : 1 ,
+  NOT_T3SYNC : 1 ,
+  T3CCP1 : 1 ,
+  T3CKPS0 : 1 ,
+  T3CKPS1 : 1 ,
+  T3CCP2 : 1 ,
+  RD16 : 1 ;
+} ; 
+
+struct 
+{
+  unsigned int 
+  : 2,
+  T3SYNC : 1 ;
+} ; 
+
+// The following are aliases ..  
+struct 
+{
+  unsigned int 
+  : 4,
+  _T3CKPS : 2 ;
+} ; 
+
+} T3CONbits@0xfb1  ;
+</PRE>
+
+<P>
+In this example, the <TT>T3CON</TT> register contains both individual bits, and  a group of 2 bits (T3CKPS0 and T3CKPS1), which can be manipulated as a bit field. Thus, the following codes are equivalent because the <code>_T3CKPS</code> member name is an alias for the <code>T3CKPS0/T3CKPS1</code> group of bits.
+
+<P>
+<PRE>
+T3CONbits.T3CKPS0 = 0 ;  T3CONbits.T3CKPS1 = 1 ; // method 1 : individual bits
+T3CONbits._T3CKPS = 0b10 ;                       // method 2 : bit field
+</PRE>
+
+<P>
+Notice that the names <TT>T3CKPS0</TT>, <TT>T3CKPS1</TT>, etc have been chosen to be compatible with the member names used by Microchip, but obviously, they sound like macro names, despite the fact they are not.
+
+<P>
+<BR><HR>
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

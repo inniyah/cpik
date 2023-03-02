@@ -1165,7 +1165,7 @@ const char * Cexpr::bfUnpack ( bool root )
         oper() = AffBF ;
         return arg ( 1 )->bfUnpack ( root );
     }
-    // operator ++ (and -- is able) to work on bit fields
+    // operator ++ (and --) is able to work on bit fields
     else if ( ( oper() == PlusPlusPre || oper() == PlusPlusPost  ||  oper() == MinusMinusPost || oper() == MinusMinusPre )
               && arg ( 0 )->exprType()->isBitField ( size, offset ) )
     {
@@ -1216,6 +1216,8 @@ const char * Cexpr::makeCasts()
     Ctype   tfparam,  taparam,  functype ;
     unsigned int fp, ap , nfp, nap  ;
     const char *status = 0 ;
+    string name0, name1 ;
+    bool a0, a1 ;
 
     if ( isTerminal() )
     {
@@ -1293,9 +1295,9 @@ const char * Cexpr::makeCasts()
 
             // zero integer constant can be used as a pointer
             /*
-        cannot be tested by compatible() because compatibility depends
-        on type AND on value of the actual param
-        */
+            cannot be tested by compatible() because compatibility depends
+            on type AND on value of the actual param
+            */
 
             int integervalue ;
             bool nulinteger = actual->isIntegerConstant ( integervalue ) && ( integervalue == 0 ) ;
@@ -1305,11 +1307,11 @@ const char * Cexpr::makeCasts()
             {
                 // TODO : FIX CONSTNESS ISSUE
                 if (
-                      !tfparam->compatible (taparam )
-                         || // check for constness
-                      (tfparam->isPtrToNonConst() &&  taparam->isPtrToConst() ) ||
-                      (tfparam->isPtrToNonConst() &&  taparam->isConstArray())
-                   )
+                        !tfparam->compatible (taparam )
+                        || // check for constness
+                        (tfparam->isPtrToNonConst() &&  taparam->isPtrToConst() ) ||
+                        (tfparam->isPtrToNonConst() &&  taparam->isConstArray())
+                        )
                 {
                     string m ="Incompatible parameter type in function call.\n" ;
                     m += "(expected <" ;
@@ -1441,8 +1443,25 @@ const char * Cexpr::makeCasts()
             string msg ( "Const pointer assigned to non const pointer");
             return utility::setMessage ( msg ) ;
         }
-        ///*JET*/      cout << "aff: " << arg(0)->prettyPrint(1) << "( const " << arg(0)->exprType()->constness() << ") = " << arg(1)->prettyPrint(1) << endl;
-        ///*JET*/      cout << "code = " << arg(1)->exprType()->code() << " constness = " << arg(1)->exprType()->constness() << endl;
+
+        // no possible cast to of from different structure types
+        a0 = arg(0)->isStructOrUnion(&name0)  ;
+        a1 = arg(1)->isStructOrUnion(&name1) ;
+        if( a0 )
+        {   // dest is a stucture
+            if( !a1 || ( arg(0)->exprType() !=  arg(1)->exprType()))
+            {   // source is not a structure, or different type of struct
+                string msg ( "Incompatible types when assigning to type 'struct/union "+name0+"'.");
+                return utility::setMessage ( msg ) ;
+            }
+        }
+        else if(a1)
+        {   // dest is not a struct, but source is
+            string msg ( "Incompatible types when assigning from type 'struct/union "+name1+"'.");
+            return utility::setMessage ( msg ) ;
+        }
+        // !!! intentionally no break here
+
     case AffInit: // ++Gib
         // affectation from non pointer to pointer is forbidden
         //  if ( arg ( 0 )->exprType()->nBits() != arg ( 1 )->exprType()->nBits() )
@@ -2333,4 +2352,15 @@ Ctype Cexpr::condOpResult ( Ctype& t1, Ctype& t2 )
     else if ( t1->compatible ( t2 ) )
         return t1 ;
     return Ctype() ; // null type == error
+}
+
+bool Cexpr::isStructOrUnion(string *structname)
+{
+    bool b = exprType() ->isStruct() || exprType() ->isUnion();
+    if( b && structname )
+    {
+        *structname = exprType() ->structName() ;
+        if( * structname == "") *structname = "<anonymous>" ;
+    }
+    return b ;
 }

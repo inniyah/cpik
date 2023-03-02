@@ -112,6 +112,8 @@ class Compiler
     int & debugOpt();
     /** No descriptions */
     string getPragma ( const string& p );
+    void removePragma ( const string& p );
+
     /**version of cpik */
     string version ( const string& v="" ) ;
     /** build a literal name from file name */
@@ -135,6 +137,8 @@ class Compiler
     bool justVersion ;
     /** true -a option is present */
     bool justAssembly ;
+    /** true if the -k option is present */
+    bool keepUnusefulFiles ;
 
     /** the lexer */
     Lexer lexer_ ;

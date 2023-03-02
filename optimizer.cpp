@@ -610,8 +610,8 @@ int Flatten::optimize3()
     else if ( ( *i ).is ( Operation::PushNR,2 ) && ( *i1 )._code == Operation::MovToP &&
               ( *i2 ).is ( Operation::PopNR,2 ) )
     {
-      // MovToP does not alter R0, so there is no need to
-      // save and restore R0L/R0H
+      // MovToP does not alter _r0, so there is no need to
+      // save and restore _r0L/_r0H
       ops().erase ( i ) ;
       i = i1 ;
       ops().erase ( i2 ) ;

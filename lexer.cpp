@@ -86,6 +86,7 @@ bool Lexer::blk()
   needblk() ;
   return true ;
 }
+/*
 bool Lexer::needspc()
 {
   char c ;
@@ -98,6 +99,7 @@ bool Lexer::spc()
   needspc() ;
   return true ;
 }
+*/
 /** No descriptions */
 int Lexer::ch()
 {
@@ -341,22 +343,42 @@ int Lexer::esc_seq()
   {
     r = gch();
   }
-  else if ( ch() == 'n' )       /* c'est un newline */
+  else if ( ch() == 'a' )       /* alert */
+  {
+    gch();
+    r = '\a' ;
+  }
+  else if ( ch() == 'b' )       /* backspace */
+  {
+    gch();
+    r = '\b' ;
+  }
+  else if ( ch() == 'f' )       /* formfeed */
+  {
+    gch();
+    r = '\f' ;
+  }
+  else if ( ch() == 'n' )       /* newline */
   {
     gch();
     r = '\n' ;
   }
-  else if ( ch() == 'r' )       /* c'est un CR */
+  else if ( ch() == 'r' )       /* cr */
   {
     gch();
     r = '\r' ;
   }
-  else if ( ch() == 't' )       /* c'est un TAB */
+  else if ( ch() == 't' )       /* tab*/
   {
     gch();
     r = '\t' ;
   }
-  else if ( ch() == '"' )       /* c'est une " */
+  else if ( ch() == 'v' )       /* vertical tab */
+  {
+    gch();
+    r = '\v' ;
+  }
+  else if ( ch() == '"' )       /* " */
   {
     r = gch();
   }
@@ -364,33 +386,30 @@ int Lexer::esc_seq()
   {
     int       d;
 
-    r = 0;
+    unsigned int ur = 0;
     while ( ( d = digit ( ch(), 8 ) ) != -1 )
     {
       gch();
-      r = ( r << 3 ) + d;
+      ur = ( ur << 3 ) + d;
     }
-    if ( r > 127 )
-      r -= 256;    /* TODO: fix signed-unsigned issue  */
+    r = ur ;
   }
   else if ( ch() == 'x' )       /* hex constant */
   {
     int       d;
 
     gch();
-    r = 0;
+    unsigned int ur = 0;
     while ( ( d = digit ( ch(), 16 ) ) != -1 )
     {
       gch();
-      r = ( r << 4 ) + d;
+      ur = ( ur << 4 ) + d;
     }
-    if ( r > 127 )
-      r -= 256; /* TODO: fix signed-unsigned issue  */
-
+    r = ur ;
   }
   else
   {
-    /* escape sequence non reconnue */
+    /* unknown escape sequence */
     r = '\\';
   }
 
@@ -437,3 +456,12 @@ bool Lexer::matchReject ( const char *s, const char *r )
   return false ;
 }
 
+/** matches a double quote surrounding by optional blanks */
+bool Lexer::matchDQuote()
+{
+    blk() ;
+    bool r = match ( "\"" ) ;
+    blk() ;
+    return r ;
+
+}

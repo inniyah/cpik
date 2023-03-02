@@ -1,6 +1,6 @@
 #!/bin/bash
-version=0.7.3
-release=2
+version=0.7.4
+release=4
 echo mkdir cpik-$version-$release
 mkdir cpik-$version-$release
 echo

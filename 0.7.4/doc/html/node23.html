@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>#pragma saved_regs register,register,register, ..</TITLE>
+<META NAME="description" CONTENT="#pragma saved_regs register,register,register, ..">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node24.html">
+<LINK REL="previous" HREF="node22.html">
+<LINK REL="up" HREF="node18.html">
+<LINK REL="next" HREF="node24.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html513"
+  HREF="node24.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html509"
+  HREF="node18.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html503"
+  HREF="node22.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html511"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html514"
+  HREF="node24.html">#pragma fast_stack flag</A>
+<B> Up:</B> <A NAME="tex2html510"
+  HREF="node18.html">Pragmas</A>
+<B> Previous:</B> <A NAME="tex2html504"
+  HREF="node22.html">#pragma _IDLOCx value</A>
+ &nbsp; <B>  <A NAME="tex2html512"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000114500000000000000">
+<TT>#pragma saved_regs register,register,register, ..</TT></A>
+</H3>
+
+<P>
+<A NAME="saved-regs-pragma"></A>Since version 0.7.3, the <TT>SAVE_REGS</TT> and <TT>RESTORE_REGS</TT> macro are suppressed. 
+These macros were used to save and restore the data modified by an Interrupt Service Routine on to the stack. 
+However, this kind of context saving had two disadvantages:
+
+<OL>
+<LI>Data was saved in the stack frame of the function, so the available space on the stack was reduced,
+</LI>
+<LI>because data was saved <SPAN  CLASS="textit">after</SPAN> the local variables, these variables were not properly managed by the compiler.
+It was indeed a very bad feature, because the code of ISRs was obliged to use only global variables.
+</LI>
+</OL>
+With the new pragma, registers are saved before the stack frame, so the two previous defaults disappear.
+
+<P>
+The following <TT>saved_regs</TT> pragma is provided in the <TT>&lt;interrupt.h&gt;</TT> header: 
+<PRE>
+#pragma saved_regs _r0,_r0+1,_r1,_r1+1,_r2,_r2+1,_r3,_r3+1,PRODL,PRODH
+</PRE>
+
+<P>
+You can redefine this pragma just before an ISR routine if you are not happy with the standard registers list. 
+Note that doing such a redefinition
+does not expand the previous list of registers, but creates a new list. It means that you can easily turn off all the registers savings with:
+<PRE>
+#pragma saved_regs
+</PRE>
+
+<P>
+Also remember that the registers used by the floating point routines are not saved if you use the standard registers list, so if an ISR performs 
+floating point maths,
+you will have to use this pragma<A NAME="tex2html5"
+  HREF="#foot393"><SUP><SPAN CLASS="arabic">4</SPAN></SUP></A>.
+<DIV ALIGN="LEFT">
+<SPAN ID="fcol1639">
+</DIV><TABLE  WIDTH="97%">
+<TR><TD>
+The <SPAN  CLASS="textit">register</SPAN> specification can be any expression or address that refers to a valid location in memory because data is pushed with a <TT>movff</TT> instruction, that can access any page. However, never use this pragma to save any interrupt control registers (<TT>INTCON</TT>x or <TT>PIR</TT>x) because, as stated in the documentation, they cannot be manipulated with the <TT>movff</TT> instruction.
+</TD></TR>
+</TABLE>
+<DIV ALIGN="LEFT"></SPAN>
+
+</DIV>
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot393">... pragma</A><A
+ HREF="node23.html#tex2html5"><SUP><SPAN CLASS="arabic">4</SPAN></SUP></A></DT>
+<DD>However, it is generally not a good idea to perform complex calculations in an interrupt service routine.
+
+</DD>
+</DL>
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html513"
+  HREF="node24.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html509"
+  HREF="node18.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html503"
+  HREF="node22.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html511"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html514"
+  HREF="node24.html">#pragma fast_stack flag</A>
+<B> Up:</B> <A NAME="tex2html510"
+  HREF="node18.html">Pragmas</A>
+<B> Previous:</B> <A NAME="tex2html504"
+  HREF="node22.html">#pragma _IDLOCx value</A>
+ &nbsp; <B>  <A NAME="tex2html512"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

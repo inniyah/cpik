@@ -1,0 +1,177 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Accessing data in ROM with a ROM accessor</TITLE>
+<META NAME="description" CONTENT="Accessing data in ROM with a ROM accessor">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="previous" HREF="node37.html">
+<LINK REL="up" HREF="node34.html">
+<LINK REL="next" HREF="node39.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html703"
+  HREF="node39.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html699"
+  HREF="node34.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html695"
+  HREF="node37.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html701"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html704"
+  HREF="node39.html">Features</A>
+<B> Up:</B> <A NAME="tex2html700"
+  HREF="node34.html">Data in ROM</A>
+<B> Previous:</B> <A NAME="tex2html696"
+  HREF="node37.html">Passing ROM data to</A>
+ &nbsp; <B>  <A NAME="tex2html702"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000128400000000000000">
+Accessing data in ROM with a ROM accessor</A>
+</H3>
+
+<P>
+In the previous sections, ROM data was traversed in sequence. Using a ROM accessor, ROM data can be traversed randomly. A ROM accessor is simply a function that mimic the behavior of an access to array's elements. 
+
+<P>
+Eight macros are available to declare a ROM accessor. For example, the 
+<code>ROMF_TXT</code> macro both allows to declare a text, <I>and</I> the way to access it:
+
+<P>
+<PRE>
+ROMF_TXT( atext , "whiizz !\0")
+</PRE>
+
+<P>
+Here, <TT>atext</TT> is a ROM accessor for the specified string. It means that <TT>atext(0)</TT> returns <TT>'w'</TT>, <TT>atext(1)</TT> returns <TT>'h'</TT> , and so on. The type of <TT>atext</TT> is <TT>romf_txt</TT>. 
+The <TT>f</TT> stands for function, because accessors are technically functions receiving an <TT>unsigned int</TT>.
+
+<P>
+Here is another flavor of  the usual <TT>puts()</TT> function that receive a pointer to a <TT>romf_txt</TT>  :
+
+<P>
+<PRE>
+void RFputs(romf_txt *p)
+{
+  uint8_t k ;
+  for( k = 0 ; p(k) ; ++k)
+    putchar(p(k)) ;
+}
+</PRE>
+
+<P>
+The following table shows the available accessors, and their corresponding types.
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="LEFT"><B>accessor declaration</B></TD>
+<TD ALIGN="LEFT"><B>accessor type</B></TD>
+<TD ALIGN="LEFT"><B>value type</B></TD>
+<TD ALIGN="LEFT"><B>example</B></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>ROMF_TXT</code></TD>
+<TD ALIGN="LEFT"><code>romf_txt</code></TD>
+<TD ALIGN="LEFT"><code>int8_t</code></TD>
+<TD ALIGN="LEFT"><code>ROMF_TXT(a, "hello\0")</code></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>ROMF_DATA8</code></TD>
+<TD ALIGN="LEFT"><code>romf_data8</code></TD>
+<TD ALIGN="LEFT"><code>int8_t</code></TD>
+<TD ALIGN="LEFT"><code>ROMF_DATA8(b, -1,2,0xFF)</code></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>ROMF_DATA8U</code></TD>
+<TD ALIGN="LEFT"><code>romf_data8u</code></TD>
+<TD ALIGN="LEFT"><code>uint8_t</code></TD>
+<TD ALIGN="LEFT"><code>ROMF_DATA8U(c, 1,2,0xFF)</code></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>ROMF_DATA16</code></TD>
+<TD ALIGN="LEFT"><code>romf_data16</code></TD>
+<TD ALIGN="LEFT"><code>int16_t</code></TD>
+<TD ALIGN="LEFT"><code>ROMF_DATA16(d, -1,0xFF34)</code></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>ROMF_DATA16U</code></TD>
+<TD ALIGN="LEFT"><code>romf_data16u</code></TD>
+<TD ALIGN="LEFT"><code>uint16_t</code></TD>
+<TD ALIGN="LEFT"><code>ROMF_DATA16U(e, 1,12300)</code></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>ROMF_DATA32</code></TD>
+<TD ALIGN="LEFT"><code>romf_data32</code></TD>
+<TD ALIGN="LEFT"><code>int32_t</code></TD>
+<TD ALIGN="LEFT"><code>ROMF_DATA32(f, -1,0xdeadbeef)</code></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>ROMF_DATA32U</code></TD>
+<TD ALIGN="LEFT"><code>romf_data32u</code></TD>
+<TD ALIGN="LEFT"><code>uint32_t</code></TD>
+<TD ALIGN="LEFT"><code>ROMF_DATA32U(g, 22, 34)</code></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>ROMF_DATAF</code></TD>
+<TD ALIGN="LEFT"><code>romf_dataflt</code></TD>
+<TD ALIGN="LEFT"><code>float</code></TD>
+<TD ALIGN="LEFT"><code>ROMF_DATAF(h, 3.14,-22.0/9)</code></TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+Since V0.7.4,  these macros use the <TT>__data...__</TT> instructions (see section <A HREF="node64.html#__datax__">12.12.4</A>), so they can receive any 
+valid C constant expression. 
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html703"
+  HREF="node39.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html699"
+  HREF="node34.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html695"
+  HREF="node37.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html701"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html704"
+  HREF="node39.html">Features</A>
+<B> Up:</B> <A NAME="tex2html700"
+  HREF="node34.html">Data in ROM</A>
+<B> Previous:</B> <A NAME="tex2html696"
+  HREF="node37.html">Passing ROM data to</A>
+ &nbsp; <B>  <A NAME="tex2html702"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

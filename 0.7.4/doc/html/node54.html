@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Static data initialization</TITLE>
+<META NAME="description" CONTENT="Static data initialization">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node55.html">
+<LINK REL="previous" HREF="node53.html">
+<LINK REL="up" HREF="node39.html">
+<LINK REL="next" HREF="node55.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html929"
+  HREF="node55.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html925"
+  HREF="node39.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html919"
+  HREF="node53.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html927"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html930"
+  HREF="node55.html">Non static data initialization</A>
+<B> Up:</B> <A NAME="tex2html926"
+  HREF="node39.html">Features</A>
+<B> Previous:</B> <A NAME="tex2html920"
+  HREF="node53.html">Storage classes</A>
+ &nbsp; <B>  <A NAME="tex2html928"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000136000000000000000">
+Static data initialization</A>
+</H2>
+All <I>statically allocated</I><A NAME="tex2html16"
+  HREF="#foot1655"><SUP><SPAN CLASS="arabic">15</SPAN></SUP></A> variables/arrays/structures/unions can be statically initialized, as usual in C. Partial initialization of arrays or structs/unions is supported, and constant expressions in initializers are evaluated at compile time, whenever possible.
+
+<P>
+Initialization from a symbolic constant expression is supported&nbsp; (eg: expressions such a <TT>(t1-t2)+1</TT>, where 
+<TT>t1</TT> and <TT>t2</TT> are static arrays). In this case, symbolic expressions are generated and address calculation is done at assembly time.
+
+<P>
+When initializing an union, the type of the initializer must match the type of the first member of the union.
+
+<P>
+<PRE>
+/* The following is supported  */
+int k = 4 ;                 /* simple initialization */
+float  speed = 31.4259e-1 ; /* simple initialization */
+char str[] = "hi !" ;       /* array size inferred from initializer */
+int array[2][3] = {{1,2,3},{4,5,6}} ; /* initialization of array of arrays */
+long z[10] = {0};           /* partial initalization, missing data replaced by 0s */
+void f( float ff )
+{
+  static char t='Z'-26 ;      /* compile-time constant folding */
+  static char msg1[] = "OK" ; /* 3 elements static array */
+ /* ... */
+} 
+int *pk = &amp;k +1;            /* address calculation deferred to assembly stage */ 
+void (*pf)( float ) = f ;   /* idem */
+struct xxx a = { 1, 55 } ;  /* structure initialization */
+struct xxx b = { 5 } ;      /* partial  structure initialization */
+</PRE>
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot1655">... allocated</I></A><A
+ HREF="node54.html#tex2html16"><SUP><SPAN CLASS="arabic">15</SPAN></SUP></A></DT>
+<DD>Local variable are not statically   allocated, unless they are declared with  <TT>static</TT>.
+
+</DD>
+</DL>
+<BR><HR>
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

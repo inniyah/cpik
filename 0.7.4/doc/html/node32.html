@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Stack frame allocation and interrupts</TITLE>
+<META NAME="description" CONTENT="Stack frame allocation and interrupts">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node33.html">
+<LINK REL="previous" HREF="node31.html">
+<LINK REL="up" HREF="node26.html">
+<LINK REL="next" HREF="node33.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html631"
+  HREF="node33.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html627"
+  HREF="node26.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html621"
+  HREF="node31.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html629"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html632"
+  HREF="node33.html">Optimizations</A>
+<B> Up:</B> <A NAME="tex2html628"
+  HREF="node26.html">Support of C language</A>
+<B> Previous:</B> <A NAME="tex2html622"
+  HREF="node31.html">Function calling conventions</A>
+ &nbsp; <B>  <A NAME="tex2html630"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000126000000000000000"></A>
+<A NAME="it-and-stack-frame"></A>
+<BR>
+Stack frame allocation and interrupts
+</H2>
+
+<P>
+A <SPAN  CLASS="textit">stack frame</SPAN>  is a memory block that is reserved on the stack by any function that uses local variables. This allocation is typically done at the very beginning of the user code of the function by simply pushing any value on to the stack. For example, a simple &#171;<TT>clrf PREINC0,0</TT>&#187; instruction can be used to reserve space for one <TT>char</TT> variable.
+
+<P>
+When more data has to be pushed, the code for the stack frame allocation can become very long and slow because one byte is reserved at a time.
+This is why  cpik generates in this case a code that just alter the stack pointer (<TT>FSR0</TT>) by adding to it the number of bytes needed.
+Unfortunately, the stack pointer is composed of 2 separate 8 bit registers, so doing the operation needs 4 instructions. Here, the annoying things begin. Lets suppose that an interruption occurs just during this calculation: an ISR is triggered, but is executed with a &#171;half-cooked&#187;
+stack pointer that do not point to a valid memory place.
+
+<P>
+In order to avoid such a situation, interruptions must be masked prior the calculation, then restored to their previous state after it. By this way, the change of the stack pointer is made atomic (ie: non interruptible) and no problem can occur. 
+
+<P>
+However, this technique cannot be used in an Interrupt Service Routine for very technical reasons, so ISRs are automatically compiled with a specific  stack frame allocation technique. 
+
+<P>
+<DIV ALIGN="LEFT">
+<SPAN ID="fcol1648">
+</DIV><TABLE  WIDTH="97%">
+<TR><TD>
+This restriction also applies to routines called by ISR.
+Because the compiler cannot anticipate  whether
+such a routine will be called by an ISR or not, this routine cannot be automatically compiled with the proper stack management technique.
+This situation is very rare, but you can avoid it by disabling the standard stack allocation for a specific routine. 
+See section <A HREF="node24.html#fast-stack-pragma">10.4.6</A> for details about the <TT>fast_stack</TT> pragma.
+
+<P>
+</TD></TR>
+</TABLE>
+<DIV ALIGN="LEFT"></SPAN>
+
+</DIV>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html631"
+  HREF="node33.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html627"
+  HREF="node26.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html621"
+  HREF="node31.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html629"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html632"
+  HREF="node33.html">Optimizations</A>
+<B> Up:</B> <A NAME="tex2html628"
+  HREF="node26.html">Support of C language</A>
+<B> Previous:</B> <A NAME="tex2html622"
+  HREF="node31.html">Function calling conventions</A>
+ &nbsp; <B>  <A NAME="tex2html630"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

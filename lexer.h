@@ -46,11 +46,11 @@ public:
   bool kcheck(const char *keyword);
   /** No descriptions */
   bool blk();
-  bool spc();
+  //bool spc();
   /** look for any blanks */
   bool needblk();
   /** look at blanks (excluding newlines) */
-  bool needspc();
+  //bool needspc();
   /** peek current char */
   int ch();
   /** peek n'th char */
@@ -91,6 +91,8 @@ public:
   bool opMatch(const char *op);
   /** No descriptions */
   bool matchReject(const char *s, const char *r);
+  /** matches a double quote surrounding by optional blanks */
+  bool matchDQuote() ;
 private:
   
   File _source ;

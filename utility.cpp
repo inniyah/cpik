@@ -235,4 +235,3 @@ stringList utility::explode ( const string& cs, char sep )
 
   return r ;
 }
-

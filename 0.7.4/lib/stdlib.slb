@@ -1,0 +1,1963 @@
+
+;<+C18__assert> int _assert(long line@2,char *s@0)
+C18__assert
+;      puts_("AF-L ");
+	movlw LOW(C18_#stdlib_0)
+	movwf PREINC0,0
+	movlw HIGH(C18_#stdlib_0)
+	movwf PREINC0,0
+	ICALL C18_puts_
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+;      outdec(line) ;
+	movlw -1
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_outdec
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+;      puts_(" : ");
+	movlw LOW(C18_#stdlib_1)
+	movwf PREINC0,0
+	movlw HIGH(C18_#stdlib_1)
+	movwf PREINC0,0
+	ICALL C18_puts_
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+;      puts(s) ;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_puts
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+;      exit(+1) ;
+	movlw 1
+	movwf PREINC0,0
+	ICALL C18_exit
+	movf POSTDEC0,F,0 ; clean stack 
+;      return 0 ;
+	clrf _r0,0
+; }
+L18__assert_0
+	return 0
+;<?C18_#stdlib_0>
+;<?C18_#stdlib_1>
+;<?C18_exit>
+;<?C18_outdec>
+;<?C18_puts>
+;<?C18_puts_>
+;<-> int _assert(long line@2,char *s@0)
+
+;<+C18_exit> void exit(int i@0)
+C18_exit
+;  __asm__("\tsleep") ;
+	sleep
+; }
+L18_exit_1
+	return 0
+;<-> void exit(int i@0)
+
+;<+C18_ftoa> char *ftoa(float x@4,char *str@2,int prec@1,int format@0)
+C18_ftoa
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 11
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    int ie, i, k, ndig, estyle;
+;    float y;
+;    char *str1 = str ;
+	movlw -16
+	movff PLUSW0,PREINC0
+	movlw -1
+	movff POSTDEC0,PLUSW0
+	movlw -15
+	movff PLUSW0,PREINC0
+	movff POSTDEC0,INDF0
+;    ndig = ( prec < 0) ? 7 : (prec > 6 ? 7 : prec + 1);
+	movlw -17
+	movf PLUSW0,W,0
+	clrf PREINC0,0
+	btfsc WREG,7,0
+	incf INDF0,F,0
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_4
+	movlw 7
+	movwf PREINC0,0
+	IBRA L18_ftoa_3
+L18_ftoa_4
+	movlw -17
+	movff PLUSW0,PREINC0
+	movlw 6
+	ICALL GT8
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_6
+	movlw 7
+	movwf PREINC0,0
+	IBRA L18_ftoa_5
+L18_ftoa_6
+	movlw -17
+	movff PLUSW0,PREINC0
+	movlw 1
+	addwf INDF0,F,0
+L18_ftoa_5
+L18_ftoa_3
+	movlw -7
+	movff POSTDEC0,PLUSW0
+;    estyle = (format == 'e' || format == 'E') ;
+	movlw 1
+	movwf PREINC0,0
+	movlw -19
+	movff PLUSW0,PREINC0
+	movlw 101
+	xorwf INDF0,F,0
+	movlw 1
+	btfss STATUS,Z,0
+	movwf INDF0,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBNZ L18_ftoa_7
+	movlw -19
+	movff PLUSW0,PREINC0
+	movlw 69
+	xorwf INDF0,F,0
+	movlw 1
+	btfss STATUS,Z,0
+	movwf INDF0,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBNZ L18_ftoa_7
+	decf INDF0,F,0
+L18_ftoa_7
+	movlw -6
+	movff POSTDEC0,PLUSW0
+;    ie = 0;
+	movlw -10
+	clrf PLUSW0,0
+;    if ( x < 0)
+	movlw -14
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_8_endif
+;    {
+;       *str++ = '-';
+	movlw 45
+	movwf PREINC0,0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -19
+	incf PLUSW0,F,0
+	bnc L18_ftoa_38
+	movlw -18
+	incf PLUSW0,F,0
+L18_ftoa_38
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTDEC0,INDF1
+;       x = -x;
+	movlw -14
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    }
+;    if (x != 0.0)
+L18_ftoa_8_endif
+	movlw 14
+	ICALL getLOCALNEGADDR
+	movf POSTINC1,W,0
+	iorwf POSTINC1,W,0
+	iorwf POSTINC1,W,0
+	movff POSTINC1,PRODL
+	bcf PRODL,7,0
+	iorwf PRODL,W,0
+	IBZ L18_ftoa_10_endif
+;    {
+;       while (x < 1.0)
+L18_ftoa_9_while
+	movlw -14
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_9_exit
+;       {
+;          x *= 10.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 32
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	movlw 14
+	ICALL getLOCALNEGADDR
+	ICALL ipmulFP
+;          ie--;
+	movlw -10
+	decf PLUSW0,F,0
+;       }
+	IBRA L18_ftoa_9_while
+L18_ftoa_9_exit
+;    }
+;    while (x >= 10.0)
+L18_ftoa_10_endif
+L18_ftoa_11_while
+	movlw -14
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 32
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	ICALL geFP
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_11_exit
+;    {
+;       x /= 10.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 32
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	movlw 14
+	ICALL getLOCALNEGADDR
+	ICALL ipdivFP
+;       ie++;
+	movlw -10
+	incf PLUSW0,F,0
+;    }
+	IBRA L18_ftoa_11_while
+L18_ftoa_11_exit
+;    if (!estyle) ndig += ie;
+	movlw -6
+	movf PLUSW0,F,0
+	IBNZ L18_ftoa_12_endif
+	movlw -10
+	movf PLUSW0,W,0
+	movwf PREINC0,0
+	movlw 8
+	ICALL getLOCALNEGADDR
+	movf POSTDEC0,W,0
+	addwf INDF1,F,0
+;    for (y = i = 1; i < ndig; i++)
+L18_ftoa_12_endif
+	movlw 1
+	movwf PREINC0,0
+	movlw -10
+	movff INDF0,PLUSW0
+	ICALL cast8_F
+	movlw -5
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+L18_ftoa_13
+	movlw -9
+	movff PLUSW0,PREINC0
+	movlw -8
+	movf PLUSW0,W,0
+	ICALL LT8
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_14
+;       y /= 10.;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 32
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	movlw 5
+	ICALL getLOCALNEGADDR
+	ICALL ipdivFP
+L18_ftoa_15
+	movlw -9
+	incf PLUSW0,F,0
+	IBRA L18_ftoa_13
+L18_ftoa_14
+;    x += y / 2.;
+	movlw -5
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 64
+	movwf _r0+3,0
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	movlw 14
+	ICALL getLOCALNEGADDR
+	ICALL ipaddFP
+;    if (x >= 10.0)
+	movlw -14
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 32
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	ICALL geFP
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_16_endif
+;    {
+;       x = 1.0 ;
+	movlw -14
+	clrf PLUSW0,0
+	movlw -13
+	clrf PLUSW0,0
+	movlw -128
+	movwf PREINC0,0
+	movlw -12
+	movff POSTDEC0,PLUSW0
+	movlw 63
+	movwf PREINC0,0
+	movlw -11
+	movff POSTDEC0,PLUSW0
+;       ie++;
+	movlw -10
+	incf PLUSW0,F,0
+;    }
+;    if (!estyle && ie < 0)
+L18_ftoa_16_endif
+	clrf PREINC0,0
+	movlw -7
+	movff PLUSW0,PREINC0
+	ICALL lnot8
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_22
+	movlw -11
+	movf PLUSW0,W,0
+	clrf PREINC0,0
+	btfsc WREG,7,0
+	incf INDF0,F,0
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_22
+	incf INDF0,F,0
+L18_ftoa_22
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_21_endif
+;    {
+;       *str++ = '0';
+	movlw 48
+	movwf PREINC0,0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -19
+	incf PLUSW0,F,0
+	bnc L18_ftoa_39
+	movlw -18
+	incf PLUSW0,F,0
+L18_ftoa_39
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTDEC0,INDF1
+;       *str++ = '.';
+	movlw 46
+	movwf PREINC0,0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -19
+	incf PLUSW0,F,0
+	bnc L18_ftoa_40
+	movlw -18
+	incf PLUSW0,F,0
+L18_ftoa_40
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTDEC0,INDF1
+;       if (ndig < 0) ie = ie - ndig;
+	movlw -7
+	movf PLUSW0,W,0
+	clrf PREINC0,0
+	btfsc WREG,7,0
+	incf INDF0,F,0
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_17_endif
+	movlw -10
+	movff PLUSW0,PREINC0
+	movlw -8
+	movf PLUSW0,W,0
+	subwf INDF0,F,0
+	movlw -10
+	movff POSTDEC0,PLUSW0
+;       for (i = -1; i > ie; i--)
+L18_ftoa_17_endif
+	movlw -9
+	setf PLUSW0,0
+L18_ftoa_18
+	movlw -9
+	movff PLUSW0,PREINC0
+	movlw -11
+	movf PLUSW0,W,0
+	ICALL GT8
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_19
+;          *str++ = '0';
+	movlw 48
+	movwf PREINC0,0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -19
+	incf PLUSW0,F,0
+	bnc L18_ftoa_41
+	movlw -18
+	incf PLUSW0,F,0
+L18_ftoa_41
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTDEC0,INDF1
+L18_ftoa_20
+	movlw -9
+	decf PLUSW0,F,0
+	IBRA L18_ftoa_18
+L18_ftoa_19
+;    }
+;    for (i = 0; i < ndig; i++)
+L18_ftoa_21_endif
+	movlw -9
+	clrf PLUSW0,0
+L18_ftoa_26
+	movlw -9
+	movff PLUSW0,PREINC0
+	movlw -8
+	movf PLUSW0,W,0
+	ICALL LT8
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_27
+;    {
+;       k = x;
+	movlw -14
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL castF_8
+	movlw -8
+	movff POSTDEC0,PLUSW0
+;       *str++ = k + '0';
+	movff PLUSW0,PREINC0
+	movlw 48
+	addwf INDF0,F,0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -19
+	incf PLUSW0,F,0
+	bnc L18_ftoa_42
+	movlw -18
+	incf PLUSW0,F,0
+L18_ftoa_42
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTDEC0,INDF1
+;       if (i == (estyle ? 0 : ie))
+	movlw -9
+	movff PLUSW0,PREINC0
+	movlw -7
+	movf PLUSW0,F,0
+	IBZ L18_ftoa_25
+	movlw 0
+	IBRA L18_ftoa_24
+L18_ftoa_25
+	movlw -11
+	movf PLUSW0,W,0
+L18_ftoa_24
+	xorwf INDF0,F,0
+	movlw 1
+	btfss STATUS,Z,0
+	movwf INDF0,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_23_endif
+;          *str++ = '.';
+	movlw 46
+	movwf PREINC0,0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -19
+	incf PLUSW0,F,0
+	bnc L18_ftoa_43
+	movlw -18
+	incf PLUSW0,F,0
+L18_ftoa_43
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTDEC0,INDF1
+;       x -= (y = k);
+L18_ftoa_23_endif
+	movlw -8
+	movff PLUSW0,PREINC0
+	ICALL cast8_F
+	movlw 9
+	ICALL getLOCALNEGADDR
+	movlw -4
+L18_ftoa_44
+	addlw 1
+	movff PLUSW0,POSTINC1
+	bnz L18_ftoa_44
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	movlw 14
+	ICALL getLOCALNEGADDR
+	ICALL ipsubFP
+;       x *= 10.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 32
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	movlw 14
+	ICALL getLOCALNEGADDR
+	ICALL ipmulFP
+;    }
+L18_ftoa_28
+	movlw -9
+	incf PLUSW0,F,0
+	IBRA L18_ftoa_26
+L18_ftoa_27
+;    if (estyle && ie != 0)
+	clrf PREINC0,0
+	movlw -7
+	movf PLUSW0,F,0
+	IBZ L18_ftoa_37
+	movlw -11
+	movf PLUSW0,F,0
+	IBZ L18_ftoa_37
+	incf INDF0,F,0
+L18_ftoa_37
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_36_endif
+;    {
+;       *str++ = format;
+	movlw -18
+	movff PLUSW0,PREINC0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -19
+	incf PLUSW0,F,0
+	bnc L18_ftoa_45
+	movlw -18
+	incf PLUSW0,F,0
+L18_ftoa_45
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTDEC0,INDF1
+;       if (ie < 0)
+	movlw -10
+	movf PLUSW0,W,0
+	clrf PREINC0,0
+	btfsc WREG,7,0
+	incf INDF0,F,0
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_29_endif
+;       {
+;          ie = -ie;
+	movlw -10
+	movff PLUSW0,PREINC0
+	negf INDF0,0
+	movff POSTDEC0,PLUSW0
+;          *str++ = '-';
+	movlw 45
+	movwf PREINC0,0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -19
+	incf PLUSW0,F,0
+	bnc L18_ftoa_46
+	movlw -18
+	incf PLUSW0,F,0
+L18_ftoa_46
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTDEC0,INDF1
+;       }
+;       for (k = 100; k > ie; k /= 10);
+L18_ftoa_29_endif
+	movlw 100
+	movwf PREINC0,0
+	movlw -8
+	movff POSTDEC0,PLUSW0
+L18_ftoa_30
+	movlw -8
+	movff PLUSW0,PREINC0
+	movlw -11
+	movf PLUSW0,W,0
+	ICALL GT8
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_31
+L18_ftoa_32
+	movlw 8
+	ICALL getLOCALNEGADDR
+	movlw 10
+	ICALL ipdiv8
+	IBRA L18_ftoa_30
+L18_ftoa_31
+;       for (; k > 0; k /= 10)
+L18_ftoa_33
+	movlw -8
+	movf PLUSW0,W,0
+	ICALL GT8ZERO
+	movf POSTDEC0,W,0
+	IBZ L18_ftoa_34
+;       {
+;          *str++ = ie / k + '0';
+	movlw -10
+	movff PLUSW0,PREINC0
+	movlw -9
+	movf PLUSW0,W,0
+	ICALL div8
+	movlw 48
+	addwf INDF0,F,0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -19
+	incf PLUSW0,F,0
+	bnc L18_ftoa_47
+	movlw -18
+	incf PLUSW0,F,0
+L18_ftoa_47
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTDEC0,INDF1
+;          ie = ie % k;
+	movlw -10
+	movff PLUSW0,PREINC0
+	movlw -9
+	movf PLUSW0,W,0
+	ICALL mod8
+	movlw -10
+	movff POSTDEC0,PLUSW0
+;       }
+L18_ftoa_35
+	movlw 8
+	ICALL getLOCALNEGADDR
+	movlw 10
+	ICALL ipdiv8
+	IBRA L18_ftoa_33
+L18_ftoa_34
+;    }
+;    *str = '\0';
+L18_ftoa_36_endif
+	movlw -16
+	movff PLUSW0,FSR1L
+	movlw -15
+	movff PLUSW0,FSR1H
+	clrf POSTINC1,0
+;    return str1;
+	movlw -1
+	movff PLUSW0,_r0+0
+	movff INDF0,_r0+1
+; }
+L18_ftoa_2
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 11
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?GT8>
+;<?GT8ZERO>
+;<?LT8>
+;<?cast8_F>
+;<?castF_8>
+;<?div8>
+;<?divFP>
+;<?geFP>
+;<?getLOCALNEGADDR>
+;<?ipaddFP>
+;<?ipdiv8>
+;<?ipdivFP>
+;<?ipmulFP>
+;<?ipsubFP>
+;<?lnot8>
+;<?ltFP>
+;<?mod8>
+;<-> char *ftoa(float x@4,char *str@2,int prec@1,int format@0)
+
+;<+C18_strtof> float strtof(const char *str@2,char **endptr@0)
+C18_strtof
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 16
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    float number;
+;    long exponent;
+;    int negative;
+;    char *p = (char *) str;
+	movlw -17
+	movff PLUSW0,PREINC0
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movlw -16
+	movff PLUSW0,PREINC0
+	movlw -7
+	movff POSTDEC0,PLUSW0
+;    float p10;
+;    int n;
+;    int num_digits;
+;    int num_decimals;
+;    while ( *p == ' ' || *p == '\t' || *p == '\n' ) p++;
+L18_strtof_49_while
+	movlw 1
+	movwf PREINC0,0
+	movwf PREINC0,0
+	movlw -10
+	movff PLUSW0,FSR1L
+	movlw -9
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 32
+	xorwf INDF0,F,0
+	movlw 1
+	btfss STATUS,Z,0
+	movwf INDF0,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBNZ L18_strtof_51
+	movlw -10
+	movff PLUSW0,FSR1L
+	movlw -9
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 9
+	xorwf INDF0,F,0
+	movlw 1
+	btfss STATUS,Z,0
+	movwf INDF0,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBNZ L18_strtof_51
+	decf INDF0,F,0
+L18_strtof_51
+	movf POSTDEC0,W,0
+	IBNZ L18_strtof_50
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 10
+	xorwf INDF0,F,0
+	movlw 1
+	btfss STATUS,Z,0
+	movwf INDF0,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBNZ L18_strtof_50
+	decf INDF0,F,0
+L18_strtof_50
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_49_exit
+	movlw -8
+	incf PLUSW0,F,0
+	bnc L18_strtof_73
+	movlw -7
+	incf PLUSW0,F,0
+L18_strtof_73
+	IBRA L18_strtof_49_while
+L18_strtof_49_exit
+;    negative = 0;
+	movlw -9
+	clrf PLUSW0,0
+;    switch (*p)
+	movlw -8
+	movff PLUSW0,FSR1L
+	movlw -7
+	movff PLUSW0,FSR1H
+	movf INDF1,W,0
+	addlw 213
+	IBZ L18_strtof_52_case_43
+	addlw 254
+	IBNZ L18_strtof_52_case_default
+;    {
+;    case '-':
+L18_strtof_52_case_45
+;       negative = 1;
+	movlw 1
+	movwf PREINC0,0
+	movlw -9
+	movff POSTDEC0,PLUSW0
+;    case '+':
+L18_strtof_52_case_43
+;       p++;
+	movlw -8
+	incf PLUSW0,F,0
+	bnc L18_strtof_74
+	movlw -7
+	incf PLUSW0,F,0
+L18_strtof_74
+;    }
+L18_strtof_52_exit
+L18_strtof_52_case_default
+;    number = 0.0;
+	movlw -15
+	clrf PLUSW0,0
+	movlw -14
+	clrf PLUSW0,0
+	movlw -13
+	clrf PLUSW0,0
+	movlw -12
+	clrf PLUSW0,0
+;    exponent = 0;
+	movlw -11
+	clrf PLUSW0,0
+	movlw -10
+	clrf PLUSW0,0
+;    num_digits = 0;
+	movlw -1
+	clrf PLUSW0,0
+;    num_decimals = 0;
+	clrf INDF0,0
+;    while (*p >= '0' && *p <= '9')
+L18_strtof_53_while
+	clrf PREINC0,0
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 48
+	ICALL GE8
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_54
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 57
+	ICALL LE8
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_54
+	incf INDF0,F,0
+L18_strtof_54
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_53_exit
+;    {
+;       number = number * 10.0 + (*p - '0');
+	movlw -15
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 32
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -12
+	movff PLUSW0,FSR1L
+	movlw -11
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 48
+	subwf INDF0,F,0
+	ICALL cast8_F
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL addFP
+	movlw -15
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       p++;
+	movlw -8
+	incf PLUSW0,F,0
+	bnc L18_strtof_75
+	movlw -7
+	incf PLUSW0,F,0
+L18_strtof_75
+;       num_digits++;
+	movlw -1
+	incf PLUSW0,F,0
+;    }
+	IBRA L18_strtof_53_while
+L18_strtof_53_exit
+;    if (*p == '.')
+	movlw -8
+	movff PLUSW0,FSR1L
+	movlw -7
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 46
+	xorwf INDF0,F,0
+	movlw 1
+	btfss STATUS,Z,0
+	movwf INDF0,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_57_endif
+;    {
+;       p++;
+	movlw -8
+	incf PLUSW0,F,0
+	bnc L18_strtof_76
+	movlw -7
+	incf PLUSW0,F,0
+L18_strtof_76
+;       while ( *p >= '0' && *p <= '9')
+L18_strtof_55_while
+	clrf PREINC0,0
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 48
+	ICALL GE8
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_56
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 57
+	ICALL LE8
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_56
+	incf INDF0,F,0
+L18_strtof_56
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_55_exit
+;       {
+;          number = number * 10.0 + (*p - '0');
+	movlw -15
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 32
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -12
+	movff PLUSW0,FSR1L
+	movlw -11
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 48
+	subwf INDF0,F,0
+	ICALL cast8_F
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL addFP
+	movlw -15
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          p++;
+	movlw -8
+	incf PLUSW0,F,0
+	bnc L18_strtof_77
+	movlw -7
+	incf PLUSW0,F,0
+L18_strtof_77
+;          num_digits++;
+	movlw -1
+	incf PLUSW0,F,0
+;          num_decimals++;
+	incf INDF0,F,0
+;       }
+	IBRA L18_strtof_55_while
+L18_strtof_55_exit
+;       exponent -= num_decimals;
+	movff INDF0,_r0
+	clrf _r0H,0
+	btfsc _r0L,7,0
+	setf _r0H,0
+	movlw 11
+	ICALL getLOCALNEGADDR
+	movf _r0,W,0
+	subwf POSTINC1,F,0
+	movf _r0+1,W,0
+	subwfb POSTDEC1,F,0
+;    }
+;    if (num_digits == 0)
+L18_strtof_57_endif
+	movlw -1
+	movf PLUSW0,F,0
+	IBNZ L18_strtof_58_endif
+;    {
+;       return 0.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_strtof_48
+;    }
+;    if (negative) number = -number;
+L18_strtof_58_endif
+	movlw -9
+	movf PLUSW0,F,0
+	IBZ L18_strtof_59_endif
+	movlw -15
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if (*p == 'e' || *p == 'E')
+L18_strtof_59_endif
+	movlw 1
+	movwf PREINC0,0
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 101
+	xorwf INDF0,F,0
+	movlw 1
+	btfss STATUS,Z,0
+	movwf INDF0,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBNZ L18_strtof_65
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 69
+	xorwf INDF0,F,0
+	movlw 1
+	btfss STATUS,Z,0
+	movwf INDF0,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBNZ L18_strtof_65
+	decf INDF0,F,0
+L18_strtof_65
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_64_endif
+;    {
+;       negative = 0;
+	movlw -9
+	clrf PLUSW0,0
+;       switch(*++p)
+	movlw -8
+	incf PLUSW0,F,0
+	bnc L18_strtof_78
+	movlw -7
+	incf PLUSW0,F,0
+L18_strtof_78
+	movlw -8
+	movff PLUSW0,FSR1L
+	movlw -7
+	movff PLUSW0,FSR1H
+	movf INDF1,W,0
+	addlw 213
+	IBZ L18_strtof_60_case_43
+	addlw 254
+	IBNZ L18_strtof_60_case_default
+;       {
+;       case '-':
+L18_strtof_60_case_45
+;          negative = 1;
+	movlw 1
+	movwf PREINC0,0
+	movlw -9
+	movff POSTDEC0,PLUSW0
+;       case '+':
+L18_strtof_60_case_43
+;          p++;
+	movlw -8
+	incf PLUSW0,F,0
+	bnc L18_strtof_79
+	movlw -7
+	incf PLUSW0,F,0
+L18_strtof_79
+;       }
+L18_strtof_60_exit
+L18_strtof_60_case_default
+;       n = 0;
+	movlw -2
+	clrf PLUSW0,0
+;       while ( *p >= '0' && *p <= '9' )
+L18_strtof_61_while
+	clrf PREINC0,0
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 48
+	ICALL GE8
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_62
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 57
+	ICALL LE8
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_62
+	incf INDF0,F,0
+L18_strtof_62
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_61_exit
+;       {
+;          n = n * 10 + (*p - '0');
+	movlw -2
+	movff PLUSW0,PREINC0
+	movlw 10
+	mulwf INDF0,0
+	movff PRODL,INDF0
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw 48
+	subwf INDF0,F,0
+	movf POSTDEC0,W,0
+	addwf INDF0,F,0
+	movlw -2
+	movff POSTDEC0,PLUSW0
+;          p++;
+	movlw -8
+	incf PLUSW0,F,0
+	bnc L18_strtof_80
+	movlw -7
+	incf PLUSW0,F,0
+L18_strtof_80
+;       }
+	IBRA L18_strtof_61_while
+L18_strtof_61_exit
+;       if (negative)
+	movlw -9
+	movf PLUSW0,F,0
+	IBZ L18_strtof_63_else
+;          exponent -= n;
+	movlw -2
+	movff PLUSW0,_r0
+	clrf _r0H,0
+	btfsc _r0L,7,0
+	setf _r0H,0
+	movlw 11
+	ICALL getLOCALNEGADDR
+	movf _r0,W,0
+	subwf POSTINC1,F,0
+	movf _r0+1,W,0
+	subwfb POSTDEC1,F,0
+;       else
+	IBRA L18_strtof_63_endif
+L18_strtof_63_else
+;          exponent += n;
+	movlw -2
+	movff PLUSW0,_r0
+	clrf _r0H,0
+	btfsc _r0L,7,0
+	setf _r0H,0
+	movlw 11
+	ICALL getLOCALNEGADDR
+	movf _r0,W,0
+	addwf POSTINC1,F,0
+	movf _r0+1,W,0
+	addwfc POSTDEC1,F,0
+L18_strtof_63_endif
+;    }
+;    if (exponent < -125L || exponent > 128L)
+L18_strtof_64_endif
+	movlw 1
+	movwf PREINC0,0
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -125
+	movwf _r0+0,0
+	setf _r0+1,0
+	ICALL LT16
+	movf POSTDEC0,W,0
+	IBNZ L18_strtof_67
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -128
+	movwf _r0+0,0
+	clrf _r0+1,0
+	ICALL GT16
+	movf POSTDEC0,W,0
+	IBNZ L18_strtof_67
+	decf INDF0,F,0
+L18_strtof_67
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_66_endif
+;    {
+;       errno = 34;
+	movlw 34
+	movwf C18_errno+0,0
+;       return 3.40282347e+38f;
+	setf _r0+0,0
+	setf _r0+1,0
+	movlw 127
+	movwf _r0+2,0
+	movwf _r0+3,0
+	IBRA L18_strtof_48
+;    }
+;    p10 = 10.;
+L18_strtof_66_endif
+	movlw -6
+	clrf PLUSW0,0
+	movlw -5
+	clrf PLUSW0,0
+	movlw 32
+	movwf PREINC0,0
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movlw 65
+	movwf PREINC0,0
+	movlw -3
+	movff POSTDEC0,PLUSW0
+;    n = exponent;
+	movlw -11
+	movff PLUSW0,PREINC0
+	movlw -2
+	movff POSTDEC0,PLUSW0
+;    if (n < 0) n = -n;
+	movf PLUSW0,W,0
+	clrf PREINC0,0
+	btfsc WREG,7,0
+	incf INDF0,F,0
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_68_endif
+	movlw -2
+	movff PLUSW0,PREINC0
+	negf INDF0,0
+	movff POSTDEC0,PLUSW0
+;    while (n)
+L18_strtof_68_endif
+L18_strtof_71_while
+	movlw -2
+	movf PLUSW0,F,0
+	IBZ L18_strtof_71_exit
+;    {
+;       if (n & 1)
+	movf PLUSW0,W,0
+	andlw 1
+	IBZ L18_strtof_70_endif
+;       {
+;          if (exponent < 0)
+	movlw -11
+	movff PLUSW0,_r0+0
+	movlw -10
+	movff PLUSW0,_r0+1
+	clrf PREINC0,0
+	btfsc _r0+1,7,0
+	incf INDF0,F,0
+	movf POSTDEC0,W,0
+	IBZ L18_strtof_69_else
+;             number /= p10;
+	movlw -6
+	movff PLUSW0,_r0+0
+	movlw -5
+	movff PLUSW0,_r0+1
+	movlw -4
+	movff PLUSW0,_r0+2
+	movlw -3
+	movff PLUSW0,_r0+3
+	movlw 15
+	ICALL getLOCALNEGADDR
+	ICALL ipdivFP
+;          else
+	IBRA L18_strtof_69_endif
+L18_strtof_69_else
+;             number *= p10;
+	movlw -6
+	movff PLUSW0,_r0+0
+	movlw -5
+	movff PLUSW0,_r0+1
+	movlw -4
+	movff PLUSW0,_r0+2
+	movlw -3
+	movff PLUSW0,_r0+3
+	movlw 15
+	ICALL getLOCALNEGADDR
+	ICALL ipmulFP
+L18_strtof_69_endif
+;       }
+;       n >>= 1;
+L18_strtof_70_endif
+	movlw 2
+	ICALL getLOCALNEGADDR
+	movlw 1
+	ICALL iprshift8
+;       p10 *= p10;
+	movlw -6
+	movff PLUSW0,_r0+0
+	movlw -5
+	movff PLUSW0,_r0+1
+	movlw -4
+	movff PLUSW0,_r0+2
+	movlw -3
+	movff PLUSW0,_r0+3
+	movlw 6
+	ICALL getLOCALNEGADDR
+	ICALL ipmulFP
+;    }
+	IBRA L18_strtof_71_while
+L18_strtof_71_exit
+;    if (endptr) *endptr = p;
+	movlw -19
+	movff PLUSW0,PREINC0
+	movf PLUSW0,W,0
+	iorwf POSTDEC0,W,0
+	IBZ L18_strtof_72_endif
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -21
+	movff PLUSW0,FSR1L
+	movlw -20
+	movff PLUSW0,FSR1H
+	movff POSTDEC0,PREINC1
+	movf POSTDEC1,F,0 ; just decr
+	movff POSTDEC0,INDF1
+;    return number;
+L18_strtof_72_endif
+	movlw -15
+	movff PLUSW0,_r0+0
+	movlw -14
+	movff PLUSW0,_r0+1
+	movlw -13
+	movff PLUSW0,_r0+2
+	movlw -12
+	movff PLUSW0,_r0+3
+; }
+L18_strtof_48
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 16
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?C18_errno>
+;<?GE8>
+;<?GT16>
+;<?LE8>
+;<?LT16>
+;<?addFP>
+;<?cast8_F>
+;<?getLOCALNEGADDR>
+;<?ipdivFP>
+;<?ipmulFP>
+;<?iprshift8>
+;<?mulFP>
+;<-> float strtof(const char *str@2,char **endptr@0)
+
+;<+C18_atof> float atof(const char *str@0)
+C18_atof
+;    return strtof(str, 0);
+	clrf PREINC0,0
+	movlw -2
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_strtof
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+; }
+L18_atof_81
+	return 0
+;<?C18_strtof>
+;<-> float atof(const char *str@0)
+
+;<+C18_isspace> int isspace(char c@0)
+C18_isspace
+;  switch(c)
+	movf INDF0,W,0
+	addlw 247
+	IBZ L18_isspace_83_case_9
+	dcfsnz WREG, F, 0
+	IBRA L18_isspace_83_case_10
+	addlw 234
+	IBNZ L18_isspace_83_case_default
+;  {
+;   case ' ' : case '\n' : case '\t': return 1 ;
+L18_isspace_83_case_32
+L18_isspace_83_case_10
+L18_isspace_83_case_9
+	movlw 1
+	movwf _r0,0
+	IBRA L18_isspace_82
+;  }
+L18_isspace_83_exit
+L18_isspace_83_case_default
+;  return 0 ;
+	clrf _r0,0
+; }
+L18_isspace_82
+	return 0
+;<-> int isspace(char c@0)
+
+;<+C18_isdigit> int isdigit(char c@0)
+C18_isdigit
+;  return (unsigned char)c >= (unsigned char)'0' && (unsigned char)c <= (unsigned char)'9' ;
+	clrf PREINC0,0
+	movlw -1
+	movff PLUSW0,PREINC0
+	movlw 48
+	subwf INDF0,F,0
+	clrf INDF0,0
+	btfsc STATUS,C,0
+	btg INDF0,0,0
+	movf POSTDEC0,W,0
+	IBZ L18_isdigit_85
+	movlw -1
+	movff PLUSW0,PREINC0
+	movlw 57
+	ICALL ULE8
+	movf POSTDEC0,W,0
+	IBZ L18_isdigit_85
+	incf INDF0,F,0
+L18_isdigit_85
+	movff POSTDEC0,_r0
+; }
+L18_isdigit_84
+	return 0
+;<?ULE8>
+;<-> int isdigit(char c@0)
+
+;<+C18_atoi> int atoi(const char *s@0)
+C18_atoi
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;  int neg , c ;
+;  unsigned int res ;
+;  while( isspace(*s) ) ++s ;
+L18_atoi_87_while
+	movlw -4
+	movff PLUSW0,FSR1L
+	movlw -3
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	ICALL C18_isspace
+	movff _r0,INDF0
+	movf POSTDEC0,W,0
+	IBZ L18_atoi_87_exit
+	movlw -4
+	incf PLUSW0,F,0
+	bnc L18_atoi_94
+	movlw -3
+	incf PLUSW0,F,0
+L18_atoi_94
+	IBRA L18_atoi_87_while
+L18_atoi_87_exit
+;  neg = 0 ;
+	movlw -2
+	clrf PLUSW0,0
+;  switch(*s)
+	movlw -4
+	movff PLUSW0,FSR1L
+	movlw -3
+	movff PLUSW0,FSR1H
+	movf INDF1,W,0
+	addlw 213
+	IBZ L18_atoi_88_case_43
+	addlw 254
+	IBNZ L18_atoi_88_case_default
+;  {
+;   case '-' : neg = 1 ;
+L18_atoi_88_case_45
+	movlw 1
+	movwf PREINC0,0
+	movlw -2
+	movff POSTDEC0,PLUSW0
+;   case '+' : ++s ;
+L18_atoi_88_case_43
+	movlw -4
+	incf PLUSW0,F,0
+	bnc L18_atoi_95
+	movlw -3
+	incf PLUSW0,F,0
+L18_atoi_95
+;  }
+L18_atoi_88_exit
+L18_atoi_88_case_default
+;  for( res = 0 ; isdigit( c = *s ) ; ++s )
+	clrf INDF0,0
+L18_atoi_89
+	movlw -4
+	movff PLUSW0,FSR1L
+	movlw -3
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw -2
+	movff INDF0,PLUSW0
+	ICALL C18_isdigit
+	movff _r0,INDF0
+	movf POSTDEC0,W,0
+	IBZ L18_atoi_90
+;   res = res * 10 + (c - '0') ;
+	movff INDF0,PREINC0
+	movlw 10
+	mulwf INDF0,0
+	movff PRODL,INDF0
+	movlw -2
+	movff PLUSW0,PREINC0
+	movlw 48
+	subwf INDF0,F,0
+	movf POSTDEC0,W,0
+	addwf INDF0,F,0
+	movff POSTDEC0,INDF0
+L18_atoi_91
+	movlw -4
+	incf PLUSW0,F,0
+	bnc L18_atoi_96
+	movlw -3
+	incf PLUSW0,F,0
+L18_atoi_96
+	IBRA L18_atoi_89
+L18_atoi_90
+;  return neg ? -res : res ;
+	movlw -2
+	movf PLUSW0,F,0
+	IBZ L18_atoi_93
+	movff INDF0,PREINC0
+	negf INDF0,0
+	IBRA L18_atoi_92
+L18_atoi_93
+	movff INDF0,PREINC0
+L18_atoi_92
+	movff POSTDEC0,_r0
+; }
+L18_atoi_86
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?C18_isdigit>
+;<?C18_isspace>
+;<-> int atoi(const char *s@0)
+
+;<+C18_atol> long atol(const char *s@0)
+C18_atol
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;  int neg , c ;
+;  unsigned long res ;
+;  while( isspace(*s) ) ++s ;
+L18_atol_98_while
+	movlw -5
+	movff PLUSW0,FSR1L
+	movlw -4
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	ICALL C18_isspace
+	movff _r0,INDF0
+	movf POSTDEC0,W,0
+	IBZ L18_atol_98_exit
+	movlw -5
+	incf PLUSW0,F,0
+	bnc L18_atol_105
+	movlw -4
+	incf PLUSW0,F,0
+L18_atol_105
+	IBRA L18_atol_98_while
+L18_atol_98_exit
+;  neg = 0 ;
+	movlw -3
+	clrf PLUSW0,0
+;  switch(*s)
+	movlw -5
+	movff PLUSW0,FSR1L
+	movlw -4
+	movff PLUSW0,FSR1H
+	movf INDF1,W,0
+	addlw 213
+	IBZ L18_atol_99_case_43
+	addlw 254
+	IBNZ L18_atol_99_case_default
+;  {
+;   case '-' : neg = 1 ;
+L18_atol_99_case_45
+	movlw 1
+	movwf PREINC0,0
+	movlw -3
+	movff POSTDEC0,PLUSW0
+;   case '+' : ++s ;
+L18_atol_99_case_43
+	movlw -5
+	incf PLUSW0,F,0
+	bnc L18_atol_106
+	movlw -4
+	incf PLUSW0,F,0
+L18_atol_106
+;  }
+L18_atol_99_exit
+L18_atol_99_case_default
+;  for( res = 0 ; isdigit( c = *s ) ; ++s )
+	movlw -1
+	clrf PLUSW0,0
+	clrf INDF0,0
+L18_atol_100
+	movlw -5
+	movff PLUSW0,FSR1L
+	movlw -4
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw -3
+	movff INDF0,PLUSW0
+	ICALL C18_isdigit
+	movff _r0,INDF0
+	movf POSTDEC0,W,0
+	IBZ L18_atol_101
+;   res = res * 10 + (c - '0') ;
+	movlw -1
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 10
+	movwf _r0+0,0
+	clrf _r0+1,0
+	ICALL mul16
+	movlw -4
+	movff PLUSW0,PREINC0
+	movlw 48
+	subwf INDF0,F,0
+	ICALL cast8_16
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL add16
+	movlw -1
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+L18_atol_102
+	movlw -5
+	incf PLUSW0,F,0
+	bnc L18_atol_107
+	movlw -4
+	incf PLUSW0,F,0
+L18_atol_107
+	IBRA L18_atol_100
+L18_atol_101
+;  return neg ? -res : res ;
+	movlw -3
+	movf PLUSW0,F,0
+	IBZ L18_atol_104
+	movlw -1
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL neg16
+	IBRA L18_atol_103
+L18_atol_104
+	movlw -1
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+L18_atol_103
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_atol_97
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?C18_isdigit>
+;<?C18_isspace>
+;<?add16>
+;<?cast8_16>
+;<?mul16>
+;<?neg16>
+;<-> long atol(const char *s@0)
+
+;<+C18_atoll> long32 atoll(const char *s@0)
+C18_atoll
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;  int neg , c ;
+;  unsigned long long res ;
+;  while( isspace(*s) ) ++s ;
+L18_atoll_109_while
+	movlw -7
+	movff PLUSW0,FSR1L
+	movlw -6
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	ICALL C18_isspace
+	movff _r0,INDF0
+	movf POSTDEC0,W,0
+	IBZ L18_atoll_109_exit
+	movlw -7
+	incf PLUSW0,F,0
+	bnc L18_atoll_116
+	movlw -6
+	incf PLUSW0,F,0
+L18_atoll_116
+	IBRA L18_atoll_109_while
+L18_atoll_109_exit
+;  neg = 0 ;
+	movlw -5
+	clrf PLUSW0,0
+;  switch(*s)
+	movlw -7
+	movff PLUSW0,FSR1L
+	movlw -6
+	movff PLUSW0,FSR1H
+	movf INDF1,W,0
+	addlw 213
+	IBZ L18_atoll_110_case_43
+	addlw 254
+	IBNZ L18_atoll_110_case_default
+;  {
+;   case '-' : neg = 1 ;
+L18_atoll_110_case_45
+	movlw 1
+	movwf PREINC0,0
+	movlw -5
+	movff POSTDEC0,PLUSW0
+;   case '+' : ++s ;
+L18_atoll_110_case_43
+	movlw -7
+	incf PLUSW0,F,0
+	bnc L18_atoll_117
+	movlw -6
+	incf PLUSW0,F,0
+L18_atoll_117
+;  }
+L18_atoll_110_exit
+L18_atoll_110_case_default
+;  for( res = 0 ; isdigit( c = *s ) ; ++s )
+	movlw -3
+	clrf PLUSW0,0
+	movlw -2
+	clrf PLUSW0,0
+	movlw -1
+	clrf PLUSW0,0
+	clrf INDF0,0
+L18_atoll_111
+	movlw -7
+	movff PLUSW0,FSR1L
+	movlw -6
+	movff PLUSW0,FSR1H
+	movff INDF1,PREINC0
+	movlw -5
+	movff INDF0,PLUSW0
+	ICALL C18_isdigit
+	movff _r0,INDF0
+	movf POSTDEC0,W,0
+	IBZ L18_atoll_112
+;   res = res * 10 + (c - '0') ;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 10
+	movwf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL mul32
+	movlw -8
+	movff PLUSW0,PREINC0
+	movlw 48
+	subwf INDF0,F,0
+	ICALL cast8_32
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL add32
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+L18_atoll_113
+	movlw -7
+	incf PLUSW0,F,0
+	bnc L18_atoll_118
+	movlw -6
+	incf PLUSW0,F,0
+L18_atoll_118
+	IBRA L18_atoll_111
+L18_atoll_112
+;  return neg ? -res : res ;
+	movlw -5
+	movf PLUSW0,F,0
+	IBZ L18_atoll_115
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL neg32
+	IBRA L18_atoll_114
+L18_atoll_115
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+L18_atoll_114
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_atoll_108
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?C18_isdigit>
+;<?C18_isspace>
+;<?add32>
+;<?cast8_32>
+;<?mul32>
+;<?neg32>
+;<-> long32 atoll(const char *s@0)
+;
+;<+C18_tblptr>
+C18_tblptr equ 0xff6
+;<->
+;
+;<+C18_tos>
+C18_tos equ 0xffd
+;<->
+;
+;<+C18_tosl>
+C18_tosl equ 0xffd
+;<->
+;
+;<+C18_tblptru>
+C18_tblptru equ 0xff8
+;<->
+;
+;<+C18_tblptrl>
+C18_tblptrl equ 0xff6
+;<->
+;
+;<+C18_tablat>
+C18_tablat equ 0xff5
+;<->
+;
+;<+C18_prodhl>
+C18_prodhl equ 0xff3
+;<->
+;
+;<+C18_prodl>
+C18_prodl equ 0xff3
+;<->
+;
+;<+C18_errno>
+C18_errno equ 0x1
+;<->
+;
+;<+C18_#stdlib_0|IDATA>
+	CBLOCK
+	C18_#stdlib_0:6
+	ENDC
+;<= 0x41 0x46 0x2D 0x4C 0x20 0x00 >
+;<->
+;
+;<+C18_#stdlib_1|IDATA>
+	CBLOCK
+	C18_#stdlib_1:4
+	ENDC
+;<= 0x20 0x3A 0x20 0x00 >
+;<->
+	END
+

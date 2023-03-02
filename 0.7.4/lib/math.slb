@@ -1,0 +1,5240 @@
+
+;<+C18_asincosf_a> float asincosf_a(unsigned int k@0)
+C18_asincosf_a
+;  switch(k)
+	movf INDF0,W,0
+	dcfsnz WREG, F, 0
+	IBRA L18_asincosf_a_1_case_1
+	incfsz WREG, F, 0
+	IBRA L18_asincosf_a_1_case_default
+;  {
+;   case 0: return 0. ;
+L18_asincosf_a_1_case_0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_asincosf_a_0
+;   case 1: return 0.7853981634 ;
+L18_asincosf_a_1_case_1
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw 73
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_asincosf_a_0
+;  }
+L18_asincosf_a_1_exit
+L18_asincosf_a_1_case_default
+; }
+L18_asincosf_a_0
+	return 0
+;<-> float asincosf_a(unsigned int k@0)
+
+;<+C18_asincosf_b> float asincosf_b(unsigned int k@0)
+C18_asincosf_b
+;  switch(k)
+	movf INDF0,W,0
+	dcfsnz WREG, F, 0
+	IBRA L18_asincosf_b_3_case_1
+	incfsz WREG, F, 0
+	IBRA L18_asincosf_b_3_case_default
+;  {
+;   case 0: return 1.5707963268 . ;
+L18_asincosf_b_3_case_0
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_asincosf_b_2
+;   case 1: return 0.7853981634 ;
+L18_asincosf_b_3_case_1
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw 73
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_asincosf_b_2
+;  }
+L18_asincosf_b_3_exit
+L18_asincosf_b_3_case_default
+; }
+L18_asincosf_b_2
+	return 0
+;<-> float asincosf_b(unsigned int k@0)
+
+;<+C18_asincosf> float asincosf(float x@1,int isacos@0)
+C18_asincosf
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 14
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    float y, g, r;
+;    unsigned char i;
+;    int quartPI = isacos;
+	movlw -18
+	movff PLUSW0,PREINC0
+	movff POSTDEC0,INDF0
+;    y = fabsf(x);
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_asincosf_11
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_asincosf_11
+	movlw -13
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if (y < 244.14062E-6)
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 57
+	movwf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_asincosf_7_else
+;    {
+;       r = y;
+	movlw -13
+	movff PLUSW0,PREINC0
+	movlw -5
+	movff POSTDEC0,PLUSW0
+	movlw -12
+	movff PLUSW0,PREINC0
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movlw -11
+	movff PLUSW0,PREINC0
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movlw -10
+	movff PLUSW0,PREINC0
+	movlw -2
+	movff POSTDEC0,PLUSW0
+;    }
+;    else
+	IBRA L18_asincosf_7_endif
+L18_asincosf_7_else
+;    {
+;       if (y > 0.5)
+	movlw -13
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_asincosf_6_else
+;       {
+;          quartPI = !isacos;
+	movlw -18
+	movff PLUSW0,PREINC0
+	ICALL lnot8
+	movff POSTDEC0,INDF0
+;          if (y > 1.0)
+	movlw -13
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_asincosf_5_endif
+;          {
+;             errno = 33;
+	movlw 33
+	movwf C18_errno+0,0
+;             return 0.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_asincosf_4
+;          }
+;          g = (0.5 - y) + 0.5;
+L18_asincosf_5_endif
+	clrf PREINC0,0
+	clrf PREINC0,0
+	clrf PREINC0,0
+	movlw 63
+	movwf PREINC0,0
+	movlw -17
+	movff PLUSW0,_r0+0
+	movlw -16
+	movff PLUSW0,_r0+1
+	movlw -15
+	movff PLUSW0,_r0+2
+	movlw -14
+	movff PLUSW0,_r0+3
+	ICALL subFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -9
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          g = ldexpf(g, -1);
+	setf PREINC0,0
+	movlw -10
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_ldexpf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_asincosf_12
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_asincosf_12
+	movlw -9
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          y = sqrtf(g);
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_sqrtf
+	movlw -4
+	lfsr 1,_r0
+L18_asincosf_13
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_asincosf_13
+	movlw -13
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          y = -(y + y);
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -17
+	movff PLUSW0,_r0+0
+	movlw -16
+	movff PLUSW0,_r0+1
+	movlw -15
+	movff PLUSW0,_r0+2
+	movlw -14
+	movff PLUSW0,_r0+3
+	ICALL addFP
+	btg INDF0,7,0
+	movlw -13
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       }
+;       else
+	IBRA L18_asincosf_6_endif
+L18_asincosf_6_else
+;       {
+;          g = y * y;
+	movlw -13
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -17
+	movff PLUSW0,_r0+0
+	movlw -16
+	movff PLUSW0,_r0+1
+	movlw -15
+	movff PLUSW0,_r0+2
+	movlw -14
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -9
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       }
+L18_asincosf_6_endif
+;       r = y + y * (((-0.504400557E+0 * g + 0.933935835E+0) * g) / ((0.100000000E+1 * g + -0.554846723E+1) * g + 0.560363004E+1));
+	movlw -13
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 101
+	movwf _r0+0,0
+	movlw 32
+	movwf _r0+1,0
+	movlw 1
+	movwf _r0+2,0
+	movlw -65
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw 107
+	movwf _r0+0,0
+	movlw 22
+	movwf _r0+1,0
+	movlw 111
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -21
+	movff PLUSW0,_r0+0
+	movlw -20
+	movff PLUSW0,_r0+1
+	movlw -19
+	movff PLUSW0,_r0+2
+	movlw -18
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw 11
+	movwf _r0+0,0
+	movlw -115
+	movwf _r0+1,0
+	movlw -79
+	movwf _r0+2,0
+	movlw -64
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -25
+	movff PLUSW0,_r0+0
+	movlw -24
+	movff PLUSW0,_r0+1
+	movlw -23
+	movff PLUSW0,_r0+2
+	movlw -22
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -16
+	movwf _r0+0,0
+	movlw 80
+	movwf _r0+1,0
+	movlw -77
+	movwf _r0+2,0
+	movlw 64
+	movwf _r0+3,0
+	ICALL addFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL addFP
+	movlw -5
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    }
+L18_asincosf_7_endif
+;    i = quartPI;
+	movff INDF0,PREINC0
+	movlw -1
+	movff POSTDEC0,PLUSW0
+;    if (isacos)
+	movlw -18
+	movf PLUSW0,F,0
+	IBZ L18_asincosf_10_else
+;    {
+;       if (x < 0.0)
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_asincosf_8_else
+;          r = ( asincosf_b(i)+ r) + asincosf_b(i);
+	movlw -1
+	movff PLUSW0,PREINC0
+	ICALL C18_asincosf_b
+	movf POSTDEC0,F,0 ; clean stack 
+	movff _r0+0,PREINC0
+	movff _r0+1,PREINC0
+	movff _r0+2,PREINC0
+	movff _r0+3,PREINC0
+	movlw -9
+	movff PLUSW0,_r0+0
+	movlw -8
+	movff PLUSW0,_r0+1
+	movlw -7
+	movff PLUSW0,_r0+2
+	movlw -6
+	movff PLUSW0,_r0+3
+	ICALL addFP
+	movlw -5
+	movff PLUSW0,PREINC0
+	ICALL C18_asincosf_b
+	movf POSTDEC0,F,0 ; clean stack 
+	ICALL addFP
+	movlw -5
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       else
+	IBRA L18_asincosf_8_endif
+L18_asincosf_8_else
+;          r = (asincosf_a(i) - r) + asincosf_a(i);
+	movlw -1
+	movff PLUSW0,PREINC0
+	ICALL C18_asincosf_a
+	movf POSTDEC0,F,0 ; clean stack 
+	movff _r0+0,PREINC0
+	movff _r0+1,PREINC0
+	movff _r0+2,PREINC0
+	movff _r0+3,PREINC0
+	movlw -9
+	movff PLUSW0,_r0+0
+	movlw -8
+	movff PLUSW0,_r0+1
+	movlw -7
+	movff PLUSW0,_r0+2
+	movlw -6
+	movff PLUSW0,_r0+3
+	ICALL subFP
+	movlw -5
+	movff PLUSW0,PREINC0
+	ICALL C18_asincosf_a
+	movf POSTDEC0,F,0 ; clean stack 
+	ICALL addFP
+	movlw -5
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+L18_asincosf_8_endif
+;    }
+;    else
+	IBRA L18_asincosf_10_endif
+L18_asincosf_10_else
+;    {
+;       r = (r + asincosf_a(i)) + asincosf_a(i) ;
+	movlw -5
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_asincosf_a
+	movf POSTDEC0,F,0 ; clean stack 
+	ICALL addFP
+	movlw -5
+	movff PLUSW0,PREINC0
+	ICALL C18_asincosf_a
+	movf POSTDEC0,F,0 ; clean stack 
+	ICALL addFP
+	movlw -5
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       if (x < 0.0)
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_asincosf_9_endif
+;          r = -r;
+	movlw -5
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    }
+L18_asincosf_9_endif
+L18_asincosf_10_endif
+;    return r;
+	movlw -5
+	movff PLUSW0,_r0+0
+	movlw -4
+	movff PLUSW0,_r0+1
+	movlw -3
+	movff PLUSW0,_r0+2
+	movlw -2
+	movff PLUSW0,_r0+3
+; }
+L18_asincosf_4
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 14
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?C18_asincosf_a>
+;<?C18_asincosf_b>
+;<?C18_errno>
+;<?C18_fabsf>
+;<?C18_ldexpf>
+;<?C18_sqrtf>
+;<?addFP>
+;<?divFP>
+;<?gtFP>
+;<?lnot8>
+;<?ltFP>
+;<?mulFP>
+;<?subFP>
+;<-> float asincosf(float x@1,int isacos@0)
+
+;<+C18_acosf> float acosf(float x@0)
+C18_acosf
+;    if (x == 1.0) return 0.0;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL eqFP
+	movf POSTDEC0,W,0
+	IBZ L18_acosf_17_else
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_acosf_14
+;    else if (x == -1.0) return 3.1415926536;
+	IBRA L18_acosf_17_endif
+L18_acosf_17_else
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw -65
+	movwf _r0+3,0
+	ICALL eqFP
+	movf POSTDEC0,W,0
+	IBZ L18_acosf_16_else
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw 73
+	movwf _r0+2,0
+	movlw 64
+	movwf _r0+3,0
+	IBRA L18_acosf_14
+;    else if (x == 0.0) return 1.5707963268;
+	IBRA L18_acosf_16_endif
+L18_acosf_16_else
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL lnotFP
+	movf POSTDEC0,W,0
+	IBZ L18_acosf_15_else
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_acosf_14
+;    else return asincosf(x, 1);
+	IBRA L18_acosf_15_endif
+L18_acosf_15_else
+	movlw 1
+	movwf PREINC0,0
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_asincosf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_acosf_18
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_acosf_18
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_acosf_14
+L18_acosf_15_endif
+L18_acosf_16_endif
+L18_acosf_17_endif
+; }
+L18_acosf_14
+	return 0
+;<?C18_asincosf>
+;<?eqFP>
+;<?lnotFP>
+;<-> float acosf(float x@0)
+
+;<+C18_asinf> float asinf(float x@0)
+C18_asinf
+;    if (x == 1.0) return 1.5707963268;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL eqFP
+	movf POSTDEC0,W,0
+	IBZ L18_asinf_22_else
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_asinf_19
+;    else if (x == -1.0) return -1.5707963268;
+	IBRA L18_asinf_22_endif
+L18_asinf_22_else
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw -65
+	movwf _r0+3,0
+	ICALL eqFP
+	movf POSTDEC0,W,0
+	IBZ L18_asinf_21_else
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw -65
+	movwf _r0+3,0
+	IBRA L18_asinf_19
+;    else if (x == 0.0) return 0.0;
+	IBRA L18_asinf_21_endif
+L18_asinf_21_else
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL lnotFP
+	movf POSTDEC0,W,0
+	IBZ L18_asinf_20_else
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_asinf_19
+;    else return asincosf(x, 0);
+	IBRA L18_asinf_20_endif
+L18_asinf_20_else
+	clrf PREINC0,0
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_asincosf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_asinf_23
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_asinf_23
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_asinf_19
+L18_asinf_20_endif
+L18_asinf_21_endif
+L18_asinf_22_endif
+; }
+L18_asinf_19
+	return 0
+;<?C18_asincosf>
+;<?eqFP>
+;<?lnotFP>
+;<-> float asinf(float x@0)
+
+;<+C18_atan2f> float atan2f(float x@4,float y@0)
+C18_atan2f
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;    float r;
+;    if ((x == 0.0) && (y == 0.0))
+	clrf PREINC0,0
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL lnotFP
+	movf POSTDEC0,W,0
+	IBZ L18_atan2f_26
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL lnotFP
+	movf POSTDEC0,W,0
+	IBZ L18_atan2f_26
+	incf INDF0,F,0
+L18_atan2f_26
+	movf POSTDEC0,W,0
+	IBZ L18_atan2f_25_endif
+;    {
+;       errno = 33;
+	movlw 33
+	movwf C18_errno+0,0
+;       return 0.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_atan2f_24
+;    }
+;    if(fabsf(y) >= fabsf(x))
+L18_atan2f_25_endif
+	movlw -11
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_atan2f_33
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_atan2f_33
+	movlw -11
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	ICALL geFP
+	movf POSTDEC0,W,0
+	IBZ L18_atan2f_32_else
+;    {
+;       r = atanf(x / y);
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -15
+	movff PLUSW0,_r0+0
+	movlw -14
+	movff PLUSW0,_r0+1
+	movlw -13
+	movff PLUSW0,_r0+2
+	movlw -12
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	ICALL C18_atanf
+	movlw -4
+	lfsr 1,_r0
+L18_atan2f_34
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_atan2f_34
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       if(y < 0.0) r += (x >= 0 ? 3.1415926536 : -3.1415926536);
+	movlw -11
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_atan2f_29_endif
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL geFP
+	movf POSTDEC0,W,0
+	IBZ L18_atan2f_28
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw 73
+	movwf _r0+2,0
+	movlw 64
+	movwf _r0+3,0
+	IBRA L18_atan2f_27
+L18_atan2f_28
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw 73
+	movwf _r0+2,0
+	movlw -64
+	movwf _r0+3,0
+L18_atan2f_27
+	movlw 3
+	ICALL getLOCALNEGADDR
+	ICALL ipaddFP
+;    }
+L18_atan2f_29_endif
+;    else
+	IBRA L18_atan2f_32_endif
+L18_atan2f_32_else
+;    {
+;       r = -atanf(y / x);
+	movlw -11
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,_r0+0
+	movlw -10
+	movff PLUSW0,_r0+1
+	movlw -9
+	movff PLUSW0,_r0+2
+	movlw -8
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	ICALL C18_atanf
+	movlw -4
+	lfsr 1,_r0
+L18_atan2f_35
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_atan2f_35
+	btg INDF0,7,0
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       r += (x < 0.0 ? -1.5707963268 : 1.5707963268);
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_atan2f_31
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw -65
+	movwf _r0+3,0
+	IBRA L18_atan2f_30
+L18_atan2f_31
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+L18_atan2f_30
+	movlw 3
+	ICALL getLOCALNEGADDR
+	ICALL ipaddFP
+;    }
+L18_atan2f_32_endif
+;    return r;
+	movlw -3
+	movff PLUSW0,_r0+0
+	movlw -2
+	movff PLUSW0,_r0+1
+	movlw -1
+	movff PLUSW0,_r0+2
+	movff INDF0,_r0+3
+; }
+L18_atan2f_24
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?C18_atanf>
+;<?C18_errno>
+;<?C18_fabsf>
+;<?divFP>
+;<?geFP>
+;<?getLOCALNEGADDR>
+;<?ipaddFP>
+;<?lnotFP>
+;<?ltFP>
+;<-> float atan2f(float x@4,float y@0)
+
+;<+C18_atanf_a> float atanf_a(unsigned int k@0)
+C18_atanf_a
+;  switch(k)
+	movf INDF0,W,0
+	dcfsnz WREG, F, 0
+	IBRA L18_atanf_a_37_case_1
+	dcfsnz WREG, F, 0
+	IBRA L18_atanf_a_37_case_2
+	dcfsnz WREG, F, 0
+	IBRA L18_atanf_a_37_case_3
+	addlw 3
+	IBNZ L18_atanf_a_37_case_default
+;  {
+;   case 0: return 0.0 ;
+L18_atanf_a_37_case_0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_atanf_a_36
+;   case 1: return 0.5235987756 ;
+L18_atanf_a_37_case_1
+	movlw -110
+	movwf _r0+0,0
+	movlw 10
+	movwf _r0+1,0
+	movlw 6
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_atanf_a_36
+;   case 2: return 1.5707963268 ;
+L18_atanf_a_37_case_2
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_atanf_a_36
+;   case 3: return 1.0471975512 ;
+L18_atanf_a_37_case_3
+	movlw -110
+	movwf _r0+0,0
+	movlw 10
+	movwf _r0+1,0
+	movlw -122
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_atanf_a_36
+;  }
+L18_atanf_a_37_exit
+L18_atanf_a_37_case_default
+; }
+L18_atanf_a_36
+	return 0
+;<-> float atanf_a(unsigned int k@0)
+
+;<+C18_atanf> float atanf(float x@0)
+C18_atanf
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 13
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    float f, r, g;
+;    int n = 0;
+	clrf INDF0,0
+;    f = fabsf(x);
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_atanf_44
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_atanf_44
+	movlw -12
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if(f > 1.0)
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_atanf_39_endif
+;    {
+;       f = 1.0 / f;
+	clrf PREINC0,0
+	clrf PREINC0,0
+	movlw -128
+	movwf PREINC0,0
+	movlw 63
+	movwf PREINC0,0
+	movlw -16
+	movff PLUSW0,_r0+0
+	movlw -15
+	movff PLUSW0,_r0+1
+	movlw -14
+	movff PLUSW0,_r0+2
+	movlw -13
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movlw -12
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       n = 2;
+	movlw 2
+	movwf INDF0,0
+;    }
+;    if(f > 0.2679491924)
+L18_atanf_39_endif
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -93
+	movwf _r0+0,0
+	movlw 48
+	movwf _r0+1,0
+	movlw -119
+	movwf _r0+2,0
+	movlw 62
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_atanf_40_endif
+;    {
+;       f = (((0.7320508076 * f - 0.5) - 0.5) + f) / (1.7320508076 + f);
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -81
+	movwf _r0+0,0
+	movlw 103
+	movwf _r0+1,0
+	movlw 59
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL subFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL subFP
+	movlw -16
+	movff PLUSW0,_r0+0
+	movlw -15
+	movff PLUSW0,_r0+1
+	movlw -14
+	movff PLUSW0,_r0+2
+	movlw -13
+	movff PLUSW0,_r0+3
+	ICALL addFP
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -41
+	movwf _r0+0,0
+	movlw -77
+	movwf _r0+1,0
+	movlw -35
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL divFP
+	movlw -12
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       n++;
+	incf INDF0,F,0
+;    }
+;    if(fabsf(f) < 244.14062E-6) r = f;
+L18_atanf_40_endif
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_atanf_45
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_atanf_45
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 57
+	movwf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_atanf_41_else
+	movlw -12
+	movff PLUSW0,PREINC0
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movlw -11
+	movff PLUSW0,PREINC0
+	movlw -7
+	movff POSTDEC0,PLUSW0
+	movlw -10
+	movff PLUSW0,PREINC0
+	movlw -6
+	movff POSTDEC0,PLUSW0
+	movlw -9
+	movff PLUSW0,PREINC0
+	movlw -5
+	movff POSTDEC0,PLUSW0
+;    else
+	IBRA L18_atanf_41_endif
+L18_atanf_41_else
+;    {
+;       g = f * f;
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -16
+	movff PLUSW0,_r0+0
+	movlw -15
+	movff PLUSW0,_r0+1
+	movlw -14
+	movff PLUSW0,_r0+2
+	movlw -13
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       r = f + ((-0.5090958253E-1*g+-0.4708325141E+0)*g*f) / (0.1000000000E+1*g+0.1412500740E+1);
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -111
+	movwf _r0+0,0
+	movlw -122
+	movwf _r0+1,0
+	movlw 80
+	movwf _r0+2,0
+	movlw -67
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -10
+	movwf _r0+0,0
+	movlw 16
+	movwf _r0+1,0
+	movlw -15
+	movwf _r0+2,0
+	movlw -66
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -12
+	movff PLUSW0,_r0+0
+	movlw -11
+	movff PLUSW0,_r0+1
+	movlw -10
+	movff PLUSW0,_r0+2
+	movlw -9
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -20
+	movff PLUSW0,_r0+0
+	movlw -19
+	movff PLUSW0,_r0+1
+	movlw -18
+	movff PLUSW0,_r0+2
+	movlw -17
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -45
+	movwf _r0+0,0
+	movlw -52
+	movwf _r0+1,0
+	movlw -76
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL addFP
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    }
+L18_atanf_41_endif
+;    if(n > 1) r = -r;
+	movff INDF0,PREINC0
+	movlw 1
+	ICALL GT8
+	movf POSTDEC0,W,0
+	IBZ L18_atanf_42_endif
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    r += atanf_a(n);
+L18_atanf_42_endif
+	movff INDF0,PREINC0
+	ICALL C18_atanf_a
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw 8
+	ICALL getLOCALNEGADDR
+	ICALL ipaddFP
+;    if(x < 0.0) r = -r;
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_atanf_43_endif
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    return r;
+L18_atanf_43_endif
+	movlw -8
+	movff PLUSW0,_r0+0
+	movlw -7
+	movff PLUSW0,_r0+1
+	movlw -6
+	movff PLUSW0,_r0+2
+	movlw -5
+	movff PLUSW0,_r0+3
+; }
+L18_atanf_38
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 13
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?C18_atanf_a>
+;<?C18_fabsf>
+;<?GT8>
+;<?addFP>
+;<?divFP>
+;<?getLOCALNEGADDR>
+;<?gtFP>
+;<?ipaddFP>
+;<?ltFP>
+;<?mulFP>
+;<?subFP>
+;<-> float atanf(float x@0)
+
+;<+C18_ceilf> float ceilf(float x@0)
+C18_ceilf
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;    int32_t r = x ;
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL castF_32
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if (r < 0)
+	movff PLUSW0,_r0+0
+	movlw -2
+	movff PLUSW0,_r0+1
+	movlw -1
+	movff PLUSW0,_r0+2
+	movff INDF0,_r0+3
+	clrf PREINC0,0
+	btfsc _r0+3,7,0
+	incf INDF0,F,0
+	movf POSTDEC0,W,0
+	IBZ L18_ceilf_49_else
+;       return r;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL cast32_F
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_ceilf_46
+;    else
+	IBRA L18_ceilf_49_endif
+L18_ceilf_49_else
+;       return (r + ((r < x) ? 1 : 0));
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL cast32_F
+	movlw -15
+	movff PLUSW0,_r0+0
+	movlw -14
+	movff PLUSW0,_r0+1
+	movlw -13
+	movff PLUSW0,_r0+2
+	movlw -12
+	movff PLUSW0,_r0+3
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_ceilf_48
+	movlw 1
+	movwf PREINC0,0
+	IBRA L18_ceilf_47
+L18_ceilf_48
+	clrf PREINC0,0
+L18_ceilf_47
+	ICALL cast8_32
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL add32
+	ICALL cast32_F
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_ceilf_46
+L18_ceilf_49_endif
+; }
+L18_ceilf_46
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?add32>
+;<?cast32_F>
+;<?cast8_32>
+;<?castF_32>
+;<?ltFP>
+;<-> float ceilf(float x@0)
+
+;<+C18_cosf> float cosf(float x@0)
+C18_cosf
+;    if (x == 0.0) return 1.0;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL lnotFP
+	movf POSTDEC0,W,0
+	IBZ L18_cosf_51_endif
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_cosf_50
+;    return sincosf(x, 1);
+L18_cosf_51_endif
+	movlw 1
+	movwf PREINC0,0
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_sincosf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_cosf_52
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_cosf_52
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_cosf_50
+	return 0
+;<?C18_sincosf>
+;<?lnotFP>
+;<-> float cosf(float x@0)
+
+;<+C18_coshf> float coshf(float x@0)
+C18_coshf
+;    return sincoshf(x, 1);
+	movlw 1
+	movwf PREINC0,0
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_sincoshf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_coshf_54
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_coshf_54
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_coshf_53
+	return 0
+;<?C18_sincoshf>
+;<-> float coshf(float x@0)
+
+;<+C18_expf> float expf(float x@0)
+C18_expf
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 18
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    int n;
+;    float xn, g, r, z;
+;    int sign = 0;
+	clrf INDF0,0
+;    if(x < 0.0)
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_expf_56_endif
+;    {
+;       x = -x;
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       sign = 1;
+	movlw 1
+	movwf INDF0,0
+;    }
+;    if(x < 1.0E-7) return 1.0;
+L18_expf_56_endif
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -107
+	movwf _r0+0,0
+	movlw -65
+	movwf _r0+1,0
+	movlw -42
+	movwf _r0+2,0
+	movlw 51
+	movwf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_expf_57_endif
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_expf_55
+;    if(x > 88.72283911)
+L18_expf_57_endif
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 24
+	movwf _r0+0,0
+	movlw 114
+	movwf _r0+1,0
+	movlw -79
+	movwf _r0+2,0
+	movlw 66
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_expf_59_endif
+;    {
+;       if(sign)
+	movf INDF0,F,0
+	IBZ L18_expf_58_else
+;       {
+;          return 0.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_expf_55
+;       }
+;       else
+	IBRA L18_expf_58_endif
+L18_expf_58_else
+;       {
+;          errno = 34;
+	movlw 34
+	movwf C18_errno+0,0
+;          return 3.402823466e+38 ;
+	setf _r0+0,0
+	setf _r0+1,0
+	movlw 127
+	movwf _r0+2,0
+	movwf _r0+3,0
+	IBRA L18_expf_55
+;       }
+L18_expf_58_endif
+;    }
+;    z = x * 1.4426950409;
+L18_expf_59_endif
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 59
+	movwf _r0+0,0
+	movlw -86
+	movwf _r0+1,0
+	movlw -72
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    n = z;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL castF_8
+	movlw -17
+	movff POSTDEC0,PLUSW0
+;    if(n < 0) --n;
+	movf PLUSW0,W,0
+	clrf PREINC0,0
+	btfsc WREG,7,0
+	incf INDF0,F,0
+	movf POSTDEC0,W,0
+	IBZ L18_expf_60_endif
+	movlw -17
+	decf PLUSW0,F,0
+;    if(z - n >= 0.5) ++n;
+L18_expf_60_endif
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -21
+	movff PLUSW0,PREINC0
+	ICALL cast8_F
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL subFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL geFP
+	movf POSTDEC0,W,0
+	IBZ L18_expf_61_endif
+	movlw -17
+	incf PLUSW0,F,0
+;    xn = n;
+L18_expf_61_endif
+	movlw -17
+	movff PLUSW0,PREINC0
+	ICALL cast8_F
+	movlw -16
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    g = ((x - xn * 0.693359375)) - xn * -2.1219444005469058277e-4;
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -20
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	movlw -128
+	movwf _r0+1,0
+	movlw 49
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL subFP
+	movlw -20
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -125
+	movwf _r0+0,0
+	movlw -128
+	movwf _r0+1,0
+	movlw 94
+	movwf _r0+2,0
+	movlw -71
+	movwf _r0+3,0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL subFP
+	movlw -12
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    z = g * g;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -16
+	movff PLUSW0,_r0+0
+	movlw -15
+	movff PLUSW0,_r0+1
+	movlw -14
+	movff PLUSW0,_r0+2
+	movlw -13
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    r = ((0.4160288626E-2*z)+0.2499999995E+0) * g;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 8
+	movwf _r0+0,0
+	movlw 83
+	movwf _r0+1,0
+	movlw -120
+	movwf _r0+2,0
+	movlw 59
+	movwf _r0+3,0
+	ICALL mulFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 62
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -16
+	movff PLUSW0,_r0+0
+	movlw -15
+	movff PLUSW0,_r0+1
+	movlw -14
+	movff PLUSW0,_r0+2
+	movlw -13
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    r = 0.5 + (r / (((0.4998717877E-1*z)+0.5000000000E+0) - r));
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 91
+	movwf _r0+0,0
+	movlw -65
+	movwf _r0+1,0
+	movlw 76
+	movwf _r0+2,0
+	movlw 61
+	movwf _r0+3,0
+	ICALL mulFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -16
+	movff PLUSW0,_r0+0
+	movlw -15
+	movff PLUSW0,_r0+1
+	movlw -14
+	movff PLUSW0,_r0+2
+	movlw -13
+	movff PLUSW0,_r0+3
+	ICALL subFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL divFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    n++;
+	movlw -17
+	incf PLUSW0,F,0
+;    z = ldexpf(r, n);
+	movff PLUSW0,PREINC0
+	movlw -9
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_ldexpf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_expf_63
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_expf_63
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if(sign)
+	movf INDF0,F,0
+	IBZ L18_expf_62_else
+;       return 1.0 / z;
+	clrf PREINC0,0
+	clrf PREINC0,0
+	movlw -128
+	movwf PREINC0,0
+	movlw 63
+	movwf PREINC0,0
+	movlw -8
+	movff PLUSW0,_r0+0
+	movlw -7
+	movff PLUSW0,_r0+1
+	movlw -6
+	movff PLUSW0,_r0+2
+	movlw -5
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_expf_55
+;    else
+	IBRA L18_expf_62_endif
+L18_expf_62_else
+;       return z;
+	movlw -4
+	movff PLUSW0,_r0+0
+	movlw -3
+	movff PLUSW0,_r0+1
+	movlw -2
+	movff PLUSW0,_r0+2
+	movlw -1
+	movff PLUSW0,_r0+3
+	IBRA L18_expf_55
+L18_expf_62_endif
+; }
+L18_expf_55
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 18
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?C18_errno>
+;<?C18_ldexpf>
+;<?addFP>
+;<?cast8_F>
+;<?castF_8>
+;<?divFP>
+;<?geFP>
+;<?gtFP>
+;<?ltFP>
+;<?mulFP>
+;<?subFP>
+;<-> float expf(float x@0)
+
+;<+C18_fabsf> float fabsf(float x@0)
+C18_fabsf
+;    __asm__("\tbcf INDF0,7,0") ;
+	bcf INDF0,7,0
+;    return x ;
+	movlw -3
+	movff PLUSW0,_r0+0
+	movlw -2
+	movff PLUSW0,_r0+1
+	movlw -1
+	movff PLUSW0,_r0+2
+	movff INDF0,_r0+3
+; }
+L18_fabsf_64
+	return 0
+;<-> float fabsf(float x@0)
+
+;<+C18_floorf> float floorf(float x@0)
+C18_floorf
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;    int32_t r = x ;
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL castF_32
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if (r <= 0)
+	movff PLUSW0,_r0+0
+	movlw -2
+	movff PLUSW0,_r0+1
+	movlw -1
+	movff PLUSW0,_r0+2
+	movff INDF0,_r0+3
+	ICALL LE32ZERO
+	movf POSTDEC0,W,0
+	IBZ L18_floorf_68_else
+;       return (r + ((r > x) ? -1 : 0));
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL cast32_F
+	movlw -15
+	movff PLUSW0,_r0+0
+	movlw -14
+	movff PLUSW0,_r0+1
+	movlw -13
+	movff PLUSW0,_r0+2
+	movlw -12
+	movff PLUSW0,_r0+3
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_floorf_67
+	setf PREINC0,0
+	IBRA L18_floorf_66
+L18_floorf_67
+	clrf PREINC0,0
+L18_floorf_66
+	ICALL cast8_32
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL add32
+	ICALL cast32_F
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_floorf_65
+;    else
+	IBRA L18_floorf_68_endif
+L18_floorf_68_else
+;       return r;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL cast32_F
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_floorf_65
+L18_floorf_68_endif
+; }
+L18_floorf_65
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?LE32ZERO>
+;<?add32>
+;<?cast32_F>
+;<?cast8_32>
+;<?castF_32>
+;<?gtFP>
+;<-> float floorf(float x@0)
+
+;<+C18_frexpf> float frexpf(float x@2,int *pw2@0)
+C18_frexpf
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;    union float_parts fl ;
+;    long int i ;
+;    fl.f = x ;
+	movlw -9
+	movff PLUSW0,PREINC0
+	movlw -5
+	movff POSTDEC0,PLUSW0
+	movlw -8
+	movff PLUSW0,PREINC0
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movlw -7
+	movff PLUSW0,PREINC0
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movlw -6
+	movff PLUSW0,PREINC0
+	movlw -2
+	movff POSTDEC0,PLUSW0
+;    i = ( fl.L >> 23) & 0x000000ff;
+	movlw -5
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 23
+	ICALL rshift32u
+	movff FSR0L,FSR2L
+	movff FSR0H,FSR2H
+	clrf POSTDEC2,0
+	clrf POSTDEC2,0
+	clrf POSTDEC2,0
+; no effect, removed
+	movf POSTDEC2,F,0
+	clrf POSTDEC0,0
+	clrf POSTDEC0,0
+	movlw -1
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    i -= 0x7e;
+	movlw 1
+	ICALL getLOCALNEGADDR
+	movlw 126
+	subwf POSTINC1,F,0
+	movlw 0
+	subwfb POSTDEC1,F,0
+;    *pw2 = i;
+	movlw -1
+	movff PLUSW0,PREINC0
+	movlw -12
+	movff PLUSW0,FSR1L
+	movlw -11
+	movff PLUSW0,FSR1H
+	movff POSTDEC0,INDF1
+;    fl.L &= 0x807fffff;
+	movlw 5
+	ICALL getLOCALNEGADDR
+; no effect, removed
+	movf POSTINC1,F,0
+; no effect, removed
+	movf POSTINC1,F,0
+	bcf POSTINC1,7,0
+	movlw 0x80
+	andwf POSTDEC1,F,0
+	movf POSTDEC1,F,0
+	movf POSTDEC1,F,0
+;    fl.L |= 0x3f000000;
+	movlw 5
+	ICALL getLOCALNEGADDR
+; no effect, removed
+	movf POSTINC1,F,0
+; no effect, removed
+	movf POSTINC1,F,0
+; no effect, removed
+	movf POSTINC1,F,0
+	movlw 0x3f
+	iorwf POSTDEC1,F,0
+	movf POSTDEC1,F,0
+	movf POSTDEC1,F,0
+;    return fl.f ;
+	movlw -5
+	movff PLUSW0,_r0+0
+	movlw -4
+	movff PLUSW0,_r0+1
+	movlw -3
+	movff PLUSW0,_r0+2
+	movlw -2
+	movff PLUSW0,_r0+3
+; }
+L18_frexpf_69
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?getLOCALNEGADDR>
+;<?rshift32u>
+;<-> float frexpf(float x@2,int *pw2@0)
+
+;<+C18_ldexpf> float ldexpf(float x@1,int pw2@0)
+C18_ldexpf
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;    union float_parts fl;
+;    int32_t e;
+;    fl.f = x;
+	movlw -11
+	movff PLUSW0,PREINC0
+	movlw -7
+	movff POSTDEC0,PLUSW0
+	movlw -10
+	movff PLUSW0,PREINC0
+	movlw -6
+	movff POSTDEC0,PLUSW0
+	movlw -9
+	movff PLUSW0,PREINC0
+	movlw -5
+	movff POSTDEC0,PLUSW0
+	movlw -8
+	movff PLUSW0,PREINC0
+	movlw -4
+	movff POSTDEC0,PLUSW0
+;    e = (fl.L >> 23) & 0x000000ff;
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 23
+	ICALL rshift32u
+	movff FSR0L,FSR2L
+	movff FSR0H,FSR2H
+	clrf POSTDEC2,0
+	clrf POSTDEC2,0
+	clrf POSTDEC2,0
+; no effect, removed
+	movf POSTDEC2,F,0
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    e += pw2;
+	movlw -12
+	movff PLUSW0,PREINC0
+	ICALL cast8_32
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	movlw 3
+	ICALL getLOCALNEGADDR
+	movf _r0,W,0
+	addwf POSTINC1,F,0
+	movf _r0+1,W,0
+	addwfc POSTINC1,F,0
+	movf _r0+2,W,0
+	addwfc POSTINC1,F,0
+	movf _r0+3,W,0
+	addwfc POSTDEC1,F,0
+	movf POSTDEC1,F,0
+	movf POSTDEC1,F,0
+;    fl.L = ((e & 0xff) << 23) | (fl.L & 0x807fffff);
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff FSR0L,FSR2L
+	movff FSR0H,FSR2H
+	clrf POSTDEC2,0
+	clrf POSTDEC2,0
+	clrf POSTDEC2,0
+; no effect, removed
+	movf POSTDEC2,F,0
+	movlw 23
+	ICALL lshift32u
+	movlw -11
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff FSR0L,FSR2L
+	movff FSR0H,FSR2H
+	movlw 0x80
+	andwf POSTDEC2,F,0
+	bcf POSTDEC2,7,0
+; no effect, removed
+	movf POSTDEC2,F,0
+; no effect, removed
+	movf POSTDEC2,F,0
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL bor32
+	movlw -7
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    return(fl.f);
+	movff PLUSW0,_r0+0
+	movlw -6
+	movff PLUSW0,_r0+1
+	movlw -5
+	movff PLUSW0,_r0+2
+	movlw -4
+	movff PLUSW0,_r0+3
+; }
+L18_ldexpf_70
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?bor32>
+;<?cast8_32>
+;<?getLOCALNEGADDR>
+;<?lshift32u>
+;<?rshift32u>
+;<-> float ldexpf(float x@1,int pw2@0)
+
+;<+C18_log10f> float log10f(float x@0)
+C18_log10f
+;    return logf(x)*0.4342944819;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_logf
+	movlw -4
+	lfsr 1,_r0
+L18_log10f_72
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_log10f_72
+	movlw -39
+	movwf _r0+0,0
+	movlw 91
+	movwf _r0+1,0
+	movlw -34
+	movwf _r0+2,0
+	movlw 62
+	movwf _r0+3,0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_log10f_71
+	return 0
+;<?C18_logf>
+;<?mulFP>
+;<-> float log10f(float x@0)
+
+;<+C18_logf> float logf(float x@0)
+C18_logf
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 29
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    float Rz;
+;    float f, z, w, znum, zden, xn;
+;    int n;
+;    if (x <= 0.0)
+	movlw -32
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL leFP
+	movf POSTDEC0,W,0
+	IBZ L18_logf_74_endif
+;    {
+;       errno = 33;
+	movlw 33
+	movwf C18_errno+0,0
+;       return 0.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_logf_73
+;    }
+;    f = frexpf(x, &n);
+L18_logf_74_endif
+	movlw 0
+	ICALL pushLOCALNEGADDR
+	movlw -34
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_frexpf
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_logf_76
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_logf_76
+	movlw -24
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    znum = f - 0.5;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL subFP
+	movlw -12
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if (f > 0.70710678118654752440)
+	movlw -24
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -13
+	movwf _r0+0,0
+	movlw 4
+	movwf _r0+1,0
+	movlw 53
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_logf_75_else
+;    {
+;       znum -= 0.5;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	movlw 12
+	ICALL getLOCALNEGADDR
+	ICALL ipsubFP
+;       zden = (f * 0.5) + 0.5;
+	movlw -24
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    }
+;    else
+	IBRA L18_logf_75_endif
+L18_logf_75_else
+;    {
+;       n--;
+	decf INDF0,F,0
+;       zden = znum * 0.5 + 0.5;
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    }
+L18_logf_75_endif
+;    z = znum / zden;
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,_r0+0
+	movlw -11
+	movff PLUSW0,_r0+1
+	movlw -10
+	movff PLUSW0,_r0+2
+	movlw -9
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movlw -20
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    w = z * z;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -24
+	movff PLUSW0,_r0+0
+	movlw -23
+	movff PLUSW0,_r0+1
+	movlw -22
+	movff PLUSW0,_r0+2
+	movlw -21
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -16
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    Rz = z + z * (w * (-0.5527074855E+0) / (w+-0.6632718214E+1));
+	movlw -20
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -24
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 61
+	movwf _r0+0,0
+	movlw 126
+	movwf _r0+1,0
+	movlw 13
+	movwf _r0+2,0
+	movlw -65
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -28
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 58
+	movwf _r0+0,0
+	movlw 63
+	movwf _r0+1,0
+	movlw -44
+	movwf _r0+2,0
+	movlw -64
+	movwf _r0+3,0
+	ICALL addFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL addFP
+	movlw -28
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    xn = n;
+	movff INDF0,PREINC0
+	ICALL cast8_F
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    return ((xn*-2.121944400546905827679E-4 + Rz) + xn*0.693359375);
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -125
+	movwf _r0+0,0
+	movlw -128
+	movwf _r0+1,0
+	movlw 94
+	movwf _r0+2,0
+	movlw -71
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -32
+	movff PLUSW0,_r0+0
+	movlw -31
+	movff PLUSW0,_r0+1
+	movlw -30
+	movff PLUSW0,_r0+2
+	movlw -29
+	movff PLUSW0,_r0+3
+	ICALL addFP
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	movlw -128
+	movwf _r0+1,0
+	movlw 49
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL addFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_logf_73
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 29
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?C18_errno>
+;<?C18_frexpf>
+;<?addFP>
+;<?cast8_F>
+;<?divFP>
+;<?getLOCALNEGADDR>
+;<?gtFP>
+;<?ipsubFP>
+;<?leFP>
+;<?mulFP>
+;<?pushLOCALNEGADDR>
+;<?subFP>
+;<-> float logf(float x@0)
+
+;<+C18_modff> float modff(float x@2,float *y@0)
+C18_modff
+;    *y = (int32_t)x;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL castF_32
+	ICALL cast32_F
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movlw 4
+L18_modff_78
+	decf WREG,F,0
+	movff POSTDEC0,PLUSW1
+	bnz L18_modff_78
+;    return (x -*y);
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -9
+	movff PLUSW0,FSR1L
+	movlw -8
+	movff PLUSW0,FSR1H
+	movff POSTINC1,_r0
+	movff POSTINC1,_r0+1
+	movff POSTINC1,_r0+2
+	movff POSTDEC1,_r0+3
+	movf POSTDEC1,F,0
+	movf POSTDEC1,F,0
+	ICALL subFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_modff_77
+	return 0
+;<?cast32_F>
+;<?castF_32>
+;<?subFP>
+;<-> float modff(float x@2,float *y@0)
+
+;<+C18_powf> float powf(float x@4,float y@0)
+C18_powf
+;    if(y == 0.0) return 1.0;
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL lnotFP
+	movf POSTDEC0,W,0
+	IBZ L18_powf_80_endif
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_powf_79
+;    if(y == 1.0) return x;
+L18_powf_80_endif
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL eqFP
+	movf POSTDEC0,W,0
+	IBZ L18_powf_81_endif
+	movlw -3
+	movff PLUSW0,_r0+0
+	movlw -2
+	movff PLUSW0,_r0+1
+	movlw -1
+	movff PLUSW0,_r0+2
+	movff INDF0,_r0+3
+	IBRA L18_powf_79
+;    if(x <= 0.0) return 0.0;
+L18_powf_81_endif
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL leFP
+	movf POSTDEC0,W,0
+	IBZ L18_powf_82_endif
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_powf_79
+;    return expf(logf(x) * y);
+L18_powf_82_endif
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_logf
+	movlw -4
+	lfsr 1,_r0
+L18_powf_83
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_powf_83
+	movlw -11
+	movff PLUSW0,_r0+0
+	movlw -10
+	movff PLUSW0,_r0+1
+	movlw -9
+	movff PLUSW0,_r0+2
+	movlw -8
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	ICALL C18_expf
+	movlw -4
+	lfsr 1,_r0
+L18_powf_84
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_powf_84
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_powf_79
+	return 0
+;<?C18_expf>
+;<?C18_logf>
+;<?eqFP>
+;<?leFP>
+;<?lnotFP>
+;<?mulFP>
+;<-> float powf(float x@4,float y@0)
+
+;<+C18_sincosf> float sincosf(float x@1,int iscos@0)
+C18_sincosf
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 22
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    float y, f, r, g, XN;
+;    int N;
+;    int sign;
+;    if(iscos)
+	movlw -26
+	movf PLUSW0,F,0
+	IBZ L18_sincosf_87_else
+;    {
+;       y = fabsf(x) + 1.5707963268;
+	movlw -25
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_sincosf_94
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_sincosf_94
+	movlw -37
+	movwf _r0+0,0
+	movlw 15
+	movwf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -21
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       sign = 0;
+	clrf INDF0,0
+;    }
+;    else
+	IBRA L18_sincosf_87_endif
+L18_sincosf_87_else
+;    {
+;       if(x < 0.0)
+	movlw -25
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_sincosf_86_else
+;       {
+;          y = -x;
+	movlw -25
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movlw -21
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          sign = 1;
+	movlw 1
+	movwf INDF0,0
+;       }
+;       else
+	IBRA L18_sincosf_86_endif
+L18_sincosf_86_else
+;       {
+;          y = x;
+	movlw -25
+	movff PLUSW0,PREINC0
+	movlw -21
+	movff POSTDEC0,PLUSW0
+	movlw -24
+	movff PLUSW0,PREINC0
+	movlw -20
+	movff POSTDEC0,PLUSW0
+	movlw -23
+	movff PLUSW0,PREINC0
+	movlw -19
+	movff POSTDEC0,PLUSW0
+	movlw -22
+	movff PLUSW0,PREINC0
+	movlw -18
+	movff POSTDEC0,PLUSW0
+;          sign = 0;
+	clrf INDF0,0
+;       }
+L18_sincosf_86_endif
+;    }
+L18_sincosf_87_endif
+;    if(y > 12867.0)
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	movlw 12
+	movwf _r0+1,0
+	movlw 73
+	movwf _r0+2,0
+	movlw 70
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_sincosf_88_endif
+;    {
+;       errno = 34;
+	movlw 34
+	movwf C18_errno+0,0
+;       return 0.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_sincosf_85
+;    }
+;    N = ((y * 0.3183098862) + 0.5);
+L18_sincosf_88_endif
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -125
+	movwf _r0+0,0
+	movlw -7
+	movwf _r0+1,0
+	movlw -94
+	movwf _r0+2,0
+	movlw 62
+	movwf _r0+3,0
+	ICALL mulFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	ICALL castF_8
+	movlw -1
+	movff POSTDEC0,PLUSW0
+;    if(N&1) sign = !sign;
+	movf PLUSW0,W,0
+	andlw 1
+	IBZ L18_sincosf_89_endif
+	movff INDF0,PREINC0
+	ICALL lnot8
+	movff POSTDEC0,INDF0
+;    XN = N;
+L18_sincosf_89_endif
+	movlw -1
+	movff PLUSW0,PREINC0
+	ICALL cast8_F
+	movlw -5
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if(iscos) XN -= 0.5;
+	movlw -26
+	movf PLUSW0,F,0
+	IBZ L18_sincosf_90_endif
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	movlw 5
+	ICALL getLOCALNEGADDR
+	ICALL ipsubFP
+;    y = fabsf(x);
+L18_sincosf_90_endif
+	movlw -25
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_sincosf_95
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_sincosf_95
+	movlw -21
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    r = (int)y;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL castF_8
+	ICALL cast8_F
+	movlw -13
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    g = y - r;
+	movlw -21
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -17
+	movff PLUSW0,_r0+0
+	movlw -16
+	movff PLUSW0,_r0+1
+	movlw -15
+	movff PLUSW0,_r0+2
+	movlw -14
+	movff PLUSW0,_r0+3
+	ICALL subFP
+	movlw -9
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    f = ((r - XN * 3.140625) + g) - XN * 9.676535897E-4;
+	movlw -13
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -9
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 73
+	movwf _r0+2,0
+	movlw 64
+	movwf _r0+3,0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL subFP
+	movlw -13
+	movff PLUSW0,_r0+0
+	movlw -12
+	movff PLUSW0,_r0+1
+	movlw -11
+	movff PLUSW0,_r0+2
+	movlw -10
+	movff PLUSW0,_r0+3
+	ICALL addFP
+	movlw -9
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 34
+	movwf _r0+0,0
+	movlw -86
+	movwf _r0+1,0
+	movlw 125
+	movwf _r0+2,0
+	movlw 58
+	movwf _r0+3,0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL subFP
+	movlw -17
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    g = f * f;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -21
+	movff PLUSW0,_r0+0
+	movlw -20
+	movff PLUSW0,_r0+1
+	movlw -19
+	movff PLUSW0,_r0+2
+	movlw -18
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -9
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if(g > 59.6046E-9)
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -13
+	movwf _r0+0,0
+	setf _r0+1,0
+	movlw 127
+	movwf _r0+2,0
+	movlw 51
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_sincosf_91_endif
+;    {
+;       r = (((0.2601903036E-5 * g + -0.1980741872E-3) * g + 0.8333025139E-2) * g + -0.1666665668E+0) * g;
+	movlw -9
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 91
+	movwf _r0+0,0
+	movlw -100
+	movwf _r0+1,0
+	movlw 46
+	movwf _r0+2,0
+	movlw 54
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw 34
+	movwf _r0+0,0
+	movlw -78
+	movwf _r0+1,0
+	movlw 79
+	movwf _r0+2,0
+	movlw -71
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -13
+	movff PLUSW0,_r0+0
+	movlw -12
+	movff PLUSW0,_r0+1
+	movlw -11
+	movff PLUSW0,_r0+2
+	movlw -10
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw 62
+	movwf _r0+0,0
+	movlw -121
+	movwf _r0+1,0
+	movlw 8
+	movwf _r0+2,0
+	movlw 60
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -13
+	movff PLUSW0,_r0+0
+	movlw -12
+	movff PLUSW0,_r0+1
+	movlw -11
+	movff PLUSW0,_r0+2
+	movlw -10
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -92
+	movwf _r0+0,0
+	movlw -86
+	movwf _r0+1,0
+	movlw 42
+	movwf _r0+2,0
+	movlw -66
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -13
+	movff PLUSW0,_r0+0
+	movlw -12
+	movff PLUSW0,_r0+1
+	movlw -11
+	movff PLUSW0,_r0+2
+	movlw -10
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -13
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       f += f * r;
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,_r0+0
+	movlw -16
+	movff PLUSW0,_r0+1
+	movlw -15
+	movff PLUSW0,_r0+2
+	movlw -14
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	movlw 17
+	ICALL getLOCALNEGADDR
+	ICALL ipaddFP
+;    }
+;    return (sign ? -f : f);
+L18_sincosf_91_endif
+	movf INDF0,F,0
+	IBZ L18_sincosf_93
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	IBRA L18_sincosf_92
+L18_sincosf_93
+	movlw -17
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+L18_sincosf_92
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_sincosf_85
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 22
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?C18_errno>
+;<?C18_fabsf>
+;<?addFP>
+;<?cast8_F>
+;<?castF_8>
+;<?getLOCALNEGADDR>
+;<?gtFP>
+;<?ipaddFP>
+;<?ipsubFP>
+;<?lnot8>
+;<?ltFP>
+;<?mulFP>
+;<?subFP>
+;<-> float sincosf(float x@1,int iscos@0)
+
+;<+C18_sincoshf> float sincoshf(float x@1,int iscosh@0)
+C18_sincoshf
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 13
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    float y, w, z;
+;    int sign;
+;    if (x < 0.0)
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_sincoshf_97_else
+;    {
+;       y = -x;
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movlw -12
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       sign = 1;
+	movlw 1
+	movwf INDF0,0
+;    }
+;    else
+	IBRA L18_sincoshf_97_endif
+L18_sincoshf_97_else
+;    {
+;       y = x;
+	movlw -16
+	movff PLUSW0,PREINC0
+	movlw -12
+	movff POSTDEC0,PLUSW0
+	movlw -15
+	movff PLUSW0,PREINC0
+	movlw -11
+	movff POSTDEC0,PLUSW0
+	movlw -14
+	movff PLUSW0,PREINC0
+	movlw -10
+	movff POSTDEC0,PLUSW0
+	movlw -13
+	movff PLUSW0,PREINC0
+	movlw -9
+	movff POSTDEC0,PLUSW0
+;       sign = 0;
+	clrf INDF0,0
+;    }
+L18_sincoshf_97_endif
+;    if ((y > 1.0) || iscosh)
+	movlw 1
+	movwf PREINC0,0
+	movlw -13
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBNZ L18_sincoshf_104
+	movlw -18
+	movf PLUSW0,F,0
+	IBNZ L18_sincoshf_104
+	decf INDF0,F,0
+L18_sincoshf_104
+	movf POSTDEC0,W,0
+	IBZ L18_sincoshf_103_else
+;    {
+;       if(y > 9.0)
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw 16
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_sincoshf_100_else
+;       {
+;          w = y - 0.69316101074218750000E+0;
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	movlw 115
+	movwf _r0+1,0
+	movlw 49
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL subFP
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          if (w > 44.93535952E+0)
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -49
+	movwf _r0+0,0
+	movlw -67
+	movwf _r0+1,0
+	movlw 51
+	movwf _r0+2,0
+	movlw 66
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_sincoshf_98_else
+;          {
+;             errno = 34;
+	movlw 34
+	movwf C18_errno+0,0
+;             z = 3.402823466e+38;
+	movlw -4
+	setf PLUSW0,0
+	movlw -3
+	setf PLUSW0,0
+	movlw 127
+	movwf PREINC0,0
+	movlw -2
+	movff POSTDEC0,PLUSW0
+	movlw 127
+	movwf PREINC0,0
+	movlw -1
+	movff POSTDEC0,PLUSW0
+;          }
+;          else
+	IBRA L18_sincoshf_98_endif
+L18_sincoshf_98_else
+;          {
+;             z = expf(w);
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_expf
+	movlw -4
+	lfsr 1,_r0
+L18_sincoshf_105
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_sincoshf_105
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;             z += 0.13830277879601902638E-4 * z;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -105
+	movwf _r0+0,0
+	movlw 8
+	movwf _r0+1,0
+	movlw 104
+	movwf _r0+2,0
+	movlw 55
+	movwf _r0+3,0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	movlw 4
+	ICALL getLOCALNEGADDR
+	ICALL ipaddFP
+;          }
+L18_sincoshf_98_endif
+;       }
+;       else
+	IBRA L18_sincoshf_100_endif
+L18_sincoshf_100_else
+;       {
+;          z = expf(y);
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_expf
+	movlw -4
+	lfsr 1,_r0
+L18_sincoshf_106
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_sincoshf_106
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          w = 1.0 / z;
+	clrf PREINC0,0
+	clrf PREINC0,0
+	movlw -128
+	movwf PREINC0,0
+	movlw 63
+	movwf PREINC0,0
+	movlw -8
+	movff PLUSW0,_r0+0
+	movlw -7
+	movff PLUSW0,_r0+1
+	movlw -6
+	movff PLUSW0,_r0+2
+	movlw -5
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          if(!iscosh) w = -w;
+	movlw -17
+	movf PLUSW0,F,0
+	IBNZ L18_sincoshf_99_endif
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          z = (z + w) * 0.5;
+L18_sincoshf_99_endif
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -12
+	movff PLUSW0,_r0+0
+	movlw -11
+	movff PLUSW0,_r0+1
+	movlw -10
+	movff PLUSW0,_r0+2
+	movlw -9
+	movff PLUSW0,_r0+3
+	ICALL addFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       }
+L18_sincoshf_100_endif
+;       if(sign) z = -z;
+	movf INDF0,F,0
+	IBZ L18_sincoshf_101_endif
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    }
+L18_sincoshf_101_endif
+;    else
+	IBRA L18_sincoshf_103_endif
+L18_sincoshf_103_else
+;    {
+;       if (y < 244.14062E-6)
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 57
+	movwf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_sincoshf_102_else
+;          z = x;
+	movlw -16
+	movff PLUSW0,PREINC0
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movlw -15
+	movff PLUSW0,PREINC0
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movlw -14
+	movff PLUSW0,PREINC0
+	movlw -2
+	movff POSTDEC0,PLUSW0
+	movlw -13
+	movff PLUSW0,PREINC0
+	movlw -1
+	movff POSTDEC0,PLUSW0
+;       else
+	IBRA L18_sincoshf_102_endif
+L18_sincoshf_102_else
+;       {
+;          z = x * x;
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -20
+	movff PLUSW0,_r0+0
+	movlw -19
+	movff PLUSW0,_r0+1
+	movlw -18
+	movff PLUSW0,_r0+2
+	movlw -17
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;          z = x + x * z * (-0.190333999E+0*z+-0.713793159E+1) / (0.100000000E+1*z+-0.428277109E+2);
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -20
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -12
+	movff PLUSW0,_r0+0
+	movlw -11
+	movff PLUSW0,_r0+1
+	movlw -10
+	movff PLUSW0,_r0+2
+	movlw -9
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -22
+	movwf _r0+0,0
+	movlw -26
+	movwf _r0+1,0
+	movlw 66
+	movwf _r0+2,0
+	movlw -66
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -16
+	movwf _r0+0,0
+	movlw 105
+	movwf _r0+1,0
+	movlw -28
+	movwf _r0+2,0
+	movlw -64
+	movwf _r0+3,0
+	ICALL addFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL mulFP
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -109
+	movwf _r0+0,0
+	movlw 79
+	movwf _r0+1,0
+	movlw 43
+	movwf _r0+2,0
+	movlw -62
+	movwf _r0+3,0
+	ICALL addFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL addFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       }
+L18_sincoshf_102_endif
+;    }
+L18_sincoshf_103_endif
+;    return z;
+	movlw -4
+	movff PLUSW0,_r0+0
+	movlw -3
+	movff PLUSW0,_r0+1
+	movlw -2
+	movff PLUSW0,_r0+2
+	movlw -1
+	movff PLUSW0,_r0+3
+; }
+L18_sincoshf_96
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 13
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?C18_errno>
+;<?C18_expf>
+;<?addFP>
+;<?divFP>
+;<?getLOCALNEGADDR>
+;<?gtFP>
+;<?ipaddFP>
+;<?ltFP>
+;<?mulFP>
+;<?subFP>
+;<-> float sincoshf(float x@1,int iscosh@0)
+
+;<+C18_sinf> float sinf(float x@0)
+C18_sinf
+;    if (x == 0.0) return 0.0;
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL lnotFP
+	movf POSTDEC0,W,0
+	IBZ L18_sinf_108_endif
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_sinf_107
+;    return sincosf(x, 0);
+L18_sinf_108_endif
+	clrf PREINC0,0
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_sincosf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_sinf_109
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_sinf_109
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_sinf_107
+	return 0
+;<?C18_sincosf>
+;<?lnotFP>
+;<-> float sinf(float x@0)
+
+;<+C18_sinhf> float sinhf(float x@0)
+C18_sinhf
+;    return sincoshf(x, 0);
+	clrf PREINC0,0
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_sincoshf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_sinhf_111
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_sinhf_111
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_sinhf_110
+	return 0
+;<?C18_sincoshf>
+;<-> float sinhf(float x@0)
+
+;<+C18_tancotf> float tancotf(float x@1,int iscotan@0)
+C18_tancotf
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 21
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    float f, g, xn, xnum, xden;
+;    int n;
+;    if (fabsf(x) > 6433.0)
+	movlw -24
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_tancotf_120
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_tancotf_120
+	clrf _r0+0,0
+	movlw 8
+	movwf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw 69
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_tancotf_113_endif
+;    {
+;       errno = 34;
+	movlw 34
+	movwf C18_errno+0,0
+;       return 0.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_tancotf_112
+;    }
+;    n = (x * 0.6366197724 + (x > 0.0 ? 0.5 : -0.5));
+L18_tancotf_113_endif
+	movlw -24
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -125
+	movwf _r0+0,0
+	movlw -7
+	movwf _r0+1,0
+	movlw 34
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -28
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_tancotf_115
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_tancotf_114
+L18_tancotf_115
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	movlw -65
+	movwf _r0+3,0
+L18_tancotf_114
+	ICALL addFP
+	ICALL castF_8
+	movff POSTDEC0,INDF0
+;    xn = n;
+	movff INDF0,PREINC0
+	ICALL cast8_F
+	movlw -12
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    xnum = (int)x;
+	movlw -24
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL castF_8
+	ICALL cast8_F
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    xden = x - xnum;
+	movlw -24
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -12
+	movff PLUSW0,_r0+0
+	movlw -11
+	movff PLUSW0,_r0+1
+	movlw -10
+	movff PLUSW0,_r0+2
+	movlw -9
+	movff PLUSW0,_r0+3
+	ICALL subFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    f = ((xnum - xn * 1.5703125) + xden) - xn * 4.83826794897E-4;
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -55
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL subFP
+	movlw -8
+	movff PLUSW0,_r0+0
+	movlw -7
+	movff PLUSW0,_r0+1
+	movlw -6
+	movff PLUSW0,_r0+2
+	movlw -5
+	movff PLUSW0,_r0+3
+	ICALL addFP
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 34
+	movwf _r0+0,0
+	movlw -86
+	movwf _r0+1,0
+	movlw -3
+	movwf _r0+2,0
+	movlw 57
+	movwf _r0+3,0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL subFP
+	movlw -20
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if (fabsf(f) < 244.14062E-6)
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_tancotf_121
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_tancotf_121
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 57
+	movwf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_tancotf_116_else
+;    {
+;       xnum = f;
+	movlw -20
+	movff PLUSW0,PREINC0
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movlw -19
+	movff PLUSW0,PREINC0
+	movlw -7
+	movff POSTDEC0,PLUSW0
+	movlw -18
+	movff PLUSW0,PREINC0
+	movlw -6
+	movff POSTDEC0,PLUSW0
+	movlw -17
+	movff PLUSW0,PREINC0
+	movlw -5
+	movff POSTDEC0,PLUSW0
+;       xden = 1.0;
+	movlw -4
+	clrf PLUSW0,0
+	movlw -3
+	clrf PLUSW0,0
+	movlw -128
+	movwf PREINC0,0
+	movlw -2
+	movff POSTDEC0,PLUSW0
+	movlw 63
+	movwf PREINC0,0
+	movlw -1
+	movff POSTDEC0,PLUSW0
+;    }
+;    else
+	IBRA L18_tancotf_116_endif
+L18_tancotf_116_else
+;    {
+;       g = f * f;
+	movlw -20
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -24
+	movff PLUSW0,_r0+0
+	movlw -23
+	movff PLUSW0,_r0+1
+	movlw -22
+	movff PLUSW0,_r0+2
+	movlw -21
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -16
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       xnum = (-0.958017723E-1*g*f+f);
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -72
+	movwf _r0+0,0
+	movlw 51
+	movwf _r0+1,0
+	movlw -60
+	movwf _r0+2,0
+	movlw -67
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -24
+	movff PLUSW0,_r0+0
+	movlw -23
+	movff PLUSW0,_r0+1
+	movlw -22
+	movff PLUSW0,_r0+2
+	movlw -21
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -24
+	movff PLUSW0,_r0+0
+	movlw -23
+	movff PLUSW0,_r0+1
+	movlw -22
+	movff PLUSW0,_r0+2
+	movlw -21
+	movff PLUSW0,_r0+3
+	ICALL addFP
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       xden = ((0.971685835E-2*g+-0.429135777E+0)*g+0.100000000E+1);
+	movlw -16
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 117
+	movwf _r0+0,0
+	movlw 51
+	movwf _r0+1,0
+	movlw 31
+	movwf _r0+2,0
+	movlw 60
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -81
+	movwf _r0+0,0
+	movlw -73
+	movwf _r0+1,0
+	movlw -37
+	movwf _r0+2,0
+	movlw -66
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -20
+	movff PLUSW0,_r0+0
+	movlw -19
+	movff PLUSW0,_r0+1
+	movlw -18
+	movff PLUSW0,_r0+2
+	movlw -17
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    }
+L18_tancotf_116_endif
+;    if(n&1)
+	movf INDF0,W,0
+	andlw 1
+	IBZ L18_tancotf_119_else
+;    {
+;       if(iscotan) return (-xnum / xden);
+	movlw -25
+	movf PLUSW0,F,0
+	IBZ L18_tancotf_117_else
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff PLUSW0,_r0+0
+	movlw -7
+	movff PLUSW0,_r0+1
+	movlw -6
+	movff PLUSW0,_r0+2
+	movlw -5
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_tancotf_112
+;       else return (-xden / xnum);
+	IBRA L18_tancotf_117_endif
+L18_tancotf_117_else
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movlw -12
+	movff PLUSW0,_r0+0
+	movlw -11
+	movff PLUSW0,_r0+1
+	movlw -10
+	movff PLUSW0,_r0+2
+	movlw -9
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_tancotf_112
+L18_tancotf_117_endif
+;    }
+;    else
+	IBRA L18_tancotf_119_endif
+L18_tancotf_119_else
+;    {
+;       if(iscotan) return (xden / xnum);
+	movlw -25
+	movf PLUSW0,F,0
+	IBZ L18_tancotf_118_else
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -12
+	movff PLUSW0,_r0+0
+	movlw -11
+	movff PLUSW0,_r0+1
+	movlw -10
+	movff PLUSW0,_r0+2
+	movlw -9
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_tancotf_112
+;       else return (xnum / xden);
+	IBRA L18_tancotf_118_endif
+L18_tancotf_118_else
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,_r0+0
+	movlw -7
+	movff PLUSW0,_r0+1
+	movlw -6
+	movff PLUSW0,_r0+2
+	movlw -5
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	IBRA L18_tancotf_112
+L18_tancotf_118_endif
+;    }
+L18_tancotf_119_endif
+; }
+L18_tancotf_112
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 21
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?C18_errno>
+;<?C18_fabsf>
+;<?addFP>
+;<?cast8_F>
+;<?castF_8>
+;<?divFP>
+;<?gtFP>
+;<?ltFP>
+;<?mulFP>
+;<?subFP>
+;<-> float tancotf(float x@1,int iscotan@0)
+
+;<+C18_tanf> float tanf(float x@0)
+C18_tanf
+;    return tancotf(x, 0);
+	clrf PREINC0,0
+	movlw -4
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_tancotf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_tanf_123
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_tanf_123
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_tanf_122
+	return 0
+;<?C18_tancotf>
+;<-> float tanf(float x@0)
+
+;<+C18_cotf> float cotf(float x@0)
+C18_cotf
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;    float y;
+;    y = fabsf(x);
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_cotf_127
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_cotf_127
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if (y < 1.0E-30)
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 96
+	movwf _r0+0,0
+	movlw 66
+	movwf _r0+1,0
+	movlw -94
+	movwf _r0+2,0
+	movlw 13
+	movwf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_cotf_126_endif
+;    {
+;       errno = 34;
+	movlw 34
+	movwf C18_errno+0,0
+;       if (x < 0.0)
+	movlw -7
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_cotf_125_else
+;          return -3.402823466e+38;
+	setf _r0+0,0
+	setf _r0+1,0
+	movlw 127
+	movwf _r0+2,0
+	setf _r0+3,0
+	IBRA L18_cotf_124
+;       else
+	IBRA L18_cotf_125_endif
+L18_cotf_125_else
+;          return + 3.402823466e+38;
+	setf _r0+0,0
+	setf _r0+1,0
+	movlw 127
+	movwf _r0+2,0
+	movwf _r0+3,0
+	IBRA L18_cotf_124
+L18_cotf_125_endif
+;    }
+;    return tancotf(x, 1);
+L18_cotf_126_endif
+	movlw 1
+	movwf PREINC0,0
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_tancotf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_cotf_128
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_cotf_128
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_cotf_124
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?C18_errno>
+;<?C18_fabsf>
+;<?C18_tancotf>
+;<?ltFP>
+;<-> float cotf(float x@0)
+
+;<+C18_tanhf> float tanhf(float x@0)
+C18_tanhf
+;  local data
+;  ---  non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 12
+	addwf FSR0L,F,0
+	movlw 0
+	addwfc FSR0H,F,0  ; reserve stack
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+;  --- end of non interruptible section
+;    float f, g, r;
+;    f = fabsf(x);
+	movlw -15
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_fabsf
+	movlw -4
+	lfsr 1,_r0
+L18_tanhf_134
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_tanhf_134
+	movlw -11
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if(f > 9.01091) r = 1.0;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -80
+	movwf _r0+0,0
+	movlw 44
+	movwf _r0+1,0
+	movlw 16
+	movwf _r0+2,0
+	movlw 65
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_tanhf_132_else
+	movlw -3
+	clrf PLUSW0,0
+	movlw -2
+	clrf PLUSW0,0
+	movlw -128
+	movwf PREINC0,0
+	movlw -1
+	movff POSTDEC0,PLUSW0
+	movlw 63
+	movwf INDF0,0
+;    else if(f > 0.5493061443E+0)
+	IBRA L18_tanhf_132_endif
+L18_tanhf_132_else
+	movlw -11
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw 84
+	movwf _r0+0,0
+	movlw -97
+	movwf _r0+1,0
+	movlw 12
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL gtFP
+	movf POSTDEC0,W,0
+	IBZ L18_tanhf_131_else
+;    {
+;       r = 0.5 - 1.0 / (expf(f + f) + 1.0);
+	clrf PREINC0,0
+	clrf PREINC0,0
+	clrf PREINC0,0
+	movlw 63
+	movwf PREINC0,0
+	clrf PREINC0,0
+	clrf PREINC0,0
+	movlw -128
+	movwf PREINC0,0
+	movlw 63
+	movwf PREINC0,0
+	movlw -19
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -23
+	movff PLUSW0,_r0+0
+	movlw -22
+	movff PLUSW0,_r0+1
+	movlw -21
+	movff PLUSW0,_r0+2
+	movlw -20
+	movff PLUSW0,_r0+3
+	ICALL addFP
+	ICALL C18_expf
+	movlw -4
+	lfsr 1,_r0
+L18_tanhf_135
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_tanhf_135
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL addFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL subFP
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       r += r;
+	movff PLUSW0,_r0+0
+	movlw -2
+	movff PLUSW0,_r0+1
+	movlw -1
+	movff PLUSW0,_r0+2
+	movff INDF0,_r0+3
+	movlw 3
+	ICALL getLOCALNEGADDR
+	ICALL ipaddFP
+;    }
+;    else if(f < 244.14062E-6) r = f;
+	IBRA L18_tanhf_131_endif
+L18_tanhf_131_else
+	movlw -11
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 57
+	movwf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_tanhf_130_else
+	movlw -11
+	movff PLUSW0,PREINC0
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movlw -10
+	movff PLUSW0,PREINC0
+	movlw -2
+	movff POSTDEC0,PLUSW0
+	movlw -9
+	movff PLUSW0,PREINC0
+	movlw -1
+	movff POSTDEC0,PLUSW0
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff POSTDEC0,INDF0
+;    else
+	IBRA L18_tanhf_130_endif
+L18_tanhf_130_else
+;    {
+;       g = f * f;
+	movlw -11
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -15
+	movff PLUSW0,_r0+0
+	movlw -14
+	movff PLUSW0,_r0+1
+	movlw -13
+	movff PLUSW0,_r0+2
+	movlw -12
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -7
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;       r = f + f * (((-0.3831010665E-2*g+-0.8237728127E+0)*g) / (0.1000000000E+1*g+0.2471319654E+1));
+	movlw -11
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -15
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -78
+	movwf _r0+0,0
+	movlw 17
+	movwf _r0+1,0
+	movlw 123
+	movwf _r0+2,0
+	movlw -69
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -58
+	movwf _r0+0,0
+	movlw -30
+	movwf _r0+1,0
+	movlw 82
+	movwf _r0+2,0
+	movlw -65
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -19
+	movff PLUSW0,_r0+0
+	movlw -18
+	movff PLUSW0,_r0+1
+	movlw -17
+	movff PLUSW0,_r0+2
+	movlw -16
+	movff PLUSW0,_r0+3
+	ICALL mulFP
+	movlw -19
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw 26
+	movwf _r0+0,0
+	movlw 42
+	movwf _r0+1,0
+	movlw 30
+	movwf _r0+2,0
+	movlw 64
+	movwf _r0+3,0
+	ICALL addFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL mulFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL addFP
+	movlw -3
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    }
+L18_tanhf_130_endif
+L18_tanhf_131_endif
+L18_tanhf_132_endif
+;    if(x < 0.0) r = -r;
+	movlw -15
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_tanhf_133_endif
+	movlw -3
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	btg INDF0,7,0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    return r;
+L18_tanhf_133_endif
+	movlw -3
+	movff PLUSW0,_r0+0
+	movlw -2
+	movff PLUSW0,_r0+1
+	movlw -1
+	movff PLUSW0,_r0+2
+	movff INDF0,_r0+3
+; }
+L18_tanhf_129
+; --- non interruptible section
+	movlw ~((1<<GIEH)|(1<<GIEL))
+	andwf INTCON,F,0
+	movlw 12
+	subwf FSR0L,F,0
+	movlw 0
+	subwfb FSR0H,F,0 ; clean stack 
+	movf _it_mask,W,0
+	iorwf INTCON,F,0
+; --- end of non interruptible section
+	return 0
+;<?C18_expf>
+;<?C18_fabsf>
+;<?addFP>
+;<?divFP>
+;<?getLOCALNEGADDR>
+;<?gtFP>
+;<?ipaddFP>
+;<?ltFP>
+;<?mulFP>
+;<?subFP>
+;<-> float tanhf(float x@0)
+
+;<+C18_sqrtf> float sqrtf(float x@0)
+C18_sqrtf
+;  local data
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+	movf PREINC0,F,0 ; reserve stack
+;    float f, y;
+;    int n;
+;    if (x == 0.0) return x;
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL lnotFP
+	movf POSTDEC0,W,0
+	IBZ L18_sqrtf_139_else
+	movlw -12
+	movff PLUSW0,_r0+0
+	movlw -11
+	movff PLUSW0,_r0+1
+	movlw -10
+	movff PLUSW0,_r0+2
+	movlw -9
+	movff PLUSW0,_r0+3
+	IBRA L18_sqrtf_136
+;    else if (x == 1.0) return 1.0;
+	IBRA L18_sqrtf_139_endif
+L18_sqrtf_139_else
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL eqFP
+	movf POSTDEC0,W,0
+	IBZ L18_sqrtf_138_else
+	clrf _r0+0,0
+	clrf _r0+1,0
+	movlw -128
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	IBRA L18_sqrtf_136
+;    else if (x < 0.0)
+	IBRA L18_sqrtf_138_endif
+L18_sqrtf_138_else
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	ICALL ltFP
+	movf POSTDEC0,W,0
+	IBZ L18_sqrtf_137_endif
+;    {
+;       errno = 33;
+	movlw 33
+	movwf C18_errno+0,0
+;       return 0.0;
+	clrf _r0+0,0
+	clrf _r0+1,0
+	clrf _r0+2,0
+	clrf _r0+3,0
+	IBRA L18_sqrtf_136
+;    }
+;    f = frexpf(x, &n);
+L18_sqrtf_137_endif
+L18_sqrtf_138_endif
+L18_sqrtf_139_endif
+	movlw 0
+	ICALL pushLOCALNEGADDR
+	movlw -14
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_frexpf
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_sqrtf_141
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_sqrtf_141
+	movlw -8
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    y = 0.41731 + 0.59016 * f;
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movlw -70
+	movwf _r0+0,0
+	movlw 20
+	movwf _r0+1,0
+	movlw 23
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	ICALL mulFP
+	movlw -88
+	movwf _r0+0,0
+	movlw -87
+	movwf _r0+1,0
+	movlw -43
+	movwf _r0+2,0
+	movlw 62
+	movwf _r0+3,0
+	ICALL addFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    y += f / y;
+	movlw -8
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,_r0+0
+	movlw -7
+	movff PLUSW0,_r0+1
+	movlw -6
+	movff PLUSW0,_r0+2
+	movlw -5
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	movlw 4
+	ICALL getLOCALNEGADDR
+	ICALL ipaddFP
+;    y = ldexpf(y, -2) + f / y;
+	movlw -2
+	movwf PREINC0,0
+	movlw -5
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_ldexpf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_sqrtf_142
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_sqrtf_142
+	movlw -12
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,_r0+0
+	movlw -11
+	movff PLUSW0,_r0+1
+	movlw -10
+	movff PLUSW0,_r0+2
+	movlw -9
+	movff PLUSW0,_r0+3
+	ICALL divFP
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+	ICALL addFP
+	movlw -4
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+;    if (n&1)
+	movf INDF0,W,0
+	andlw 1
+	IBZ L18_sqrtf_140_endif
+;    {
+;       y *= 0.7071067812;
+	movlw -13
+	movwf _r0+0,0
+	movlw 4
+	movwf _r0+1,0
+	movlw 53
+	movwf _r0+2,0
+	movlw 63
+	movwf _r0+3,0
+	movlw 4
+	ICALL getLOCALNEGADDR
+	ICALL ipmulFP
+;       ++n;
+	incf INDF0,F,0
+;    }
+;    return ldexpf(y, n / 2);
+L18_sqrtf_140_endif
+	movff INDF0,PREINC0
+	movlw 2
+	ICALL div8
+	movlw -5
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	ICALL C18_ldexpf
+	movf POSTDEC0,F,0 ; clean stack 
+	movlw -4
+	lfsr 1,_r0
+L18_sqrtf_143
+	addlw 1
+	movff POSTINC1,PLUSW0
+	bnz L18_sqrtf_143
+	movff POSTDEC0,_r0+3
+	movff POSTDEC0,_r0+2
+	movff POSTDEC0,_r0+1
+	movff POSTDEC0,_r0+0
+; }
+L18_sqrtf_136
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	movf POSTDEC0,F,0 ; clean stack 
+	return 0
+;<?C18_errno>
+;<?C18_frexpf>
+;<?C18_ldexpf>
+;<?addFP>
+;<?div8>
+;<?divFP>
+;<?eqFP>
+;<?getLOCALNEGADDR>
+;<?ipaddFP>
+;<?ipmulFP>
+;<?lnotFP>
+;<?ltFP>
+;<?mulFP>
+;<?pushLOCALNEGADDR>
+;<-> float sqrtf(float x@0)
+;
+;<+C18_errno>
+C18_errno equ 0x1
+;<->
+	END
+

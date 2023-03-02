@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Disabling and enabling interrupts</TITLE>
+<META NAME="description" CONTENT="Disabling and enabling interrupts">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node68.html">
+<LINK REL="previous" HREF="node66.html">
+<LINK REL="up" HREF="node60.html">
+<LINK REL="next" HREF="node68.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1091"
+  HREF="node68.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1087"
+  HREF="node60.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1081"
+  HREF="node66.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1089"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1092"
+  HREF="node68.html">Explicit bit fields</A>
+<B> Up:</B> <A NAME="tex2html1088"
+  HREF="node60.html">Extensions</A>
+<B> Previous:</B> <A NAME="tex2html1082"
+  HREF="node66.html">Why and how to</A>
+ &nbsp; <B>  <A NAME="tex2html1090"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001312700000000000000">
+Disabling and enabling interrupts</A>
+</H3>
+
+<P>
+In some very rare situations one can have to violate the interruptibility rule. 
+In this case, interruptions must be masked. In order to keep the code consistent with interruptions usage
+you must use the following macro to manage interrupts (ie: <I>never</I> change the <code>INTCON</code> enabling bits (<code>GIE/GIEH/GIEL</code>) directly).
+
+<OL>
+<LI><code>MASK_HI_PRI_IT</code> :  disable high priority interrupts.
+</LI>
+<LI><code>MASK_LO_PRI_IT</code> :  disable low priority interrupts.
+</LI>
+<LI><code>UNMASK_HI_PRI_IT</code> : enable high priority interrupts.
+</LI>
+<LI><code>UNMASK_LO_PRI_IT</code> : enable low priority interrupts.
+</LI>
+</OL>
+
+<P>
+Before entering a critical (ie: non-interruptible) section, just use the <code>DISABLE_IT</code> macro&nbsp;: it will atomically
+disable all interrupts. 
+When you leave the critical section, use the <code>ENABLE_IT</code> macro&nbsp;: interrupts will be restored to the previous state, no matter they were enabled or not.
+Of course, never change the interrupt status in a critical section, and never enter a critical section from a critical section. 
+<BR>
+<P>
+<DIV ALIGN="LEFT">
+<SPAN ID="fcol1663">
+</DIV><TABLE  WIDTH="97%">
+<TR><TD>
+<SPAN  CLASS="textbf">Caution</SPAN>: never use one of these macros in an Interrupt Service Routine because it is likely to cause an infinite recursive call of the ISR. This limitation is caused by a flaw in the design of the PIC18 architecture.
+All these macros are defined in <TT>&lt;interrupt.h&gt;</TT> header.
+</TD></TR>
+</TABLE>
+<DIV ALIGN="LEFT"></SPAN>
+
+</DIV>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1091"
+  HREF="node68.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1087"
+  HREF="node60.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1081"
+  HREF="node66.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1089"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1092"
+  HREF="node68.html">Explicit bit fields</A>
+<B> Up:</B> <A NAME="tex2html1088"
+  HREF="node60.html">Extensions</A>
+<B> Previous:</B> <A NAME="tex2html1082"
+  HREF="node66.html">Why and how to</A>
+ &nbsp; <B>  <A NAME="tex2html1090"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

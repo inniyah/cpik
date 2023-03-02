@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Libraries</TITLE>
+<META NAME="description" CONTENT="Libraries">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node107.html">
+<LINK REL="previous" HREF="node76.html">
+<LINK REL="up" HREF="cpik-doc.html">
+<LINK REL="next" HREF="node85.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1302"
+  HREF="node85.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1298"
+  HREF="cpik-doc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1292"
+  HREF="node83.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1300"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1303"
+  HREF="node85.html">standard IO library</A>
+<B> Up:</B> <A NAME="tex2html1299"
+  HREF="cpik-doc.html">cpik C compiler for</A>
+<B> Previous:</B> <A NAME="tex2html1293"
+  HREF="node83.html">assert.h</A>
+ &nbsp; <B>  <A NAME="tex2html1301"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION000160000000000000000">
+Libraries</A>
+</H1>
+
+<P>
+Until now, a small number of   libraries are available, and they have been developed for my own needs, and/or compiler testing, so they are not always versatile.
+
+<P>
+Excepted for <TT>rtl.slb</TT>, <TT>float.slb</TT>, <TT>string.slb</TT>, <TT>sort.slb</TT> and <TT>lcd.slb</TT> (which are directly written in assembly language) each library (for example <TT>x</TT>) is written in C, and related  to 3 files:
+
+<UL>
+<LI><TT>x.c</TT>&nbsp;: the source code (when written in C),
+</LI>
+<LI><TT>x.h</TT>&nbsp;: the header file,
+</LI>
+<LI><TT>x.slb</TT>&nbsp;: the source library  file (compiled version of <TT>x.c</TT>)
+</LI>
+</UL>
+Obviously, sources files are not needed to use libraries, but can be useful because the <TT>cpik</TT> project is under development, so libraries are far from being stabilized.
+
+<P>
+Sources libraries are installed in <TT>/usr/share/cpik/&lt;VERSION&gt;/lib</TT> and headers 
+<BR>
+in <TT>/usr/share/cpik/&lt;VERSION&gt;/include</TT>.
+
+<P>
+However, source libraries generated from C files are not distributed because they depends on compiler and run time code version. You need to recompile the source code yourself. 
+
+<P>
+As the compilation is really very fast, I generally include the source code of the libraries I use in my <TT>pikdev</TT> projects, so they are compiled with the rest of the application.
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html1304"
+  HREF="node85.html">standard IO library</A>
+<UL>
+<LI><A NAME="tex2html1305"
+  HREF="node86.html">IO redirection</A>
+<LI><A NAME="tex2html1306"
+  HREF="node87.html">output functions</A>
+<LI><A NAME="tex2html1307"
+  HREF="node88.html">Conversion specifiers supported by the <TT>printf()</TT> family</A>
+<LI><A NAME="tex2html1308"
+  HREF="node89.html">input</A>
+<LI><A NAME="tex2html1309"
+  HREF="node90.html">Conversion specifiers supported by the <TT>scanf()</TT> family</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1310"
+  HREF="node91.html">Standard math library</A>
+<UL>
+<LI><A NAME="tex2html1311"
+  HREF="node92.html">Trigonometric functions</A>
+<LI><A NAME="tex2html1312"
+  HREF="node93.html">Hyperbolic functions</A>
+<LI><A NAME="tex2html1313"
+  HREF="node94.html">Exponential, logarithmic and power functions</A>
+<LI><A NAME="tex2html1314"
+  HREF="node95.html">Nearest integer, absolute value, and remainder functions</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1315"
+  HREF="node96.html">Standard string library</A>
+<LI><A NAME="tex2html1316"
+  HREF="node97.html">sort library</A>
+<LI><A NAME="tex2html1317"
+  HREF="node98.html">Standard stdlib library</A>
+<UL>
+<LI><A NAME="tex2html1318"
+  HREF="node99.html">System</A>
+<LI><A NAME="tex2html1319"
+  HREF="node100.html">Character processing</A>
+<LI><A NAME="tex2html1320"
+  HREF="node101.html">Conversions to/from strings</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1321"
+  HREF="node102.html">rs232</A>
+<LI><A NAME="tex2html1322"
+  HREF="node103.html">LCD</A>
+<LI><A NAME="tex2html1323"
+  HREF="node104.html">AD conversion</A>
+<LI><A NAME="tex2html1324"
+  HREF="node105.html">EEPROM read/write</A>
+<LI><A NAME="tex2html1325"
+  HREF="node106.html">Timer 0 </A>
+</UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1302"
+  HREF="node85.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1298"
+  HREF="cpik-doc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1292"
+  HREF="node83.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1300"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1303"
+  HREF="node85.html">standard IO library</A>
+<B> Up:</B> <A NAME="tex2html1299"
+  HREF="cpik-doc.html">cpik C compiler for</A>
+<B> Previous:</B> <A NAME="tex2html1293"
+  HREF="node83.html">assert.h</A>
+ &nbsp; <B>  <A NAME="tex2html1301"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>

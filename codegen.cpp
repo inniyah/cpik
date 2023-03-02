@@ -468,11 +468,11 @@ void CodeGen::makeCode ( Flatten& f )
             else if ( nb <= 4 )
             {
                 for ( k1 = 0 ; k1 < nb ; ++k1 )
-                    out << "\tmovff R0+"<< i2s ( k1 ) << ",PREINC0" << endl ;
+                    out << "\tmovff _r0+"<< i2s ( k1 ) << ",PREINC0" << endl ;
             }
             else
             {
-                gen ( "lfsr 1,R0" ) ;
+                gen ( "lfsr 1,_r0" ) ;
                 setW ( nb ) ;
                 label1 = c18.uniqueLabel() ;
                 lab ( label1 ) ;
@@ -559,12 +559,12 @@ void CodeGen::makeCode ( Flatten& f )
             {
                 for ( k1=nb-1 ; k1 >=0 ; --k1 )
                 {
-                    gen ( "movff POSTDEC0,R0+"+i2s ( k1 ) ) ;
+                    gen ( "movff POSTDEC0,_r0+"+i2s ( k1 ) ) ;
                 }
             }
             else
             {
-                gen ( "lfsr 1,R0" ) ;
+                gen ( "lfsr 1,_r0" ) ;
                 setW ( nb ) ;
                 lab ( label1 = c18.uniqueLabel() )  ;
                 callRTL ( "popSmallBlock" ) ;
@@ -586,7 +586,7 @@ void CodeGen::makeCode ( Flatten& f )
             break ;
 
         case Operation::Mov8RLtoTos:
-            out << "\tmovff R0,INDF0" << endl ;
+            out << "\tmovff _r0,INDF0" << endl ;
             break ;
 
 
@@ -600,14 +600,14 @@ void CodeGen::makeCode ( Flatten& f )
             }
             else if ( nb == 2 )
             {
-                gen ( "movff R0+1,INDF0" ) ; ;
+                gen ( "movff _r0+1,INDF0" ) ; ;
                 setW ( -1 ) ;
-                gen ( "movff R0,PLUSW0" );
+                gen ( "movff _r0,PLUSW0" );
             }
             else
             {
                 setW ( -nb ) ;
-                gen ( "lfsr 1,R0" );
+                gen ( "lfsr 1,_r0" );
                 label1 = c18.uniqueLabel() ;
                 lab ( label1 ) ;
                 gen ( "addlw 1" ) ;
@@ -753,28 +753,28 @@ void CodeGen::makeCode ( Flatten& f )
             {
                 if ( op._val  == 0 )
                 {
-                    out << "\tclrf R0,0" <<endl ;
+                    out << "\tclrf _r0,0" <<endl ;
                 }
                 else if ( ( op._val & 0xFF ) == 0xFF ) // ?? pourquoi masque ici et pas ailleurs ?
                 {
-                    out << "\tsetf R0,0" <<endl ;
+                    out << "\tsetf _r0,0" <<endl ;
                 }
                 else
                 {
                     emitMovCstToW ( op._val ) ;
-                    out << "\tmovwf R0,0" << endl ;
+                    out << "\tmovwf _r0,0" << endl ;
                 }
             }
             else if ( op._e1->isGlobal() )
             {
                 gn =  mkGlob ( op._e1->name() ) ;
-                out << "\tmovff " << gn <<",R0" << endl ;
+                out << "\tmovff " << gn <<",_r0" << endl ;
             }
             else if ( op._e1->isLocal() )
             {
                 off =  varOffset ( op._e1 ) ;
                 ind = emitStackOff ( off ) ;
-                out << "\tmovff " << ind << ",R0" << endl ;
+                out << "\tmovff " << ind << ",_r0" << endl ;
             }
             else if ( op._e1->isConstant() )
             {
@@ -782,26 +782,26 @@ void CodeGen::makeCode ( Flatten& f )
 
                 if ( k  == 0 )
                 {
-                    out << "\tclrf R0,0" <<endl ;
+                    out << "\tclrf _r0,0" <<endl ;
                 }
                 else if ( ( k & 0xFF )   == 0xFF )
                 {
-                    out << "\tsetf R0,0" <<endl ;
+                    out << "\tsetf _r0,0" <<endl ;
                 }
                 else
                 {
                     emitMovCstToW ( k ) ;
-                    out << "\tmovwf R0,0" << endl ;
+                    out << "\tmovwf _r0,0" << endl ;
                 }
             }
             break ;
         case Operation::ExtendRL:
         {
-            out << "\tclrf R0H,0" << endl ;
+            out << "\tclrf _r0H,0" << endl ;
             if ( op._val != 0 ) // signed extension
             {
-                out << "\tbtfsc R0L,7,0" << endl ;
-                out << "\tsetf R0H,0" << endl ;
+                out << "\tbtfsc _r0L,7,0" << endl ;
+                out << "\tsetf _r0H,0" << endl ;
             }
             break ;
         }
@@ -809,36 +809,36 @@ void CodeGen::makeCode ( Flatten& f )
         case Operation::MovConst16toR:
             if ( op._e1 == 0 )
             {
-                emitMovCst8To ( op._val & 0xFF, "R0" ) ;
-                emitMovCst8To ( ( op._val>>8 ) & 0xFF  , "R0+1" ) ;
+                emitMovCst8To ( op._val & 0xFF, "_r0" ) ;
+                emitMovCst8To ( ( op._val>>8 ) & 0xFF  , "_r0+1" ) ;
             }
             else if ( op._e1->isGlobal() )
             {
                 gn = mkGlob ( op._e1->name() ) ;
-                out << "\tmovff " << gn <<",R0" << endl ;
-                out << "\tmovff " << gn << "+1,R0+1" << endl ;
+                out << "\tmovff " << gn <<",_r0" << endl ;
+                out << "\tmovff " << gn << "+1,_r0+1" << endl ;
             }
             else if ( op._e1->isFct() )
             {
                 gn = mkGlob ( op._e1->name() ) ;
                 out << "\tmovlw " << low(gn) <<endl ;
-                out << "\tmovwf R0,0" << endl ;
+                out << "\tmovwf _r0,0" << endl ;
                 out << "\tmovlw " << high(gn) <<endl ;
-                out << "\tmovwf R0+1,0" << endl ;
+                out << "\tmovwf _r0+1,0" << endl ;
                 Wvalid = false ;
             }
             else if ( op._e1->isLocal() )
             {
                 off =   varOffset ( op._e1 ) ;
                 ind = emitStackOff ( off ) ;
-                out << "\tmovff " << ind << ",R0" << endl ;
+                out << "\tmovff " << ind << ",_r0" << endl ;
                 ind = emitStackOff ( off+1 ) ;
-                out << "\tmovff " << ind << ",R0+1" << endl ;
+                out << "\tmovff " << ind << ",_r0+1" << endl ;
             }
             else if ( op._e1->isConstant() )
             {
-                emitMovCst8To ( op._e1->value() & 0xFF , "R0" ) ;
-                emitMovCst8To ( ( op._e1->value() >>8 ) & 0xFF  , "R0+1" ) ;
+                emitMovCst8To ( op._e1->value() & 0xFF , "_r0" ) ;
+                emitMovCst8To ( ( op._e1->value() >>8 ) & 0xFF  , "_r0+1" ) ;
             }
             break ;
 
@@ -850,12 +850,12 @@ void CodeGen::makeCode ( Flatten& f )
             if ( op._e1->isGlobal() )
             {
                 gn = mkGlob ( op._e1->name() ) ;
-                out << "\tmovff R0," << gn  << endl ;
+                out << "\tmovff _r0," << gn  << endl ;
             }
             else if ( op._e1->isLocal() )
             {
                 ind = emitStackOff ( varOffset ( op._e1 ) ) ;
-                out << "\tmovff R0," << ind << endl ;
+                out << "\tmovff _r0," << ind << endl ;
             }
             break ;
 
@@ -874,12 +874,12 @@ void CodeGen::makeCode ( Flatten& f )
                 {
                     for ( int i = 0 ; i < nb ; ++i )
                     {
-                        gen ( "movff R0+"+i2s ( i ) +","+gn+"+"+i2s ( i ) );
+                        gen ( "movff _r0+"+i2s ( i ) +","+gn+"+"+i2s ( i ) );
                     }
                 }
                 else
                 {
-                    gen ( "lfsr 1,R0" ) ;
+                    gen ( "lfsr 1,_r0" ) ;
                     gen ( "ILFSR2 "+gn ) ;
                     setW ( nb ) ;
                     callRTL ( "movSmallBlock" ) ;
@@ -902,13 +902,13 @@ void CodeGen::makeCode ( Flatten& f )
                 else if ( nb ==2 )
                 {
                     ind = emitStackOff ( off ) ;
-                    gen ( "movff R0,"+ind ) ;
+                    gen ( "movff _r0,"+ind ) ;
                     ind = emitStackOff ( off+1 ) ;
-                    gen ( "movff R0+1,"+ind ) ;
+                    gen ( "movff _r0+1,"+ind ) ;
                 }
                 else
                 {
-                    gen ( "lfsr 1,R0" ) ;
+                    gen ( "lfsr 1,_r0" ) ;
                     setW ( nb ) ;
                     gen ( "movwf PRODL,0" ) ;
                     setW ( off ) ;
@@ -921,7 +921,7 @@ void CodeGen::makeCode ( Flatten& f )
 
 
         case Operation::Mov8RLtoR:
-            out << "\tmovf R0,W,0" << endl ;
+            out << "\tmovf _r0,W,0" << endl ;
             Wvalid = false ;
             break ;
 
@@ -986,15 +986,15 @@ void CodeGen::makeCode ( Flatten& f )
             }
             else if ( nb == 2 )
             {
-                gen ( "movff POSTINC1,R0" ) ;
-                gen ( "movff POSTDEC1,R0+1" ) ;
+                gen ( "movff POSTINC1,_r0" ) ;
+                gen ( "movff POSTDEC1,_r0+1" ) ;
             }
             else if ( nb == 4 )
             {
-                gen ( "movff POSTINC1,R0" ) ;
-                gen ( "movff POSTINC1,R0+1" ) ;
-                gen ( "movff POSTINC1,R0+2" ) ;
-                gen ( "movff POSTDEC1,R0+3" ) ;
+                gen ( "movff POSTINC1,_r0" ) ;
+                gen ( "movff POSTINC1,_r0+1" ) ;
+                gen ( "movff POSTINC1,_r0+2" ) ;
+                gen ( "movff POSTDEC1,_r0+3" ) ;
                 gen ( "movf POSTDEC1,F,0" ) ;
                 gen ( "movf POSTDEC1,F,0" ) ;
             }
@@ -1004,7 +1004,7 @@ void CodeGen::makeCode ( Flatten& f )
                 gen ( "movff FSR1H,PRODH" ) ;
                 setW ( nb );
                 label1 = c18.uniqueLabel() ;
-                gen ( "ILFSR2 R0" ) ;
+                gen ( "ILFSR2 _r0" ) ;
                 out << label1 << endl ;
                 gen ( "addlw -1" ) ;
                 gen ( "movff POSTINC1,POSTINC2" ) ;
@@ -1550,6 +1550,7 @@ void CodeGen::makeCode ( Flatten& f )
                 gen ( "decf WREG,F,0" ) ;
                 gen ( "movff POSTDEC0,PLUSW1" ) ;
                 gen ( "bnz "+label1 ) ;
+                W = 0  ; // ++Gib:  fixed 10/3/2015 Thank you Pascal.
             }
             stk -= nb ; ;
         }
@@ -1603,12 +1604,12 @@ void CodeGen::makeCode ( Flatten& f )
             {
                 for ( int i=0 ; i < nb ; ++i )
                 {
-                    gen ( "movff POSTINC1,R0+" + i2s ( i ) ) ;
+                    gen ( "movff POSTINC1,_r0+" + i2s ( i ) ) ;
                 }
             }
             else
             {
-                gen ( "ILFSR2 R0" ) ;
+                gen ( "ILFSR2 _r0" ) ;
                 setW ( nb ) ;
                 callRTL ( "movSmallBlock" ) ;
             }
@@ -1620,7 +1621,7 @@ void CodeGen::makeCode ( Flatten& f )
         {
             out << "\tmovff POSTDEC0,FSR1H" << endl ;
             out << "\tmovff POSTDEC0,FSR1L" << endl ;
-            out << "\tmovff INDF1,R0" << endl ;
+            out << "\tmovff INDF1,_r0" << endl ;
             stk -= 2 ;
         }
 
@@ -1630,8 +1631,10 @@ void CodeGen::makeCode ( Flatten& f )
         {
             if ( op._nbytes == 1 )
             {
-                out << "\tcomf INDF0,F,0\n"
-                       "\tincf INDF0,F,0" << endl ;
+                //out << "\tcomf INDF0,F,0\n"
+                //       "\tincf INDF0,F,0" << endl ;
+                out << "\tnegf INDF0,0\n" ;
+
             }
             else if ( op._nbytes == 2 )
                 callRTL ( "neg16" ) ;
@@ -1980,8 +1983,8 @@ void CodeGen::makeCode ( Flatten& f )
         case Operation::Double16R:
         {
             out << "\tbcf STATUS,C,0" << endl ; // Clear carry
-            out << "\trlcf R0,F,0" << endl ;
-            out << "\trlcf R0+1,F,0" << endl ;
+            out << "\trlcf _r0,F,0" << endl ;
+            out << "\trlcf _r0+1,F,0" << endl ;
         }
             break ;
 
@@ -2022,7 +2025,7 @@ void CodeGen::makeCode ( Flatten& f )
 
         case Operation::Push8RL:
         {
-            out << "\tmovff R0,PREINC0" << endl ;
+            out << "\tmovff _r0,PREINC0" << endl ;
             ++stk ;
         }
             break ;
@@ -2037,7 +2040,7 @@ void CodeGen::makeCode ( Flatten& f )
 
         case Operation::Pop8RL:
         {
-            out << "\tmovff POSTDEC0,R0" << endl ;
+            out << "\tmovff POSTDEC0,_r0" << endl ;
             --stk ;
         }
             break ;
@@ -2659,9 +2662,9 @@ void CodeGen::emitMovAddrToR ( Centity e1, int off )
         string gn = mkGlob ( e1->name() ) ;
 
         out << "\tmovlw " << low(gn+ s) << endl ;
-        out << "\tmovwf R0,0"    << endl ;
+        out << "\tmovwf _r0,0"    << endl ;
         out << "\tmovlw "  << high(gn + s)   << endl ;
-        out << "\tmovwf R0+1,0"   << endl ;
+        out << "\tmovwf _r0+1,0"   << endl ;
         Wvalid = false ;
     }
     else if ( e1->isLocal() )
@@ -2831,28 +2834,37 @@ void  CodeGen::emitFctEpilog ( Operation& op )
 
     }
 
-    if ( c18.parser()->curFct()->fct()->isItFct() )
+    if( c18.getPragma("noreturn")  == "")
     {
-        // now pull the user-specific data
-        vector<string> savedRegs = c18.getSavedRegs() ;
-        emitComment("Restore controlled from the \"#pragma saved_regs\" directive");
-        for( int i = (int)savedRegs.size() -1 ; i >= 0 ; --i)
+        if ( c18.parser()->curFct()->fct()->isItFct() )
         {
-            out << "\tmovff POSTDEC0," << savedRegs[i] << endl ;
-        }
+            // now pull the user-specific data
+            vector<string> savedRegs = c18.getSavedRegs() ;
+            emitComment("Restore controlled from the \"#pragma saved_regs\" directive");
+            for( int i = (int)savedRegs.size() -1 ; i >= 0 ; --i)
+            {
+                out << "\tmovff POSTDEC0," << savedRegs[i] << endl ;
+            }
 
-        emitComment("Minimal context restoration");
-        out << "\tmovf POSTDEC0,W,0" << endl ;
-        out << "\tmovff POSTDEC0,STATUS" << endl ;
-        out << "\tmovff POSTDEC0,FSR2H" << endl ;
-        out << "\tmovff POSTDEC0,FSR2L" << endl ;
-        out << "\tmovff POSTDEC0,FSR1H" << endl ;
-        out << "\tmovff POSTDEC0,FSR1L" << endl ;
-        out << "\tmovff POSTDEC0,BSR" << endl ;
-        out << "\tretfie 0" << endl ;
+            emitComment("Minimal context restoration");
+            out << "\tmovf POSTDEC0,W,0" << endl ;
+            out << "\tmovff POSTDEC0,STATUS" << endl ;
+            out << "\tmovff POSTDEC0,FSR2H" << endl ;
+            out << "\tmovff POSTDEC0,FSR2L" << endl ;
+            out << "\tmovff POSTDEC0,FSR1H" << endl ;
+            out << "\tmovff POSTDEC0,FSR1L" << endl ;
+            out << "\tmovff POSTDEC0,BSR" << endl ;
+            out << "\tretfie 0" << endl ;
+        }
+        else
+            out << "\treturn 0" << endl ;
     }
     else
-        out << "\treturn 0" << endl ;
+    {
+        emitComment("return instruction explicitly disabled");
+    }
+    c18.removePragma("noreturn");
+
 
     if ( op._e1->addr() != -1 )
     {
@@ -2883,7 +2895,7 @@ void CodeGen::emitCleanLocalData ( int kk )
 {
     if ( kk <=  0 ) return  ;
 
-   if( currentFuncName == "hi_pri_ISR")
+    if( currentFuncName == "hi_pri_ISR")
     {
         if ( kk <= 4 )
         {
@@ -2901,26 +2913,26 @@ void CodeGen::emitCleanLocalData ( int kk )
     }
     else  if( currentFuncName == "low_pri_ISR")
     {
-       if( kk <= 7)
-       {
-        for ( ; kk > 0 ; --kk )
-            out << "\tmovf POSTDEC0,F,0 ; clean stack " << endl ; // CLEAN
-       }
-       else
-       {
-           emitComment("---  disable hi pri interrupts") ;
-           gen("bcf INTCON,GIEH,0");
+        if( kk <= 7)
+        {
+            for ( ; kk > 0 ; --kk )
+                out << "\tmovf POSTDEC0,F,0 ; clean stack " << endl ; // CLEAN
+        }
+        else
+        {
+            emitComment("---  disable hi pri interrupts") ;
+            gen("bcf INTCON,GIEH,0");
 
-           emitMovCstToW ( kk & 0xFF );
-           out << "\tsubwf FSR0L,F,0" << endl ;
-           emitMovCstToW ( ( kk>>8 ) & 0xFF );
-           out << "\tsubwfb FSR0H,F,0 ; clean stack " << endl ;
+            emitMovCstToW ( kk & 0xFF );
+            out << "\tsubwf FSR0L,F,0" << endl ;
+            emitMovCstToW ( ( kk>>8 ) & 0xFF );
+            out << "\tsubwfb FSR0H,F,0 ; clean stack " << endl ;
 
-           // restore GIEH from IT_MASK
-           gen("btfsc IT_MASK,GIEH,0") ;
-           gen("bsf INTCON,GIEH,0") ;
-           emitComment("--- end of critical section");
-       }
+            // restore GIEH from _it_mask
+            gen("btfsc _it_mask,GIEH,0") ;
+            gen("bsf INTCON,GIEH,0") ;
+            emitComment("--- end of critical section");
+        }
     }
     else
     {
@@ -2943,7 +2955,7 @@ void CodeGen::emitCleanLocalData ( int kk )
             emitMovCstToW ( ( kk>>8 ) & 0xFF );
             out << "\tsubwfb FSR0H,F,0 ; clean stack " << endl ;
 
-            out << "\tmovf IT_MASK,W,0" << endl ; Wvalid = false ;
+            out << "\tmovf _it_mask,W,0" << endl ; Wvalid = false ;
             out << "\tiorwf INTCON,F,0" << endl ;
             out << "; --- end of non interruptible section" << endl  ;
         }
@@ -2996,8 +3008,8 @@ void CodeGen::emitReserveLocalData ( int kk)
             gen("addwf FSR0L,F,0" ) ;
             emitMovCstToW ( ( kk>>8 ) & 0xFF );
             gen ("addwfc FSR0H,F,0  ; reserve stack")   ;
-            // restore GIEH from IT_MASK
-            gen("btfsc IT_MASK,GIEH,0") ;
+            // restore GIEH from _it_mask
+            gen("btfsc _it_mask,GIEH,0") ;
             gen("bsf INTCON,GIEH,0") ;
             emitComment("--- end of critical section");
         }
@@ -3023,7 +3035,7 @@ void CodeGen::emitReserveLocalData ( int kk)
             emitMovCstToW ( ( kk>>8 ) & 0xFF );
             gen("addwfc FSR0H,F,0  ; reserve stack" ) ;
 
-            gen("movf IT_MASK,W,0" ); Wvalid = false ;
+            gen("movf _it_mask,W,0" ); Wvalid = false ;
             gen("iorwf INTCON,F,0" ) ;
             emitComment(" --- end of non interruptible section")  ;
         }
@@ -3219,19 +3231,19 @@ void CodeGen::emitIPAddSub16 ( Operation & op )
     {
         if ( op._e1 == 0 ) // lhs pointed to by FSR1
         {
-            gen ( "movf R0,W,0" ) ;
+            gen ( "movf _r0,W,0" ) ;
             gen ( instr+" POSTINC1,F,0" ) ;
-            gen ( "movf R0+1,W,0" ) ;
+            gen ( "movf _r0+1,W,0" ) ;
             gen ( cinstr+" POSTDEC1,F,0" ) ;
 
             Wvalid = false ;
         }
         else  // global or local lhs
         {
-            // global += R0 OR local += R0
-            gen ( "movf R0,W,0" ) ;
+            // global += _r0 OR local += _r0
+            gen ( "movf _r0,W,0" ) ;
             gen ( instr+" POSTINC1,F,0" ) ;
-            gen ( "movf R0+1,W,0" ) ;
+            gen ( "movf _r0+1,W,0" ) ;
             gen ( cinstr+" POSTDEC1,F,0" ) ;
             Wvalid = false ;
         }
@@ -3280,14 +3292,14 @@ void CodeGen::emitIPAddSub32 ( Operation & op )
     }
     else // non cst value in R
     {
-        gen ( "movf R0,W,0" ) ;
+        gen ( "movf _r0,W,0" ) ;
         gen ( instr+" POSTINC1,F,0" ) ;
 
-        gen ( "movf R0+"+i2s ( 1 ) +",W,0" ) ;
+        gen ( "movf _r0+"+i2s ( 1 ) +",W,0" ) ;
         gen ( cinstr+" POSTINC1,F,0" ) ;
-        gen ( "movf R0+"+i2s ( 2 ) +",W,0" ) ;
+        gen ( "movf _r0+"+i2s ( 2 ) +",W,0" ) ;
         gen ( cinstr+" POSTINC1,F,0" ) ;
-        gen ( "movf R0+"+i2s ( 3 ) +",W,0" ) ;
+        gen ( "movf _r0+"+i2s ( 3 ) +",W,0" ) ;
         gen ( cinstr+" POSTDEC1,F,0" ) ;
     }
     // now restore FSR1 (must be decremented x 2)
@@ -3326,9 +3338,9 @@ void CodeGen::emitIPMulN ( Operation &op )
     {
         if ( op._e1 == 0 ) // *PTR *= cst
         {
-            // just move constant to R0 (ptr already contains the addr of target variable)
+            // just move constant to _r0 (ptr already contains the addr of target variable)
             for ( int i = 0 ; i < sz  ; ++i )
-                emitMovCst8To ( byte ( op._val, i ) , sz == 1 ? "W" : ( "R0+"+i2s ( i ) ) ,true ) ;
+                emitMovCst8To ( byte ( op._val, i ) , sz == 1 ? "W" : ( "_r0+"+i2s ( i ) ) ,true ) ;
             callRTL ( routine ) ;
         }
         else     // global *= cst or local *= cst
@@ -3336,7 +3348,7 @@ void CodeGen::emitIPMulN ( Operation &op )
             emitMovAddrToP ( op._e1 , 0 ) ;
 
             for ( int i = 0 ; i < sz  ; ++i )
-                emitMovCst8To ( byte ( op._val, i ) , sz == 1 ? "W" : ( "R0+"+i2s ( i ) ) ,true ) ;
+                emitMovCst8To ( byte ( op._val, i ) , sz == 1 ? "W" : ( "_r0+"+i2s ( i ) ) ,true ) ;
 
             callRTL ( routine ) ;
         }
@@ -3384,16 +3396,16 @@ void CodeGen::emitIPAddSubMulDivF ( Operation &op )
     {
         if ( op._e1 == 0 ) // *PTR *= cst
         {
-            // just move constant to R0 (ptr already contains the addr of target variable)
+            // just move constant to _r0 (ptr already contains the addr of target variable)
             for ( int i = 0 ; i < sz  ; ++i )
-                emitMovCst8To ( byte ( op._val, i ) , ( "R0+"+i2s ( i ) ) ,true ) ;
+                emitMovCst8To ( byte ( op._val, i ) , ( "_r0+"+i2s ( i ) ) ,true ) ;
         }
         else     // global *= cst or local *= cst
         {
             emitMovAddrToP ( op._e1 , 0 ) ;
 
             for ( int i = 0 ; i < sz  ; ++i )
-                emitMovCst8To ( byte ( op._val, i ) , ( "R0+"+i2s ( i ) ) ,true ) ;
+                emitMovCst8To ( byte ( op._val, i ) , ( "_r0+"+i2s ( i ) ) ,true ) ;
         }
     }
     else // non cst value in R
@@ -3433,9 +3445,9 @@ void CodeGen::emitIPDivModN ( Operation &op )
     {
         if ( op._e1 == 0 ) // *PTR op= cst
         {
-            // just move constant to R0 (ptr already contains the addr of target variable)
+            // just move constant to _r0 (ptr already contains the addr of target variable)
             for ( int i = 0 ; i < sz  ; ++i )
-                emitMovCst8To ( byte ( op._val, i ) , sz == 1 ? "W" : ( "R0+"+i2s ( i ) ) ,true ) ;
+                emitMovCst8To ( byte ( op._val, i ) , sz == 1 ? "W" : ( "_r0+"+i2s ( i ) ) ,true ) ;
             callRTL ( routine ) ;
         }
         else     // global op= cst or local op= cst
@@ -3443,7 +3455,7 @@ void CodeGen::emitIPDivModN ( Operation &op )
             emitMovAddrToP ( op._e1 , 0 ) ;
 
             for ( int i = 0 ; i < sz  ; ++i )
-                emitMovCst8To ( byte ( op._val, i ) , sz == 1 ? "W" : ( "R0+"+i2s ( i ) ) ,true ) ;
+                emitMovCst8To ( byte ( op._val, i ) , sz == 1 ? "W" : ( "_r0+"+i2s ( i ) ) ,true ) ;
 
             callRTL ( routine ) ;
         }
@@ -3796,9 +3808,9 @@ void CodeGen::emitIPBandN ( Operation &op )
         else if ( sz == 2 )
         {
             emitMovAddrToP ( op._e1 , 0 ) ;
-            gen ( "movf R0,W,0" ) ;
+            gen ( "movf _r0,W,0" ) ;
             gen ( "andwf POSTINC1,F,0" ) ;
-            gen ( "movf R0+1,W,0" ) ;
+            gen ( "movf _r0+1,W,0" ) ;
             gen ( "andwf POSTDEC1,F,0" ) ;
         }
         else // 4
@@ -3846,10 +3858,10 @@ void CodeGen::emitBAnd16 ( int k, bool cst )
     if ( !cst )
     {
         out << "\tmovf POSTDEC0,W,0" << endl  ; // H
-        out << "\tandwf R0+1,F,0" << endl  ; // H & RH -> RH
-        out << "\tmovf R0,W,0" << endl ; Wvalid = false ;
+        out << "\tandwf _r0+1,F,0" << endl  ; // H & RH -> RH
+        out << "\tmovf _r0,W,0" << endl ; Wvalid = false ;
         out << "\tandwf INDF0,F,0" << endl  ; // RL & L -> L
-        out << "\tmovff R0+1,PREINC0" << endl  ; // push H & RH
+        out << "\tmovff _r0+1,PREINC0" << endl  ; // push H & RH
         Wvalid = false ;
     }
     else
@@ -3969,9 +3981,9 @@ void CodeGen::emitIPBorN ( Operation &op )
         else if ( sz == 2 )
         {
             emitMovAddrToP ( op._e1 , 0 ) ;
-            gen ( "movf R0,W,0" ) ;
+            gen ( "movf _r0,W,0" ) ;
             gen ( "iorwf POSTINC1,F,0" ) ;
-            gen ( "movf R0+1,W,0" ) ;
+            gen ( "movf _r0+1,W,0" ) ;
             gen ( "iorwf POSTDEC1,F,0" ) ;
         }
         else // 4
@@ -4061,10 +4073,10 @@ void CodeGen::emitBOr16 ( int k, bool cst )
     if ( !cst )
     {
         out << "\tmovf POSTDEC0,W,0" << endl ;
-        out << "\tiorwf R0+1,F,0" << endl ;
-        out << "\tmovf R0,W,0" << endl ;
+        out << "\tiorwf _r0+1,F,0" << endl ;
+        out << "\tmovf _r0,W,0" << endl ;
         out << "\tiorwf INDF0,F,0" << endl ;
-        out << "\tmovff R0+1,PREINC0" << endl  ; // push H | RH
+        out << "\tmovff _r0+1,PREINC0" << endl  ; // push H | RH
         Wvalid = false ;
     }
     else
@@ -4180,9 +4192,9 @@ void CodeGen::emitIPBxorN ( Operation &op )
         else if ( sz == 2 )
         {
             emitMovAddrToP ( op._e1 , 0 ) ;
-            gen ( "movf R0,W,0" ) ;
+            gen ( "movf _r0,W,0" ) ;
             gen ( "xorwf POSTINC1,F,0" ) ;
-            gen ( "movf R0+1,W,0" ) ;
+            gen ( "movf _r0+1,W,0" ) ;
             gen ( "xorwf POSTDEC1,F,0" ) ;
             Wvalid = false ;
         }
@@ -4266,10 +4278,10 @@ void CodeGen::emitBXor16 ( int k , bool cst )
     if ( !cst )
     {
         out << "\tmovf POSTDEC0,W,0" << endl ;
-        out << "\txorwf R0+1,F,0" << endl ;
-        out << "\tmovf R0,W,0" << endl ;
+        out << "\txorwf _r0+1,F,0" << endl ;
+        out << "\tmovf _r0,W,0" << endl ;
         out << "\txorwf INDF0,F,0" << endl ;
-        out << "\tmovff R0+1,PREINC0" << endl  ; // push H | RH
+        out << "\tmovff _r0+1,PREINC0" << endl  ; // push H | RH
         Wvalid = false ;
     }
     else
@@ -4362,10 +4374,10 @@ void CodeGen::emitMovCst16ToR ( int val )
 
     bval = ( char ) ( val & 0xFF ) ; // ??? char conversion ???
     setWX ( bval ) ;
-    out << "\tmovwf R0,0" << endl ;
+    out << "\tmovwf _r0,0" << endl ;
     bval = ( char ) ( ( val>>8 ) & 0xFF ) ;
     setWX ( bval ) ;
-    out << "\tmovwf R0+1,0" << endl ;
+    out << "\tmovwf _r0+1,0" << endl ;
 }
 
 /**
@@ -4698,17 +4710,17 @@ void CodeGen::emitIPBAndOrXor16 ( Operation& op )
             }
 
         }
-        else // constant in R0
+        else // constant in _r0
         {
             // low byte
-            out << "\tmovf R0,W,0" << endl ;
+            out << "\tmovf _r0,W,0" << endl ;
             if ( accBank ( e ) )
                 out << "\t" << genop << " " << gn << ",F,0" << endl  ;
             else
                 out << "\t" << genop << " " << gn << ",F,1"  << endl ;
             // hi byte
             if ( !accBank ( e ) ) emitMovCstToBSR ( gn+"+1" ) ;
-            out << "\tmovf R0+1,W,0" << endl ;
+            out << "\tmovf _r0+1,W,0" << endl ;
             if ( accBank ( e ) )
                 out << "\t" << genop << " " << gn << "+1,F,0" << endl  ;
             else
@@ -4767,23 +4779,23 @@ void CodeGen::emitIPBAndOrXor16 ( Operation& op )
                 out << "\tmovff POSTDEC0,"<< ind <<  endl ;
             }
         }
-        else // constant is in R0
+        else // constant is in _r0
         {
             // low byte
             off =  varOffset ( e )  ;
             ind = emitStackOff ( off ) ;
             out << "\tmovf " << ind << ",W,0" << endl ;
             Wvalid = false ;
-            out << "\t" << genop << " R0,F,0" <<  endl ;
+            out << "\t" << genop << " _r0,F,0" <<  endl ;
             ind = emitStackOff ( off ) ;
-            out << "\tmovff R0,"<< ind <<   endl ;
+            out << "\tmovff _r0,"<< ind <<   endl ;
             // hi byte
             ind = emitStackOff ( off+1 ) ;
             out << "\tmovf " << ind << ",W,0" << endl ;
             Wvalid = false ;
-            out << "\t" << genop << " R0+1,F,0" <<  endl ;
+            out << "\t" << genop << " _r0+1,F,0" <<  endl ;
             ind = emitStackOff ( off+1 ) ;
-            out << "\tmovff R0+1,"<< ind <<   endl ;
+            out << "\tmovff _r0+1,"<< ind <<   endl ;
         }
     }
 }
@@ -4873,7 +4885,7 @@ void CodeGen::lab ( const string& s )
 
 /*!
 \fn CodeGen::emitMovNToR(Centity e1, int sz, int val)
-Move a variable (any size) or a constant to W (1 byte) or R0, R1, ...
+Move a variable (any size) or a constant to W (1 byte) or _r0, _r1, ...
 */
 void CodeGen::emitMovNToR ( Centity e1, int nb, int val )
 {
@@ -4888,7 +4900,7 @@ void CodeGen::emitMovNToR ( Centity e1, int nb, int val )
         {
             int v =  val ;
             for ( int i = 0 ; i < nb ; ++i, v >>= 8 )
-                emitMovCst8To ( v & 0xFF  , "R0+"+i2s ( i ) , true ) ;
+                emitMovCst8To ( v & 0xFF  , "_r0+"+i2s ( i ) , true ) ;
         }
 
     }
@@ -4910,12 +4922,12 @@ void CodeGen::emitMovNToR ( Centity e1, int nb, int val )
         else if ( nb <= 4 )
         {
             for ( int i = 0 ; i < nb ; ++i )
-                gen ( "movff "+gn+"+"+i2s ( i ) +",R0+"+i2s ( i ) ) ;
+                gen ( "movff "+gn+"+"+i2s ( i ) +",_r0+"+i2s ( i ) ) ;
         }
         else
         {
             gen ( "ILFSR1 "+gn ) ;
-            gen ( "ILFSR2 R0" ) ;
+            gen ( "ILFSR2 _r0" ) ;
             setW ( nb ) ;
             callRTL ( "movSmallBlock" ) ;
             W = 0 ;
@@ -4926,9 +4938,9 @@ void CodeGen::emitMovNToR ( Centity e1, int nb, int val )
         // size is implicit  :2 bytes
         gn = mkGlob ( e1->name() ) ;
         gen ( "movlw " + low(gn) ) ;
-        gen ( "movwf R0,0" ) ;
+        gen ( "movwf _r0,0" ) ;
         gen ( "movlw " + high(gn) ) ;
-        gen ( "movwf R0+1,0" ) ;
+        gen ( "movwf _r0+1,0" ) ;
         Wvalid = false ;
     }
     else if ( e1->isLocal() )
@@ -4945,12 +4957,12 @@ void CodeGen::emitMovNToR ( Centity e1, int nb, int val )
             for ( int i = 0 ; i < nb ; ++i )
             {
                 ind = emitStackOff ( off+i ) ;
-                gen ( "movff "+ind+",R0+"+i2s ( i ) ) ;
+                gen ( "movff "+ind+",_r0+"+i2s ( i ) ) ;
             }
         }
         else
         {
-            gen ( "lfsr 1,R0" ) ;
+            gen ( "lfsr 1,_r0" ) ;
             setW ( nb ) ;
             gen ( "movwf PRODL,0" ) ;
             setW ( off ) ;
@@ -4965,7 +4977,7 @@ void CodeGen::emitMovNToR ( Centity e1, int nb, int val )
             setW ( v & 0xFF ) ;
         else
             for ( int i = 0 ; i < nb ; ++i, v >>= 8 )
-                emitMovCst8To ( ( v ) & 0xFF  , "R0+"+i2s ( i )  , true ) ;
+                emitMovCst8To ( ( v ) & 0xFF  , "_r0+"+i2s ( i )  , true ) ;
     }
 }
 
@@ -5393,7 +5405,7 @@ void CodeGen::emitCompareN ( Operation &op )
 
     // compares with 0
     // number in R or W for 8 bit
-    string signReg= op._nbytes>1? "R0+"+i2s ( op._nbytes-1 ) : "WREG";
+    string signReg= op._nbytes>1? "_r0+"+i2s ( op._nbytes-1 ) : "WREG";
     switch ( op._val )
     {
     case Operation::True:

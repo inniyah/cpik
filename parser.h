@@ -129,6 +129,8 @@ class Parser
 
     /** parse an integer constant expression */
     bool parseConstantIntegerExpression ( int& val ) ;
+    /** parse a floating point (or integer) constant */
+    bool parseConstantFloatingPointExpression ( float& val );
 
 
     FctCtx *curFct() ;
@@ -158,6 +160,8 @@ class Parser
     void getFirstSFR();
     bool parseStruct ( Ctype& t, type::Code what );
     bool parseEnum( Ctype& t );
+    /* parse __dataX__ instructions */
+    bool parseData( Instruction * & instr) ;
 
   private:
     int errCount, warnCount;

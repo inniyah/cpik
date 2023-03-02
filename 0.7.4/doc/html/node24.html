@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>#pragma fast_stack flag</TITLE>
+<META NAME="description" CONTENT="#pragma fast_stack flag">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node25.html">
+<LINK REL="previous" HREF="node23.html">
+<LINK REL="up" HREF="node18.html">
+<LINK REL="next" HREF="node25.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html525"
+  HREF="node25.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html521"
+  HREF="node18.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html515"
+  HREF="node23.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html523"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html526"
+  HREF="node25.html">#pragma noreturn</A>
+<B> Up:</B> <A NAME="tex2html522"
+  HREF="node18.html">Pragmas</A>
+<B> Previous:</B> <A NAME="tex2html516"
+  HREF="node23.html">#pragma saved_regs register,register,register, ..</A>
+ &nbsp; <B>  <A NAME="tex2html524"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000114600000000000000"></A>
+<A NAME="fast-stack-pragma"></A>
+<BR>
+<TT>#pragma fast_stack flag</TT>
+</H3>
+
+<P>
+This pragma allows to control the technique used for stack allocation in functions. The default technique is to use a fast stack allocation. However, this technique cannot be used <SPAN  CLASS="textit">when the function is called from an Interrupt Service Routine</SPAN> (ISR), so it must be manually disabled in this specific case<A NAME="tex2html6"
+  HREF="#foot409"><SUP><SPAN CLASS="arabic">5</SPAN></SUP></A> 
+(ie: <code>#pragma fast_stack 0</code>). The standard technique must be re-enabled after the concerned function (ie: <code>#pragma fast_stack 1</code>).
+
+<P>
+Note that: 
+
+<UL>
+<LI>The standard stack allocation technique corresponds to <code>#pragma fast_stack 1</code>
+</LI>
+<LI>this pragma has not effect (and is not needed) for functions that use less than 8 bytes of local data
+</LI>
+<LI>this pragma has not effect (and is not needed) for ISRs
+</LI>
+</UL>
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot409">... case</A><A
+ HREF="node24.html#tex2html6"><SUP><SPAN CLASS="arabic">5</SPAN></SUP></A></DT>
+<DD>This feature is due to the fact that it is impossible for the compiler to anticipate whether a function is invoked from an ISR or not.
+
+</DD>
+</DL>
+<BR><HR>
+<ADDRESS>
+Alain Gibaud
+2015-07-09
+</ADDRESS>
+</BODY>
+</HTML>
