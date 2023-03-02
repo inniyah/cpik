@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Struct and Union</TITLE>
+<META NAME="description" CONTENT="Struct and Union">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="previous" HREF="node48.html">
+<LINK REL="up" HREF="node47.html">
+<LINK REL="next" HREF="node50.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html856"
+  HREF="node50.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html852"
+  HREF="node47.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html848"
+  HREF="node48.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html854"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html857"
+  HREF="node50.html">Symbolic constants</A>
+<B> Up:</B> <A NAME="tex2html853"
+  HREF="node47.html">Data structuration</A>
+<B> Previous:</B> <A NAME="tex2html849"
+  HREF="node48.html">Array</A>
+ &nbsp; <B>  <A NAME="tex2html855"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000123200000000000000">
+Struct and Union</A>
+</H3>
+
+<P>
+<TT>struct</TT> and <TT>union</TT> are supported since version 0.4, and this support is efficient. 
+Unlike several 
+other well known compilers, <TT>cpik</TT> offers full support: <TT>struct</TT>s can be passed to functions as parameters
+and can be returned by functions.
+
+<P>
+<TT>struct</TT>s are passed to function by value, as specified by the standard. 
+Anonymous <TT>struct</TT>s are supported. <TT>struct</TT>s are perfectly compatible with <TT>typedef</TT>.
+<TT>struct</TT>s entities can be affected to other entities of same type.
+
+<P>
+<TT>struct</TT>s are guaranteed to be compact: as PIC-18 architecture does not impose any alignment constraint, the size of a <TT>struct</TT> is the sum of the sizes of its members<A NAME="tex2html11"
+  HREF="#foot659"><SUP><SPAN CLASS="arabic">10</SPAN></SUP></A>.
+
+<P>
+<TT>struct</TT>s cannot be larger than 128 bytes<A NAME="tex2html12"
+  HREF="#foot661"><SUP><SPAN CLASS="arabic">11</SPAN></SUP></A>, but I suppose 
+it is not a terrible limitation for a 8 bit microcontroller.
+
+<P>
+Members of <TT>struct</TT>s can be signed or unsigned bit fields. As stated by the standard, a bit field cannot cross an <TT>int</TT> boundary, so the size of a bit field can range from 1 to 8 bits. For example, in the following code
+
+<P>
+<PRE>
+struct XXX
+{
+  unsigned a: 4 ,
+           b: 4 ;
+} xxx ;
+
+struct YYY
+{
+  unsigned a: 5 ,
+           b: 4 ;
+} yyy ;
+</PRE>
+the variable <TT>xxx</TT> is exactly 1 byte long, but the variable <TT>yyy</TT> is 2 bytes long because the second field is one bit too long to 
+be inserted in the first byte. 
+
+<P>
+Bits are specified from low to high (so, in the above examples, <TT>a</TT> is the low nibble)
+
+<P>
+<!-- MATH
+ $\fbox{\parbox{\linewidth-2\fboxrule-2\fboxsep}
+{
+Please note that  \texttt{unsigned} bit fields are more efficient than their signed counterpart because they don't  need to be sign extended when they are converted to {\tt int}.
+} }$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="565" HEIGHT="92" ALIGN="MIDDLE" BORDER="0"
+ SRC="img10.png"
+ ALT="\fbox{\parbox{\linewidth-2\fboxrule-2\fboxsep}
+{
+Please note that \texttt{unsign...
+...se they don't need to be sign extended when they are converted to {\tt int}.
+} }"></SPAN>
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot659">... members</A><A
+ HREF="node49.html#tex2html11"><SUP><SPAN CLASS="arabic">10</SPAN></SUP></A></DT>
+<DD>However, this feature does no apply to structures composed of bit-fields, as explainded below.
+
+</DD>
+<DT><A NAME="foot661">... bytes</A><A
+ HREF="node49.html#tex2html12"><SUP><SPAN CLASS="arabic">11</SPAN></SUP></A></DT>
+<DD>This feature is due to hardware limitation
+
+</DD>
+</DL>
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html856"
+  HREF="node50.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html852"
+  HREF="node47.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html848"
+  HREF="node48.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html854"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html857"
+  HREF="node50.html">Symbolic constants</A>
+<B> Up:</B> <A NAME="tex2html853"
+  HREF="node47.html">Data structuration</A>
+<B> Previous:</B> <A NAME="tex2html849"
+  HREF="node48.html">Array</A>
+ &nbsp; <B>  <A NAME="tex2html855"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+gibaud
+2013-10-30
+</ADDRESS>
+</BODY>
+</HTML>

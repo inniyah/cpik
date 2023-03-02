@@ -21,13 +21,15 @@ using namespace std ;
 
 Compiler::Compiler()
     : lexer_() , parser_()  , fl_ ( 0 ) , cg_ ( 0 ), uniqueID_ ( 0 ),
-    version_ ( "0.7.2" ), uniqueLitID_ ( 0 )
+    version_ ( "0.7.3" ), uniqueLitID_ ( 0 )
 {
   inFileName = outFileName = justFileName = "" ;
   // 16 first bytes are reserved for Compiler
 //  globalsBaseAddr = 0x10 ;
   assembler_ = new Assembler;
 }
+
+
 Compiler::~Compiler()
 {
   delete cg_ ;
@@ -442,6 +444,22 @@ multimap<string,string>& Compiler::pragmas()
 {
   return pragmas_ ;
 }
+
+/**
+ * return the specified pragma value,
+ * or an empty string if this pragma is not present
+ * (Note: for multi valued pragmas, only returns the first occurence)
+ */
+string Compiler::pragma( const string& key)
+{
+    string r ;
+    multimap<string, string>::iterator v ;
+    v = pragmas_.find(key) ;
+    if( v != pragmas_.end() )
+        r = v->second ;
+    return r ;
+}
+
 /**
     Generates __config section if #pragma _CONFIG are used for
     defining config bits.
@@ -595,7 +613,7 @@ int & Compiler::debugOpt()
 string Compiler::getPragma ( const string& p )
 {
   string r ;
-  map<string, string>::iterator f = pragmas().find ( p ) ;
+  multimap<string, string>::iterator f = pragmas().find ( p ) ;
   if ( f !=  pragmas().end() )  r = ( *f ).second ;
   return r ;
 }
@@ -638,4 +656,59 @@ string  Compiler::secureNakedFileName()
       r += c ;
   }
   return r ;
+}
+/*
+ * returns the list of the registers to be seved before executing an ISR
+ * as specified by the #pragma SAVED_REGS
+ * white spaces are trimmed during the parsing, so
+ * expressions found cannot contain any blank
+ */
+
+vector<string> Compiler::getSavedRegs()
+{
+    vector<string> r ;
+
+    multimap<string,string>::iterator k = pragmas().find("saved_regs") ;
+    if( k == pragmas().end()) return r ;
+
+    // OK, the pragma exists
+    string line = k->second ;
+    // split line in words
+    string w ;
+    for(unsigned int i=0; i < line.size() ; ++i)
+    {
+        char c = line[i] ;
+        if( c == ' ' || c == '\t' ) continue ;
+        if( c == ',')
+        {
+            r.push_back(w); w.clear() ;
+        }
+        else
+            w += c ;
+    }
+    if( w != "") r.push_back(w) ;
+    return r ;
+}
+
+/*
+ * Insert a new  pragma entry
+ * Note: Several occurences of the config pragma can exist,
+ * but other pragmas must be unique, so old values are removed
+ * in case of multiple occurences.
+ */
+
+void Compiler::insertPragma(const string& key, const string& value)
+{
+    if( key != "config" )
+    {
+        // erase an eventual  previous definition
+        multimap<string,string>::iterator found = pragmas().find(key) ;
+        if( found !=  pragmas().end() )
+        {
+            // remove entry
+            pragmas().erase(found);
+        }
+
+    }
+    pragmas().insert(pair<string,string>(key,value)) ;
 }

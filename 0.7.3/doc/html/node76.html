@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>macro.h</TITLE>
+<META NAME="description" CONTENT="macro.h">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node77.html">
+<LINK REL="previous" HREF="node75.html">
+<LINK REL="up" HREF="node73.html">
+<LINK REL="next" HREF="node77.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1194"
+  HREF="node77.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1190"
+  HREF="node73.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1184"
+  HREF="node75.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1192"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1195"
+  HREF="node77.html">pin.h</A>
+<B> Up:</B> <A NAME="tex2html1191"
+  HREF="node73.html">Headers</A>
+<B> Previous:</B> <A NAME="tex2html1185"
+  HREF="node75.html">sys/types.h</A>
+ &nbsp; <B>  <A NAME="tex2html1193"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000143000000000000000">
+<TT>macro.h</TT></A>
+</H2>
+
+<P>
+This header provides a set of general purpose handy macro. In the following, <TT>reg</TT> denotes a  8 bit signed or unsigned integer, and <TT>bit</TT>  a bit number (<TT>0</TT> <SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img17.png"
+ ALT="$ \leq$"></SPAN> <TT>bit</TT> <SPAN CLASS="MATH"><IMG
+ WIDTH="20" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img17.png"
+ ALT="$ \leq$"></SPAN> <TT>7</TT>).
+<TT>macro.h</TT> is not part of the ANSI standard.
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="LEFT"><B>Macro           </B></TD>
+<TD ALIGN="LEFT"><B>Role</B></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>BIT_1(reg, bit)</code></TD>
+<TD ALIGN="LEFT">Set bit <TT>bit</TT> of <TT>reg</TT> variable</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>BIT_0(reg, bit)</code></TD>
+<TD ALIGN="LEFT">Reset bit <TT>bit</TT> of <TT>reg</TT> variable</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>BIT_TST(reg,bit)</code></TD>
+<TD ALIGN="LEFT">Return <TT>true</TT> if bit <TT>bit</TT> of <TT>reg</TT> is set.</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>BIT_TOGGLE(reg, bit)</code></TD>
+<TD ALIGN="LEFT">Toggle bit <TT>bit</TT> of <TT>reg</TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>BIT_COPY(treg, tbit, sreg, sbit)</code></TD>
+<TD ALIGN="LEFT">Copy bit <TT>sbit</TT> of <TT>sreg</TT> to bit <TT>tbit</TT> of <TT>treg</TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>BIT_NCOPY(treg, tbit, sreg, sbit)</code></TD>
+<TD ALIGN="LEFT">Copy inverse of bit <TT>sbit</TT> of <TT>sreg</TT> to bit <TT>tbit</TT> of <TT>treg</TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>BIT_WRITE(treg, tbit, flag)</code></TD>
+<TD ALIGN="LEFT">Copy the boolean value <TT>flag</TT> to bit <TT>tbit</TT> of <TT>treg</TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>NOP</code></TD>
+<TD ALIGN="LEFT">Generate a <TT>nop</TT> asm instruction</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>CLEAR_WATCHDOG</code></TD>
+<TD ALIGN="LEFT">Generate a <TT>clrwdt</TT> asm instruction</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+Notice that the bit-oriented macros are made obsolete since V0.7.0 due to the availability of bit fields.
+
+<P>
+<BR><HR>
+<ADDRESS>
+gibaud
+2013-10-30
+</ADDRESS>
+</BODY>
+</HTML>

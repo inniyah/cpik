@@ -170,9 +170,10 @@ class CodeGen
     AND store this symbol as an external reference.
     */
     string mkGlob ( const string &n, int offset=0 );
-    /** Reserve sz bytes on the stack
-    */
-    void emitReserveLocalData ( int sz );
+    /**
+     * Reserve sz bytes on the stack
+      */
+    void emitReserveLocalData (int sz );
     /** utility routines */
     void gen ( const string &s );
     void emitGetLNA( int negoffset );
@@ -204,6 +205,7 @@ class CodeGen
     void emitDec8 (const string&  target, const string& access, int bsize, int boffset ) ;
     int BFMask(int bsize, int boffset = 0 ) ;
     void reset();
+    bool  faststackPragma() ;
 
   private: // Private attributes
 
@@ -215,9 +217,11 @@ class CodeGen
     Symtab&  symbols ;
     /** keeps track of stack usage during compilation of expressions */
     int stk;
+    /** keeps track of extra data added on the stack by asm code */
+    int extrastk ;
 
     /** Stack of stack levels during code generation : allows to remember and to go 
-        go back to stack level other than zero
+        back to a stack level other than zero
     */
     stack<int , vector<int> > stkStack ;
 
@@ -230,6 +234,9 @@ class CodeGen
     (used for accessing SFRs thru access bank)
     */
     int firstSFR_;
+
+    /** current function name  (maintened by fct prlolog/epilog)  */
+    string currentFuncName ;
 };
 
 #endif

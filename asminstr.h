@@ -32,8 +32,9 @@ instruction
 class AsmInstr : public Instruction
 {
   string asmcode ;
+  int offset ;
 public: 
-	AsmInstr(const string& ac);
+    AsmInstr(const string& ac, int stackoffset=0);
 	virtual ~AsmInstr();
   /** Does various processings for this instruction */
   virtual const char * process();

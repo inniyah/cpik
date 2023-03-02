@@ -26,11 +26,13 @@
 class Operation
 {
   public:
-    // Instructions for the PIC18 abstract machine
+    // Instructions for the cpik abstract machine
     enum Code { None,   // nop
                 Deleted, // to help the optimizer to delete unused operations
                 PutComment , // insert a comment str1 (echoed as asm comment to output flow)
-                PutAsm , // insert a text echoed "as is" to output flow
+                PutAsm , // insert a text echoed "as is" to output flow.
+                // The _val param is used to specify how many bytes are pushed/popped on to/from  the stack
+                // by the asm code
                 EnterFunction, // enter function str1
                 ExitFunction, // exit function str1
                 MakeLocal, // make local data e1 on stack
@@ -38,7 +40,7 @@ class Operation
                 TouchStack , // manually alter compiler internal stack tracker variable
                 // (do not generates any code)
                 CleanStack , // remove unused data from stack (due to no-effect instruction)
-                PushStack , // save the  current stack level (allows partial clean)
+                PushStack , // save the  current stack level (allows partial cleaning)
                 Return0,    // return from void function
                 PutLabel,   // put label str1
                 GotoLabel,   // goto label str1

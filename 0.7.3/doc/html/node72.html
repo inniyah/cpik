@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>How to write efficent code</TITLE>
+<META NAME="description" CONTENT="How to write efficent code">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="previous" HREF="node71.html">
+<LINK REL="up" HREF="node66.html">
+<LINK REL="next" HREF="node73.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1139"
+  HREF="node73.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1135"
+  HREF="node66.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1131"
+  HREF="node71.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1137"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1140"
+  HREF="node73.html">Headers</A>
+<B> Up:</B> <A NAME="tex2html1136"
+  HREF="node66.html">Hints and tips</A>
+<B> Previous:</B> <A NAME="tex2html1132"
+  HREF="node71.html">Do not use uppercase</A>
+ &nbsp; <B>  <A NAME="tex2html1138"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000136000000000000000">
+How to write efficent code</A>
+</H2>
+
+<P>
+The following simple rules helps the compiler to produce more efficient code.
+
+<P>
+
+<OL>
+<LI>Use <TT>unsigned</TT> variant of integers, whenever possible
+</LI>
+<LI>Use <TT>int</TT> (or <TT>char</TT>) instead of <TT>long</TT>, whenever possible
+</LI>
+<LI>Prefer <code>++</code> to <code>+=</code> and <code>+=</code> to <code>+</code>
+</LI>
+<LI>Avoid to compute twice the same sub-expression (using operators such as <TT>+=</TT> is a good way to enforce this rule)
+</LI>
+<LI>Array access are not very efficient, so prefer to access arrays' content thru pointers. 
+</LI>
+<LI>Do not hesitate to use structs, they are generally very efficient. 
+</LI>
+<LI>Do not hesitate to use constant array indexes, they are generally very efficient. 
+</LI>
+<LI>Using global variables leads to smaller and faster code. 
+Be careful, it also leads to lack of modularity and memory wasting. See previous section for modularity issue.
+</LI>
+<LI>Implement 8 bit left shifts with <SPAN CLASS="MATH"><IMG
+ WIDTH="29" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img16.png"
+ ALT="$ \times 2$"></SPAN> products: due to availability of hardware multiplication
+the code will be fast. This rule does not apply to right shifts.
+</LI>
+<LI>Use <TT>switch</TT> instead of cascaded <TT>if</TT> whenever possible. The code will be faster and smaller.
+</LI>
+<LI>Prefer <TT>unsigned</TT> bit fields to <TT>signed</TT> ones. Signed bit fields need frequent sign extensions which are resource consuming. 
+</LI>
+<LI>Avoid accessing bit fields from pointers (ie: <TT>s-&gt;member</TT>). This operation involves an indirection which is also resource consuming. 
+
+<P>
+</LI>
+</OL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1139"
+  HREF="node73.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1135"
+  HREF="node66.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1131"
+  HREF="node71.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1137"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1140"
+  HREF="node73.html">Headers</A>
+<B> Up:</B> <A NAME="tex2html1136"
+  HREF="node66.html">Hints and tips</A>
+<B> Previous:</B> <A NAME="tex2html1132"
+  HREF="node71.html">Do not use uppercase</A>
+ &nbsp; <B>  <A NAME="tex2html1138"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+gibaud
+2013-10-30
+</ADDRESS>
+</BODY>
+</HTML>

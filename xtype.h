@@ -29,45 +29,45 @@ class type
 {
     int _code ,              // see Code enum
     _const ,                 // 1 if const
-    _valist,        // 1 if function accept variable argument-list
+    _valist,                 // 1 if function accept variable argument-list
     _size ;                  // size of arrays (in elements)
     // bitfield coding - only significant when type == 8 bit integer
-    int  _bsize,       // != 0 if bitfield
-    _boffset ;      // bit offset (significant when _bsize != 0)
+    int  _bsize,             // != 0 if bitfield
+         _boffset ;          // bit offset (significant when _bsize != 0)
 
-    Ctype _subtype ;         // link to subtype (ex: array of array)
+    Ctype _subtype ;                // link to subtype (ex: array of array)
 
     vector<Centity>      _params ;  // functions parameters list
     list<StructMember>   _members ; // structures members list
-    string      _structname ;  // structures name
-    bool            _completed ;   // true if a struct definition is closed
-    unsigned int   _cnt ;        // reference counter
+    string      _structname ;       // structures name
+    bool            _completed ;    // true if a struct definition is closed
+    unsigned int   _cnt ;           // reference counter
 
-    type() ;                         // NO default constructor
+    type() ;                           // NO default constructor
     type& operator= ( const type& ) ;  // NO affectation allowed
     type ( int what, int size, int constness=0 )
     {
-      _code = what ; _const = constness ; _size = size  ; _valist = 0 ;
-      _bsize = 0 ; _boffset = 0 ;
-      _cnt = 0 ;
+        _code = what ; _const = constness ; _size = size  ; _valist = 0 ;
+        _bsize = 0 ; _boffset = 0 ;
+        _cnt = 0 ;
     }
     type ( const type& ) ;
-  public:
+public:
     friend class Ctype ;
     friend class entity ;
 
     /// codes for builtin types
     enum Code
     {
-      Void,
-      Char, UChar,
-      Int, UInt,
-      Long, ULong,
-      LLong, ULLong,
-      Float ,
-      Ptr,
-      Array, Fct, ItFct, Struct, Union,
-      Enum, EnumMember,
+        Void,
+        Char, UChar,
+        Int, UInt,
+        Long, ULong,
+        LLong, ULLong,
+        Float ,
+        Ptr,
+        Array, Fct, ItFct, Struct, Union,
+        Enum, EnumMember
     } ;
 
     bool is ( int what ) { return _code == what ; }
@@ -78,7 +78,7 @@ class type
     // this is the only way to allocate a type
     static type *newtype ( int what, int size = 0 , int constness=0 )
     {
-      return new type ( what,size, constness ) ;
+        return new type ( what,size, constness ) ;
     }
 
     virtual ~type() ;
@@ -94,7 +94,7 @@ class type
     Ctype& terminaltype();
 
     /** accessors/setters  */
-    int& constness() { return _const ; };
+    int& constness() { return _const ; }
     vector<Centity>& funcParams() { return _params ; }
     int& code() { return _code ; }
     int& valist() { return _valist ; }
@@ -194,13 +194,17 @@ class type
     /** Change ordinary function to interrupt handler */
     void setItHandler();
 
-    bool isPtrToConst() 
-    { 
-      return isPointer() && subtype()->constness();
+    bool isPtrToConst()
+    {
+        return isPointer() && subtype()->constness();
     }
-    bool isConstArray() 
-    { 
-      return isArray() && constness();
+    bool isPtrToNonConst()
+    {
+        return isPointer() && !subtype()->constness();
+    }
+    bool isConstArray()
+    {
+        return isArray() && constness();
     }
 
 

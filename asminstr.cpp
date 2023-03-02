@@ -13,7 +13,7 @@
 
 using namespace std ;
 
-AsmInstr::AsmInstr(const string& a) : asmcode(a)
+AsmInstr::AsmInstr(const string& a, int stackoffset) : asmcode(a), offset(stackoffset)
 {
 }
 AsmInstr::~AsmInstr()
@@ -22,7 +22,7 @@ AsmInstr::~AsmInstr()
 /** Generates code for this instruction */
 void AsmInstr::flattenCode()
 {
-        c18.flattener()->insertOp(Operation(Operation::PutAsm,0,0,0, asmcode)) ;
+        c18.flattener()->insertOp(Operation(Operation::PutAsm,0,0, offset , asmcode)) ;
 }
 /** Does various processings for this instruction */
 const char * AsmInstr::process()

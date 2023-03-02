@@ -726,10 +726,17 @@ bool Parser::parseInstruction()
     needsemi = true ;
   }
   else if ( ( b = ( lx->kmatch ( "__asm__" ) && lx->blk() &&
-                    lx->match ( "(" ) && matchLitteral ( asmcode ) && lx->blk() && lx->match ( ")" ) ) ) )
+                    lx->match ( "(" ) &&  matchLitteral ( asmcode ) ) ) )
   {
-    instr = new AsmInstr ( asmcode ) ;
-    needsemi = true ;
+    // parse optionnal stack offset
+    int stackoffset = 0 ;
+    lx->blk()  &&  lx->match(",") && lx->blk()  && lx->number(stackoffset)  ;
+
+    if(lx->blk()  &&  lx->match ( ")" )  )
+    {
+        instr = new AsmInstr ( asmcode, stackoffset )  ;
+        needsemi = true ;
+    }
   }
   else if ( ( b = ( lx->kmatch ( "goto" ) && lx->blk() && lx->ident ( label ) ) ) )
   {

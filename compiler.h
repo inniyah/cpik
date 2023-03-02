@@ -87,6 +87,9 @@ class Compiler
     string uniqueLabel();
     /** No descriptions */
     multimap<string,string>& pragmas();
+    /** return the specified pragma value, or an empty string if this pragma is not present */
+    string pragma( const string& key) ;
+
     /** Generates __config section if #pragma __CONFIG are used for
     defining config bits */
     const char * outputConfig();
@@ -116,6 +119,12 @@ class Compiler
     string  secureNakedFileName();
     
     int romSize;
+
+    // returns the list of the registers to be seved before executing an ISR
+    vector<string> getSavedRegs() ;
+
+    // insert a new pragma entry
+    void insertPragma(const string& key, const string& value)  ;
 
   private:
     /**  various file names */

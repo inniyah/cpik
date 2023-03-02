@@ -20,5 +20,6 @@
 Instruction::Instruction() 
 {
 }
-Instruction::~Instruction(){
+Instruction::~Instruction()
+{
 }

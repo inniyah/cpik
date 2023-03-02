@@ -196,7 +196,9 @@ bool  Lexer::number ( int& val )
 bool Lexer::xnumber ( int& val, int base )
 {
   int    d=0;
-
+  // I am not sure it is a good idea to reset the value before
+  // a correct number is detected, but I can't change that
+  // before being sure that it will not break external code
   val = 0 ;
   // at least one digit is needed
   if ( digit ( ch(), base ) == -1 )

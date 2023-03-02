@@ -30,88 +30,88 @@ File::~File()
 
 bool File::isConnected()
 {
-	return inputstream != 0 ;
+    return inputstream != 0 ;
 }
 
 int File::ch()
 {
-	if ( kbuffer >= ( int ) buffer.size() )
-	{
-		if ( !getLine() ) return EOF ;
-	}
-	return buffer[kbuffer] ;
+    if ( kbuffer >= ( int ) buffer.size() )
+    {
+        if ( !getLine() ) return EOF ;
+    }
+    return buffer[kbuffer] ;
 }
 int File::gch()
 {
-	int c = ch() ;
-	if ( c != EOF ) ++kbuffer ;
-	return c ;
+    int c = ch() ;
+    if ( c != EOF ) ++kbuffer ;
+    return c ;
 }
 int File::nch ( int offset )
 {
-	int k =   kbuffer+offset ;
-	return ( k >= ( int ) buffer.size() || k < 0 ) ?  0 : buffer[k];
+    int k =   kbuffer+offset ;
+    return ( k >= ( int ) buffer.size() || k < 0 ) ?  0 : buffer[k];
 }
 bool File::getLine()
 {
-	char key[512], value[512] ;
-	buffer.clear() ;
-	if ( ! getline ( *inputstream, buffer ) ) return false  ;
-	buffer += "\n" ;
-	// TODO : autoriser les blancs de tete
-	if ( buffer[0] == '#' )
-	{
-		// location record :
-		char fn[512] ;
-		if ( sscanf ( buffer.c_str() ,"# %d \"%[^\n\"]", &current_line, fn ) == 2 )
-		{
-			--current_line ;
-			current_file_name = fn ;
-		}
-		else if ( sscanf ( buffer.c_str() ,"#pragma %s %[^\n]", key,value ) == 2 )
-		{
-                        c18.pragmas().insert(pair<string,string>(key,value)) ;
-                        //c18.pragmas() [key] = value ;
-                        ++current_line ;
-		}
-		return getLine() ;
-	}
-	kbuffer = 0 ;
-	++current_line ;
-	if ( 1 )
-	{
-		// remove trailing newline, if it exists
-		string line ( buffer ) ;
-		int last = line.size() -1 ;
-		if ( last >= 0 && line[last] == '\n' ) line.erase ( last ) ;
-		c18.flattener()->putComment ( line ) ;
-	}
-	return true ;
+    char key[512], value[512] ;
+    buffer.clear() ;
+    if ( ! getline ( *inputstream, buffer ) ) return false  ;
+    buffer += "\n" ;
+    // TODO : autoriser les blancs de tete
+    if ( buffer[0] == '#' )
+    {
+        // location record :
+        char fn[512] ;
+        if ( sscanf ( buffer.c_str() ,"# %d \"%[^\n\"]", &current_line, fn ) == 2 )
+        {
+            --current_line ;
+            current_file_name = fn ;
+        }
+        else if ( sscanf ( buffer.c_str() ,"#pragma %s %[^\n]", key,value ) == 2 )
+        {
+            c18.insertPragma(key, value) ;
+
+            ++current_line ;
+        }
+        return getLine() ;
+    }
+    kbuffer = 0 ;
+    ++current_line ;
+    if ( 1 )
+    {
+        // remove trailing newline, if it exists
+        string line ( buffer ) ;
+        int last = line.size() -1 ;
+        if ( last >= 0 && line[last] == '\n' ) line.erase ( last ) ;
+        c18.flattener()->putComment ( line ) ;
+    }
+    return true ;
 }
 
 int File::mark ( int k )
 {
-	int old = kbuffer ;
-	if ( k != -1 ) kbuffer = k ;
-	return old ;
+    int old = kbuffer ;
+    if ( k != -1 ) kbuffer = k ;
+    return old ;
 }
 /** No descriptions */
 void File::getLocation ( string& file, int& line )
 {
-	file = current_file_name  ;
-	line = current_line ;
+    file = current_file_name  ;
+    line = current_line ;
 }
 /**  */
 void File::pushBack ( const char *s )
 {
-	if ( !*s ) return ;
-	buffer.insert ( kbuffer, s ) ;
-	kbuffer -= ( strlen ( s )-1 ) ;
+    if ( !*s ) return ;
+    buffer.insert ( kbuffer, s ) ;
+    kbuffer -= ( strlen ( s )-1 ) ;
 }
 /** Could be called from constructor, if streams are created
-    before file object
-*/
+            before file object
+        */
 void File::connect()
 {
-	inputstream = &c18.in() ;
+    inputstream = &c18.in() ;
 }
