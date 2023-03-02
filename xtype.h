@@ -165,6 +165,8 @@ class type
     int precedence()  ;
     /** No descriptions */
     bool isPointer() ;
+    bool isPointerToFct() ;
+
     /** No descriptions */
     bool isLValue() ;
     /** 0 if not dereferencable, else, the size of the referenced entity */

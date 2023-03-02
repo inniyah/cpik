@@ -34,6 +34,9 @@
  * the gain of code size is about 10%.
 */
 
+//modified by wtn (Terry Newton) July 16 2012 for compatibility with
+//newer gpasm assembler - changes marked by wtn (please do better:-)
+
 #include "assembler_optimizer.h"
 
 #include <iostream>
@@ -47,7 +50,11 @@ using namespace std ;
 
 #define GPASM_OPTIONS "-w2 -L"
 #define ERROR_OUT_OF_RANGE "Error [126]"
+//wtn.. compatibility with newer versions of gpasm...
+#define NEW_ERROR_OUT_OF_RANGE "Error[126]"
 #define MEMORY_USED "Program Memory Words Used:"
+//wtn.. compatibility with newer versions of gpasm...
+#define BYTES_USED "Program Memory Bytes Used:"
 #define MAX_ITERATIONS 10
 #define JUMP_ID ";JUMP_ID"
 
@@ -200,7 +207,8 @@ const char * Assembler::scanListfile ()
   while ( getline ( s,line ) )
   {
     jumpTable.newLine ( line );
-    if ( line.find ( ERROR_OUT_OF_RANGE ) !=string::npos )
+    if ( line.find ( ERROR_OUT_OF_RANGE ) !=string::npos ||
+         line.find ( NEW_ERROR_OUT_OF_RANGE ) !=string::npos )  // wtn - for new gpasm
     {
       int by=1;
       size_t p=line.find ( '(' );
@@ -232,6 +240,12 @@ const char * Assembler::getMemoryUsed ( int *wordsUsed )
     if ( ( p=line.find ( MEMORY_USED ) ) !=string::npos )
     {
       *wordsUsed=atoi ( line.substr ( p+sizeof ( MEMORY_USED ) ).c_str() );
+      return 0;
+    }
+// wtn - compatibility with newer versions of gpasm
+    if ( ( p=line.find ( BYTES_USED ) ) !=string::npos )
+    {
+      *wordsUsed=(atoi ( line.substr ( p+sizeof ( BYTES_USED ) ).c_str() ))/2;
       return 0;
     }
   }
@@ -266,7 +280,7 @@ const char * Assembler::doAsmOptimize ( bool &outOfRange )
 {
   string cmd;
   FILE *f;
-  char buffer[1000] ; // sufficient for the error messages 
+  char buffer[40000] ; // sufficient for the error messages - wtn was 1000
 
   cmd=utility::quote(programPath)+" "+GPASM_OPTIONS+" -D JUMP_OPTIMIZING"+ " -o "+utility::quote(hexName)+" "+utility::quote(workName);
   if ( c18.debugOpt() & DEBUG_ASM_PRINT_LOG )
@@ -285,6 +299,12 @@ const char * Assembler::doAsmOptimize ( bool &outOfRange )
     string line ( buffer );
     assemblerOutput+=line;
     if ( line.find ( ERROR_OUT_OF_RANGE ) !=string::npos )
+    {
+      // this is the out-of-range error, so for us is only warning
+      outOfRange=true;
+    }
+    //wtn.. gpasm changed formats..
+    else if ( line.find ( NEW_ERROR_OUT_OF_RANGE ) !=string::npos )
     {
       // this is the out-of-range error, so for us is only warning
       outOfRange=true;

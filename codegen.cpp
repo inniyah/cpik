@@ -186,7 +186,7 @@ void CodeGen::makeCode ( Flatten& f )
             }
             else
             {
-              out << "\tmovlb HIGH " << gn << "; BSR used here " << endl ;
+              out << "\tmovlb "  << high(gn) << " ; BSR used here " << endl ;
               out << "\tmovf  " << gn << ",W,1" << endl ;
             }
             // if bit fied, mask unrelevant bits
@@ -223,9 +223,9 @@ void CodeGen::makeCode ( Flatten& f )
             }
             else
             {
-              out << "\tmovlb HIGH " <<  gn<< "; BSR used here "  << endl ;
+              out << "\tmovlb " <<  high(gn) << " ; BSR used here "  << endl ;
               out << "\tmovf  " << gn << ",W,1" << endl ;
-              out << "\tmovlb HIGH (" << gn  << "+1)" << "; can cross page boundary "  << endl ;
+              out << "\tmovlb " << high(gn,1) << "; can cross page boundary "  << endl ;
               out << "\tiorwf " << gn << "+1,W,1" << endl ;
             }
             Wvalid = false ;
@@ -809,9 +809,9 @@ void CodeGen::makeCode ( Flatten& f )
         else if ( op._e1->isFct() )
         {
           gn = mkGlob ( op._e1->name() ) ;
-          out << "\tmovlw LOW " << gn <<endl ;
+          out << "\tmovlw " << low(gn) <<endl ;
           out << "\tmovwf R0,0" << endl ;
-          out << "\tmovlw HIGH " << gn <<endl ;
+          out << "\tmovlw " << high(gn) <<endl ;
           out << "\tmovwf R0+1,0" << endl ;
           Wvalid = false ;
         }
@@ -1132,8 +1132,11 @@ void CodeGen::makeCode ( Flatten& f )
           }
           else
           {
+            emitGetLNA(-varOffset ( op._e1 ) ) ;
+            /*
             setW ( -varOffset ( op._e1 ) ) ;
             callRTL ( "getLOCALNEGADDR" ) ;  // FSR1 points to destination
+            */
             setW ( -nb ) ;
             label1 = c18.uniqueLabel() ;
             lab ( label1 ) ;
@@ -2510,7 +2513,7 @@ void CodeGen::emitGlobalSymbol ( Centity& e )
   int size ;
   vector<string> val ;
   string segment ;
-  int finalsize,  addr ;
+  int  addr ;
   Ctype t = e->thetype() ;
 
   if ( e->getInitializer() )
@@ -2518,7 +2521,7 @@ void CodeGen::emitGlobalSymbol ( Centity& e )
 
   name = e->name() ;
   size = t->sizeOf() ;
-  finalsize = t->finalSize() ;
+  /* finalsize = t->finalSize() ;*/
   addr = e->addr() ;
 
   segment = addr != -1 ? "" : val.size() == 0 ? "|UDATA" : "|IDATA";
@@ -2607,7 +2610,7 @@ void CodeGen::emitMovCstToW ( int cst, bool hexa )
 */
 void CodeGen::emitMovCstToBSR ( const string& target )
 {
-  out << "\tmovlb HIGH ( " << target << " ) " << endl ;
+  out << "\tmovlb " << high(target)    << endl ;
 }
 /**
  Emit a "load BSR" instruction, if needed
@@ -2639,9 +2642,9 @@ void CodeGen::emitMovAddrToR ( Centity e1, int off )
 
     string gn = mkGlob ( e1->name() ) ;
 
-    out << "\tmovlw LOW ( " << gn << s << " ) "<< endl ;
+    out << "\tmovlw " << low(gn+ s) << endl ;
     out << "\tmovwf R0,0"    << endl ;
-    out << "\tmovlw HIGH ( " << gn << s << " ) "<< endl ;
+    out << "\tmovlw "  << high(gn + s)   << endl ;
     out << "\tmovwf R0+1,0"   << endl ;
     Wvalid = false ;
   }
@@ -2663,9 +2666,9 @@ void CodeGen::emitMovGlobAddrToGlob16 ( Centity e1, int off, Centity e2 )
   string gn = mkGlob ( e1->name() ) ;
   string g2 = mkGlob ( e2->name() ) ;
 
-  out << "\tmovlw LOW ( " << gn << s << " ) "<< endl ;
+  out << "\tmovlw " << low(gn + s) << endl ;
   out << "\tmovff WREG," << g2   << endl ;
-  out << "\tmovlw HIGH ( " << gn << s << " ) "<< endl ;
+  out << "\tmovlw  " << high(gn + s) << endl ;
   out << "\tmovff WREG," << g2 << "+1"  << endl ;
   Wvalid = false ;
 }
@@ -2685,9 +2688,15 @@ void CodeGen::emitMovAddrToP ( Centity e1, int off, bool preserve_W )
   }
   else if ( e1->isLocal() )
   {
-    if ( preserve_W ) { gen ( "movwf PREINC0,0" ) ; ++stk ; }
+      // when offset==0, getLOCALNEGADDR is not used, so no need to preserve W
+      if( ( varOffset ( e1 ) + off )  == 0 ) preserve_W = false ;
+
+     if ( preserve_W ) { gen ( "movwf PREINC0,0" ) ; ++stk ; }
+     /*
     emitMovCstToW ( - ( varOffset ( e1 ) + off ) ) ;
     callRTL ( "getLOCALNEGADDR" ) ;
+    */
+     emitGetLNA(- ( varOffset ( e1 ) + off ));
     if ( preserve_W ) { gen ( "movf POSTDEC0,W,0" ) ; --stk ; }
   }
 }
@@ -2702,9 +2711,9 @@ void CodeGen::emitPushAddr ( Centity e1, int off )
 
     string gn = mkGlob ( e1->name() );
 
-    out << "\tmovlw LOW ( " << gn << s << " ) " << endl ;
+    out << "\tmovlw " << low(gn + s) << endl ;
     out << "\tmovwf PREINC0,0"    << endl ;
-    out << "\tmovlw HIGH ( " << gn << s << " ) " << endl ;
+    out << "\tmovlw " << high(gn+ s)  << endl ;
     out << "\tmovwf PREINC0,0"   << endl ;
     Wvalid = false ;
   }
@@ -3399,7 +3408,7 @@ string CodeGen::emitStackOff ( int k )
 }
 /** True if address a is in access bank
 ie:  0 <= a <= 0x7F or
-0xF80 <= a <= 0xFFF
+     0xF80 <= a <= 0xFFF
 
 Note: Unknown addresses  have value -1
 so they will NOT be considered as located in access bank
@@ -3409,7 +3418,8 @@ SFRs range from firstSFR_ to 0xFFF
 bool CodeGen::accBank ( int a )
 {
   // cout << "firstsfr = " << hex << firstSFR_ << dec << endl ;
-  return ( a >= 0 && a <= ( 0xFF- ( 0xFFF-firstSFR_+1 ) ) ) || ( a >= firstSFR_ && a <= 0xFFF ) ;
+  return ( a >= 0 && a <= ( 0xFF- ( 0xFFF-firstSFR_+1 ) ) ) ||
+          ( a >= firstSFR_ && a <= 0xFFF ) ;
 }
 bool CodeGen::accBank ( Centity& e )
 {
@@ -4770,9 +4780,9 @@ void CodeGen::emitMovNToR ( Centity e1, int nb, int val )
   {
     // size is implicit  :2 bytes
     gn = mkGlob ( e1->name() ) ;
-    gen ( "movlw LOW " +gn ) ;
+    gen ( "movlw " + low(gn) ) ;
     gen ( "movwf R0,0" ) ;
-    gen ( "movlw HIGH " + gn ) ;
+    gen ( "movlw " + high(gn) ) ;
     gen ( "movwf R0+1,0" ) ;
     Wvalid = false ;
   }
@@ -5048,7 +5058,7 @@ void CodeGen::emitCombinedSwitch ( string label, list<int> &cases )
     sc[kk] = ~0 ; // FF....FFF
 
   int maxgap=256-cases.back() +cases.front()-1;
-  int gapIndex=cases.front();
+  //int gapIndex=cases.front();
   int prev=0;
   for ( it=cases.begin(); it!=cases.end(); ++it )
   {
@@ -5057,7 +5067,7 @@ void CodeGen::emitCombinedSwitch ( string label, list<int> &cases )
     if ( gap>maxgap )
     {
       maxgap=gap;
-      gapIndex=*it;
+      /* gapIndex=*it; */
     }
     prev=*it;
   }
@@ -5353,8 +5363,11 @@ void CodeGen::emitStackToBF ( Centity& e, int  off,  int sz , bool dopop )
     }
     else if ( e->isLocal() )
     {
+        emitGetLNA( -varOffset ( e ));
+        /*
       setW ( -varOffset ( e ) ) ;
       callRTL ( "getLOCALNEGADDR" ) ;  // FSR1 points to destination
+      */
     }
   }
   // 2) move bits
@@ -5436,8 +5449,11 @@ void CodeGen::emitMovBF ( Centity& dest,  int value, int  off,  int sz )
   {
     if ( sz > 3 )
     {
+        emitGetLNA(-varOffset ( dest ));
+        /*
       setW ( -varOffset ( dest ) ) ;
       callRTL ( "getLOCALNEGADDR" ) ;
+      */
     }
     else if ( varOffset ( dest ) )
     {
@@ -5519,16 +5535,9 @@ void CodeGen::emitMovBFtoBF ( Centity& src, Centity& dst )
       gen ( "ILFSR1 "+  mkGlob ( dst->name(),0 ) ) ;
     }
   }
-  else if ( varOffset ( dst ) ) //TODO utiliser movaddrtoP
+  else // avoids to call getLOCALNEGADDR with nul offset
   {
-    // isLocal
-    setW ( -varOffset ( dst ) ) ;
-    callRTL ( "getLOCALNEGADDR" ) ;
-  }
-  else // avoid to call getLOCALNEGADDR
-  {
-    gen ( "movff FSR0L,FSR1L" ) ;
-    gen ( "movff FSR0H,FSR1H" ) ;
+      emitGetLNA( -varOffset ( dst ));
   }
   // 3) source can be either in page 0, accessed by FSR2 or in stack
   if ( src->isGlobal() )
@@ -5807,3 +5816,46 @@ void CodeGen::emitUnpackBF ( int offset, int size )
   }
 }
 
+string CodeGen::high(const string &s, int offset )
+{
+    if( offset == 0)
+        return "HIGH("+s+")" ;
+    else
+    {
+        ostringstream ss ;
+        ss << "HIGH(" << s << "+" << offset << ")" ;
+        return ss.str() ;
+    }
+}
+string CodeGen::low(const string &s, int offset )
+{
+    if( offset == 0)
+        return "LOW("+s+")" ;
+    else
+    {
+        ostringstream ss ;
+        ss << "LOW(" << s << "+" << offset << ")" ;
+        return ss.str() ;
+    }
+}
+
+/*
+  load the addr of a local variable in FSR1
+  negoffset is the (negative) offset of this variable from
+  top of stack
+*/
+void CodeGen::emitGetLNA( int negoffset )
+{
+    if( negoffset)
+    {
+        // standard code
+        setW ( negoffset ) ;
+        callRTL ( "getLOCALNEGADDR" ) ;
+    }
+    else
+    {
+        // nul offset, just copy FSR0 to FSR1
+        gen ( "movff FSR0L,FSR1L" ) ;
+        gen ( "movff FSR0H,FSR1H" ) ;
+    }
+}

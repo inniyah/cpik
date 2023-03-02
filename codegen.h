@@ -76,6 +76,8 @@ class CodeGen
     void emitLShift8u ( int k );
     void emitRShift8u ( int k );
     void emitMovPtrIndirectTo ( Centity e1 );
+    string high(const string& s, int offset=0) ;
+    string low(const string& s, int offset=0) ;
 
     /**
     Return the current offset for the variable e.
@@ -173,6 +175,7 @@ class CodeGen
     void emitReserveLocalData ( int sz );
     /** utility routines */
     void gen ( const string &s );
+    void emitGetLNA( int negoffset );
     void lab ( const string& s );
     string i2s ( int i ) { return utility::toString ( i )  ; }
     void emitMovNToR ( Centity e1, int sz, int val );

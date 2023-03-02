@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Libraries</TITLE>
+<META NAME="description" CONTENT="Libraries">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node94.html">
+<LINK REL="previous" HREF="node65.html">
+<LINK REL="up" HREF="cpik-doc.html">
+<LINK REL="next" HREF="node74.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1133"
+  HREF="node74.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1129"
+  HREF="cpik-doc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1123"
+  HREF="node72.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1131"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1134"
+  HREF="node74.html">standard IO library</A>
+<B> Up:</B> <A NAME="tex2html1130"
+  HREF="cpik-doc.html">cpik C compiler for</A>
+<B> Previous:</B> <A NAME="tex2html1124"
+  HREF="node72.html">assert.h</A>
+ &nbsp; <B>  <A NAME="tex2html1132"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION000140000000000000000">
+Libraries</A>
+</H1>
+
+<P>
+Until now, a small number of   libraries are available, and they have been developed for my own needs, and/or compiler testing, so they are not always versatile.
+
+<P>
+Excepted for <TT>rtl.slb</TT>, <TT>float.slb</TT> and <TT>lcd.slb</TT> (which are directly written in assembly language) each library <TT>x</TT> is written in C, and related  to 3 files:
+
+<UL>
+<LI><TT>x.c</TT>&nbsp;: the source code (when written in C),
+</LI>
+<LI><TT>x.h</TT>&nbsp;: the header file,
+</LI>
+<LI><TT>x.slb</TT>&nbsp;: the source library  file (compiled version of <TT>x.c</TT>
+</LI>
+</UL>
+Obviously, sources files are not needed to use libraries, but can be useful because the <TT>cpik</TT> project is under development, so libraries are far from being stabilized.
+
+<P>
+Sources libraries are installed in <TT>/usr/share/cpik/&lt;version&gt;/lib</TT> and headers 
+<BR>
+in <TT>/usr/share/cpik/&lt;version&gt;/include</TT>.
+
+<P>
+However, source libraries generated from C files are not distributed because they depends on compiler and run time code version. You need to recompile the source code yourself. 
+
+<P>
+As the compilation is really very fast, I generally include the source code of the libraries I use in my <TT>pikdev</TT> projects, so they are compiled with the rest of the application.
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A NAME="tex2html1135"
+  HREF="node74.html">standard IO library</A>
+<UL>
+<LI><A NAME="tex2html1136"
+  HREF="node75.html">IO redirection</A>
+<LI><A NAME="tex2html1137"
+  HREF="node76.html">output functions</A>
+<LI><A NAME="tex2html1138"
+  HREF="node77.html">Conversion specifiers supported by the <TT>printf()</TT> family</A>
+<LI><A NAME="tex2html1139"
+  HREF="node78.html">input</A>
+<LI><A NAME="tex2html1140"
+  HREF="node79.html">Conversion specifiers supported by the <TT>scanf()</TT> family</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1141"
+  HREF="node80.html">Standard math library</A>
+<UL>
+<LI><A NAME="tex2html1142"
+  HREF="node81.html">Trigonometric functions</A>
+<LI><A NAME="tex2html1143"
+  HREF="node82.html">Hyperbolic functions</A>
+<LI><A NAME="tex2html1144"
+  HREF="node83.html">Exponential, logarithmic and power functions</A>
+<LI><A NAME="tex2html1145"
+  HREF="node84.html">Nearest integer, absolute value, and remainder functions</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1146"
+  HREF="node85.html">Standard stdlib library</A>
+<UL>
+<LI><A NAME="tex2html1147"
+  HREF="node86.html">System</A>
+<LI><A NAME="tex2html1148"
+  HREF="node87.html">Character processing</A>
+<LI><A NAME="tex2html1149"
+  HREF="node88.html">Conversions to/from strings</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1150"
+  HREF="node89.html">rs232</A>
+<LI><A NAME="tex2html1151"
+  HREF="node90.html">LCD</A>
+<LI><A NAME="tex2html1152"
+  HREF="node91.html">AD conversion</A>
+<LI><A NAME="tex2html1153"
+  HREF="node92.html">EEPROM read/write</A>
+<LI><A NAME="tex2html1154"
+  HREF="node93.html">Timer 0 </A>
+</UL>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1133"
+  HREF="node74.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1129"
+  HREF="cpik-doc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1123"
+  HREF="node72.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1131"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1134"
+  HREF="node74.html">standard IO library</A>
+<B> Up:</B> <A NAME="tex2html1130"
+  HREF="cpik-doc.html">cpik C compiler for</A>
+<B> Previous:</B> <A NAME="tex2html1124"
+  HREF="node72.html">assert.h</A>
+ &nbsp; <B>  <A NAME="tex2html1132"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+AG
+2013-04-10
+</ADDRESS>
+</BODY>
+</HTML>

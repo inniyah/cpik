@@ -1,0 +1,6 @@
+0.7.2  (2/2013)
+a) bug fix in code generation for structures (missing parenthese, wrong evaluation order by asm)
+b) modification to cope with new syntax of  .lkr files from gputils 1.0.0
+c) all devices supported by gputils 1.0.0 are supported => new headers
+d) support for devices with SFRs non-reachable in access bank (!) => new inc2h-v3 utility 
+  

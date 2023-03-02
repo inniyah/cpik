@@ -1014,12 +1014,19 @@ int Cexpr::isCommutative()
     oper_ == NE
     ;
 }
-/** No descriptions */
+/**
+True if the argument is an lvalue
+TODO:
+preincrement and predecrement operators should generate an lvalue,
+but they don't because they need a special management
+ */
 bool Cexpr::isLValue()
 {
   bool r = ( ( oper_ == Terminal ) && getEntity()->isLValue() ) ||
            ( ( oper_ == UStar ) &&  arg ( 0 )->exprType()->isDereferencable() ) ||
-           ( oper_ == Dot ) || ( oper_ == Arrow ) ;
+           ( oper_ == Dot ) || ( oper_ == Arrow )
+      /*     || (oper_ == PlusPlusPre ) || (oper_ == MinusMinusPre )  */
+           ;
 
   return r ;
 }
@@ -1212,7 +1219,7 @@ const char * Cexpr::makeCasts()
 
   if ( isTerminal() )
   {
-    // function identifier are ptr to function when they are terminal symbols
+    // function identifiers are ptr to function when they are terminal symbols
     if ( isFct() )
     {
       // make a pointer-to function that references this function
@@ -1233,7 +1240,10 @@ const char * Cexpr::makeCasts()
    see behind
   */
   int i = 0 ;
-  if ( isFctCall() ) i = 1 ; // skip fct id
+  if ( isFctCall() &&  arg(0)->isTerminal() )
+  {
+      i = 1 ; // skip fct id
+  }
 
   for ( ; i < ( int ) args().size() ; ++i )
     if ( ( status = arg ( i )->makeCasts() ) ) return status ;
@@ -1292,18 +1302,18 @@ const char * Cexpr::makeCasts()
 
         if ( ! ( nulinteger && formal->isPointer() ) )
         {
-          if (  ! tfparam->compatible ( taparam ) 
-             || ! tfparam->isPtrToConst() && ( taparam->isPtrToConst() || taparam->isConstArray() )
-             )
-          {
-            string m ="Incompatible parameter type in function call.\n" ;
-            m += "(expected <" ;
-            m += tfparam->prettyPrint ( "formal","" );
-            m += "> but found <" ;
-            m += taparam->prettyPrint ( "actual","" );
-            m += ">)." ;
-            return  utility::setMessage ( m ) ;
-          }
+            if (  !tfparam->compatible (taparam ) ||
+                  (!tfparam->isPtrToConst() &&  taparam->isPtrToConst() ) ||
+                   taparam->isConstArray() )
+                {
+                string m ="Incompatible parameter type in function call.\n" ;
+                m += "(expected <" ;
+                m += tfparam->prettyPrint ( "formal","" );
+                m += "> but found <" ;
+                m += taparam->prettyPrint ( "actual","" );
+                m += ">)." ;
+                return  utility::setMessage ( m ) ;
+            }
         }
         // ok, types are compatible - but they might need a cast
         // however, no cast needed for conversion from pointer to array or reciprocal
@@ -1365,6 +1375,7 @@ const char * Cexpr::makeCasts()
       {
         if ( !arg ( 1 )->exprType()->is ( type::Long ) &&  !arg ( 1 )->exprType()->is ( type::ULong ) )
         {
+          // sign extension is added by "cast to long" if operand is signed
           insertCast ( arg ( 1 ), Ctype ( type::Long ) ) ;
         }
       }
@@ -1653,7 +1664,8 @@ int Cexpr::removeNops()
         delete s0 ; delete s1 ;
         ++nops ;
       }
-      else if ( s0->isTerminal() )
+      /*
+      else if ( s0->isTerminal() ) // *p, when p is pointer to fct
       {
         if ( s0->getEntity()->isPointerToFct() )
         {
@@ -1665,6 +1677,15 @@ int Cexpr::removeNops()
           ++nops ;
 
         }
+      }
+      */
+      else if( s0->exprType()->isPointerToFct())
+      {
+          // Dereferencement of terminal (or not terminal) ptr to fct  : just remove *
+          *this = *s0 ;
+          s0->disconnect() ;
+          delete s0 ;
+          ++nops ;
       }
       break ;
 
@@ -1788,7 +1809,7 @@ const char * Cexpr::process()
   if ( ( err = bfUnpack ( true ) ) ) return err  ;
 
 
-  // some simplification needs types to be propagated again
+  // some simplifications need types to be propagated again
   if ( ( err = propagateTypes() ) ) return err  ;
 
   if ( ( err = verifyLValues() )  || ( err = makeCasts() ) ) return err  ;
@@ -1904,7 +1925,9 @@ int Cexpr::unoptimize()
   return u ;
 }
 
-/** Do some trivial rearrangements to make the  generation of code more easy */
+/**
+    Do some trivial rearrangements to make the  generation of code more easy
+*/
 int Cexpr::rearrange()
 {
   int arr=0 ,k ;
@@ -1978,7 +2001,7 @@ int Cexpr::rearrange()
         }
         else if ( k == -2 && arg ( 0 )->sizeOf() == 1 && bfsize == 0)
         {
-          // OK, replace x += 2 with (--x,--x)
+          // OK, replace x += 2 with (++x,++x)
           l =   arg ( 0 ) ;
           oper() = Seq ;
           delete arg ( 1 ) ;
@@ -2081,6 +2104,25 @@ int Cexpr::rearrange()
         oper() = LNot ;
         ++arr ;
       }
+      break ;
+
+      case PlusPlusPre:
+      case MinusMinusPre:
+      case PlusPlusPost:
+      case MinusMinusPost:
+      if( arg(0)->oper() == PlusPlusPre ||  arg(0)->oper() == MinusMinusPre)
+      {
+          // OK, replace --(++x)  with (++x,--x) (or (++x)--  with (++x,x--) )
+          Cexpr *r = arg ( 0 )->clone();
+          r->oper() = oper() ;
+          args().push_back ( r) ;
+          oper() = Seq ;
+          exprType() = r->exprType() ;
+
+          ++arr ;
+      }
+
+
       break ;
   }
 

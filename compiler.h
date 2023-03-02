@@ -86,10 +86,12 @@ class Compiler
     */
     string uniqueLabel();
     /** No descriptions */
-    map<string,string>& pragmas();
-    /** Generates __config section if #pragma are used for
+    multimap<string,string>& pragmas();
+    /** Generates __config section if #pragma __CONFIG are used for
     defining config bits */
     const char * outputConfig();
+    /** Generates __config section if #pragma CONFIG are used */
+    const char * outputNewStyleConfig();
     /** generates __idlocs section */
     const char * outputIdlocs();
 
@@ -155,7 +157,7 @@ class Compiler
     /** Used to generate unique labels */
     int uniqueID_;
     /** Store pragma(s) detected by File class */
-    map<string,string> pragmas_;
+    multimap<string,string> pragmas_;
     /** include Paths */
     stringList includepaths_ ;
     /** defines Paths */

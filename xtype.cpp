@@ -606,7 +606,8 @@ bool type::compatible ( Ctype t )
   /* any pointer is compatible with void * */
   if ( isDereferencable() &&  subtype()->isVoid() && t->isDereferencable() ) return true ;
 
-  if ( isStruct() && t->isStruct() )
+  // parameters check bug for union, fixed by Gib, 25/3/2013
+  if ( (isStruct() && t->isStruct()) || (isUnion() && t->isUnion()) )
   {
     if ( this->equal ( t ) ) return true ;
     // type descriptor are not equal - just test name compatibility
@@ -815,6 +816,11 @@ bool type::isEnum()
 bool type::isEnumMember()
 {
   return is ( EnumMember );
+}
+
+bool type::isPointerToFct()
+{
+  return isPointer() && subtype()->isFct() ;
 }
 
 /** return a pointer to member 'mname', or NULL if it doesn't exist */

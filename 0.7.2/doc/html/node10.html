@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Build using qmake</TITLE>
+<META NAME="description" CONTENT="Build using qmake">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node11.html">
+<LINK REL="previous" HREF="node9.html">
+<LINK REL="up" HREF="node8.html">
+<LINK REL="next" HREF="node11.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html320"
+  HREF="node11.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html316"
+  HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html310"
+  HREF="node9.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html318"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html321"
+  HREF="node11.html">cpik under Windows</A>
+<B> Up:</B> <A NAME="tex2html317"
+  HREF="node8.html">Installation of cpik</A>
+<B> Previous:</B> <A NAME="tex2html311"
+  HREF="node9.html">Manual build</A>
+ &nbsp; <B>  <A NAME="tex2html319"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00082000000000000000">
+Build using qmake</A>
+</H2>
+
+<P>
+<TT>qmake</TT> is the build tool that comes with <TT>Qt</TT>. 
+You can download the complete Qt toolkit at the address  <TT>http://qt.nokia.com/</TT>, but it is certainly available as a package 
+with your Linux distribution.
+
+<P>
+
+<OL>
+<LI><TT>qmake -o Makefile cpik&lt;version&gt;.pro</TT>
+</LI>
+<LI><TT>make</TT>
+</LI>
+<LI><TT>su root</TT>
+</LI>
+<LI><TT>make install</TT>
+</LI>
+</OL>
+
+<P>
+You can install cpik in a non-standard directory using the command
+<PRE>
+qmake PREFIX=&lt;abs-dir&gt; -o Makefile cpik&lt;version&gt;.pro
+</PRE>
+
+<P>
+where <TT>&lt;abs-dir&gt;</TT> is an <I>absolute</I> path to the directory where you plan to install <TT>cpik</TT>. Be certain that <TT>cpik</TT> <I>will not work
+if you use a relative path</I>. 
+
+<P>
+This option is provided for very special situations, and  my advice is to avoid it.
+
+<P>
+<BR><HR>
+<ADDRESS>
+AG
+2013-04-10
+</ADDRESS>
+</BODY>
+</HTML>

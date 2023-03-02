@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>EEPROM read/write</TITLE>
+<META NAME="description" CONTENT="EEPROM read/write">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node93.html">
+<LINK REL="previous" HREF="node91.html">
+<LINK REL="up" HREF="node73.html">
+<LINK REL="next" HREF="node93.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1387"
+  HREF="node93.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1383"
+  HREF="node73.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1377"
+  HREF="node91.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1385"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1388"
+  HREF="node93.html">Timer 0</A>
+<B> Up:</B> <A NAME="tex2html1384"
+  HREF="node73.html">Libraries</A>
+<B> Previous:</B> <A NAME="tex2html1378"
+  HREF="node91.html">AD conversion</A>
+ &nbsp; <B>  <A NAME="tex2html1386"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000147000000000000000">
+EEPROM read/write</A>
+</H2>
+
+<P>
+This library allows to perform EEPROM read/write in polling mode. It also contains code to statically initialize EEPROM data (see section hints and tips
+for details). Please comment out or modify this code (see <code>ee_init()</code> routine to fit to your own needs).  
+
+<P>
+
+<OL>
+<LI><code>void ee_init()</code>  
+
+<P>
+Initializes EEPROM subsystem in polling mode.This routine 
+ also contains code to statically initialize EEPROM data (see section hints and tips for details).
+This code may have to be edited to fit your needs.
+
+<P>
+</LI>
+<LI><code>unsigned int ee_read8(unsigned long addr) </code> 
+
+<P>
+Returns the 8 bit data located at address <TT>addr</TT>.
+
+<P>
+</LI>
+<LI><code>unsigned long ee_read16(unsigned long addr) </code> 
+
+<P>
+Returns the 16 bit data located at address <TT>addr</TT>.
+
+<P>
+</LI>
+<LI><code>void ee_write(unsigned long  addr, unsigned int  value)</code> 
+
+<P>
+Writes 8 bit value at address <TT>addr</TT>.
+
+<P>
+</LI>
+<LI><code>void ee_write16(unsigned long  addr, unsigned long  value)</code> 
+
+<P>
+Writes 16 bit value at address <TT>addr</TT>.
+
+<P>
+</LI>
+<LI><code>unsigned int ee_inc8(unsigned long addr)</code> 
+
+<P>
+Increments 8 bit value located at address <TT>addr</TT>. 
+Return the incremented value.
+
+<P>
+</LI>
+<LI><code>void ee_inc16(unsigned long addr)</code> 
+
+<P>
+Increment 16 bit value located at address <TT>addr</TT>. 
+
+<P>
+</LI>
+<LI><code>void ee_refresh()</code> 
+
+<P>
+Performs EEPROM refresh as recomended by Microchip data sheet, for very long time data retaining. This routine is not really tested, but I used it, and data have not been destroyed.
+
+<P>
+</LI>
+</OL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1387"
+  HREF="node93.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1383"
+  HREF="node73.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1377"
+  HREF="node91.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1385"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1388"
+  HREF="node93.html">Timer 0</A>
+<B> Up:</B> <A NAME="tex2html1384"
+  HREF="node73.html">Libraries</A>
+<B> Previous:</B> <A NAME="tex2html1378"
+  HREF="node91.html">AD conversion</A>
+ &nbsp; <B>  <A NAME="tex2html1386"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+AG
+2013-04-10
+</ADDRESS>
+</BODY>
+</HTML>

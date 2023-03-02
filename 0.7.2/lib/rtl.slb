@@ -1,0 +1,3593 @@
+;
+; Run time library for 18Fxxxx
+; ============================
+
+;   Copyright (C) 2011-2013, Alain Gibaud   alain.gibaud@free.fr
+;
+;   This file is part of the CPIK library
+;   ------------------------------------------------------- 
+;   This library is free software; you can redistribute it and/or modify it
+;   under the terms of the GNU General Public License as published by the
+;   Free Software Foundation; either version 2.1, or (at your option) any
+;   later version.
+ 
+;   This library is distributed in the hope that it will be useful,
+;   but WITHOUT ANY WARRANTY; without even the implied warranty of
+;   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;   GNU General Public License for more details.
+ 
+;  You should have received a copy of the GNU General Public License 
+;   along with this library; see the file COPYING. If not, write to the
+;   Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
+;   MA 02110-1301, USA.
+ 
+;   As a special exception, if you link this library with other files,
+;   some of which are compiled with CPIK, to produce an executable,
+;   this library does not by itself cause the resulting executable to
+;   be covered by the GNU General Public License. This exception does
+;   not however invalidate any other reasons why the executable file
+;   might be covered by the GNU General Public License.
+; ---------------------------------------------------------
+
+; CPIK version : 0.7.2
+; new in 0.7.2
+;      Support for devices that don't use the EEPGD and CFGS bits in 
+;       EECON1 (this is related to access to ROM)
+;      Thank you to Cedric Debarge who pointed out this problem.
+; new in 0.6.0 :
+;	None (the new code is in float.slb )
+; new in 0.5.3 : 
+;    - support for the access to program space (ROM)
+;    - improved support (and bug fixes) for shifts  by Josef Pavlik
+;    - support for the  switch instruction
+;
+; =====================================================
+; PUSH/POP routines
+; =====================================================
+; push R0 (16 bit) on to the stack
+;<+pushR0>
+pushR0
+	movff R0L,PREINC0
+	movff R0H,PREINC0
+	return 0
+;<->
+; pop R0 (16 bit) from the stack
+;<+popR0>
+popR0
+	movff POSTDEC0,R0H
+	movff POSTDEC0,R0L
+	return 0
+;<->
+
+; push R1 (16 bit) on to the stack
+;<+pushR1>
+pushR1
+	movff R1L,PREINC0
+	movff R1H,PREINC0
+	return 0
+;<->
+
+; pop R1 (16 bit) from the stack
+;<+popR1>
+popR1
+	movff POSTDEC0,R1H
+	movff POSTDEC0,R1L
+	return 0
+;<->
+
+; push ptr on to the stack
+;<+pushPTR>
+pushPTR
+	movff FSR1L,PREINC0
+	movff FSR1H,PREINC0
+	return 0
+;<->
+
+; pop PTR (16 bit) from the stack
+;<+popPTR>
+popPTR
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	return 0
+;<->
+
+; push a local var (offset in W - W unchanged)
+;<+pushLOCAL>
+pushLOCAL
+	movff PLUSW0,PREINC0
+	movff PLUSW0,PREINC0
+	return 0
+;<->
+; push a local address to the stack
+; ie: push FSR0+W 
+; Entry: W is the offset of the target location
+; Registers usage:
+; R2 = temporary
+; W = temporary
+; TODO: use PRODL-PRODH as a temporary ?
+;<+pushLOCALADDR>
+pushLOCALADDR
+	clrf  R2+1,0
+	btfsc WREG,7,0
+	decf  R2+1,F,0 ; sign extended H byte of W -> R2H
+	addwf FSR0L,W,0
+	movwf R2+0,0
+	movf   FSR0H,W,0
+	addwfc R2+1,F,0
+	movff R2+0,PREINC0
+	movff R2+1,PREINC0
+	return 0 ;
+;<->
+;<+pushLOCALNEGADDR>
+pushLOCALNEGADDR
+  subwf FSR0L,W,0
+  movwf R2+0,0
+  movlw 0
+  subwfb FSR0H,W,0
+  movff R2+0,PREINC0
+  movwf PREINC0,0
+  return 0 ;
+;<->
+; 
+; pop Top Of Data Stack to a local var (offset in W - W unchanged)
+; This routine is tricky because INDF0 is used for evaluating
+; both source and dest adresses. 
+; Source seems to be evaluated first, so I must correct offset in W
+; by adding 1. Moreover, as W is the offset of Low byte of destination
+; I also must add 1 to access Hi byte first. The correct initial offset
+; is thus +2.
+;<+popLOCAL>
+popLOCAL
+	addlw 2  ; fix offset
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	addlw -2 ; restore W
+	return 0
+;<->
+; A special version of popLOCAL:
+; W register must be preincremented by 2 before call,
+; and is not restored (now inlined by compiler)
+;<+popLOCALfast>
+popLOCALfast
+	movff POSTDEC0,PLUSW0
+	movff POSTDEC0,PLUSW0
+	return 0
+;<->
+; =====================================================
+; Stack access routines
+; =====================================================
+
+; load FSR1 with address of a stack location.
+; ie: FSR0 + W -> FSR1 (W is signed !!)
+;<+getLOCALADDR>
+getLOCALADDR
+	clrf FSR1H,0 ; compute W's sign extension
+	btfsc WREG,7,0 ; test W bit 7
+	decf FSR1H,F,0  ; H byte is FF if W < 0, else 0
+	addwf FSR0L,W,0 ;
+	movwf FSR1L,0 ; FSR1L = FSR0L + W
+	movf FSR0H,W,0
+	addwfc FSR1H,F,0 ; FSR1H = FSR0H + carry + sign extension of W
+	return 0 ;
+;<->
+
+; load FSR1 with address of a stack location.
+; ie: FSR0 - W -> FSR1 (W is unsigned)
+;<+getLOCALNEGADDR>
+getLOCALNEGADDR
+  subwf FSR0L,W,0
+  movwf FSR1L,0
+  movlw 0
+  subwfb FSR0H,W,0
+  movwf FSR1H,0
+	return 0 ;
+;<->
+
+; load FSR1 with address of a stack location.
+; ie: FSR0 - W -> FSR1 (W is unsigned)
+; W is preserved in PRODL
+;<+getLOCALNEGADDR_PW>
+getLOCALNEGADDR_PW
+  movwf PRODL,0
+  subwf FSR0L,W,0
+  movwf FSR1L,0
+  movlw 0
+  subwfb FSR0H,W,0
+  movwf FSR1H,0
+  movf  PRODL,W,0
+	return 0 ;
+;<->
+
+; load R0 with address of a stack location. 
+; ie: FSR0 + W -> R0
+;<+movLOCALADDRtoR0>
+movLOCALADDRtoR0
+	clrf R0+1,0 ; compute W's sign extension
+	btfsc WREG,7,0 ; test W bit 7
+	decf R0+1,F,0  ; H byte is FF if W < 0, else 0	
+	addwf FSR0L,W,0 ; 
+	movwf R0,0 ; R0L = FSR0L + W
+	movf FSR0H,W,0
+	addwfc R0+1,F,0 ; R0H = FSR0H + carry + sign extension of W
+	return 0 ;	
+;<->
+
+;<+getFarLOCALADDR>
+; see config bits for TBLPTR
+; NOT TESTED, NOT USED
+getFarLOCALADDR
+	bsf EECON1,EEPGD,0
+	bcf EECON1,CFGS,0
+	movff TOSL,TBLPTRL
+	movff TOSH,TBLPTRH
+	clrf  TBLPTRU,0
+	tblrd *+
+	movf TABLAT,W,0
+	addwf FSR0L,W,0
+	movwf FSR1L,0
+	tblrd *+
+	movf TABLAT,W,0
+	addwfc FSR0H,W,0
+	movwf FSR1H,0
+	; no need to increment return address, 
+	; offset value will be seen as a NOP if
+	; -4096 <= offset <= 0
+	return 0 ;	
+;<->
+
+; load FSR1 with value of a local pointer
+; ie: (FSR0 + W) -> FSR1
+; W destroyed
+;
+;<+getLOCALPTR>
+getLOCALPTR
+	movff PLUSW0,FSR1L
+	addlw 1
+	movff PLUSW0,FSR1H
+	return 0 ;	
+;<->
+
+
+; copy a local variable to/from R0
+;<+LOCAL2R0>
+LOCAL2R0
+	movff PLUSW0,R0L
+	addlw 1
+	movff PLUSW0,R0H
+	addlw -1
+	return 0
+;<->
+;<+R02LOCAL>
+R02LOCAL
+	addlw 1
+	movff R0H,PLUSW0
+	addlw -1
+	movff R0L,PLUSW0
+	return 0
+;<->
+
+; 16 bit duplicate TODS (W corrupted)
+;<+dup16>
+;<?pushLOCAL>
+dup16
+	movlw -1
+	IBRA pushLOCAL
+;<->
+
+
+; =====================================================
+; Stack cleaning  routines  (not used)
+; =====================================================
+
+
+; discard W bytes from the stack (W > 0)
+;<+cleanstack1>
+cleanstack1
+	movff INDF0,POSTDEC0
+	addlw -1
+	bnz cleanstack1
+	return 0
+;<->
+
+; discard W 16 bits words from the stack (W > 0)
+; CAUTION : As TODS is duplicated on each popped location
+; stack  cannot be recovered by subsequent SP increment
+; anyway, such stack may be corrupted by interrupt execution, 
+; so recovering it is not secure
+;<+cleanstack2>
+cleanstack2
+	movff POSTDEC0,POSTDEC0
+	addlw -1
+	bnz cleanstack2
+	return 0
+;<->
+
+; =====================================================
+; Indirect access routines  (not used)
+; =====================================================
+
+; 8 bits dereferencement of pointer on TODS (pointer is discarded from stack)
+;<+indirect8>
+indirect8
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff INDF1,PREINC0
+	return 0
+;<->
+
+; 16 bits dereferencement of pointer on TODS (pointer is discarded from stack)
+; TO BE RE-TESTED
+; important ?  property : exits with pointer in FSR1
+;<+indirect16>
+indirect16
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+	movff POSTINC1,PREINC0
+	movff POSTDEC1,PREINC0
+	return 0
+;<->
+
+; N bytes dereferencement of pointer on TODS (pointer is discarded from stack)
+; input: TOS = addr of data
+;        W = number of bytes
+; output: data block is pushed on to stack
+; attn : FSR1 is destroyed
+;<+indirectN>
+indirectN
+	movff POSTDEC0,FSR1H
+	movff POSTDEC0,FSR1L
+indirectN_loop
+	addlw -1
+	movff POSTINC1,PREINC0
+	bnz indirectN_loop
+	return 0
+;<->
+
+; =====================================================
+; Arithmetic routines  
+; =====================================================
+
+; ----------------------- Addition -------------------
+; 16 bit add
+; TODS + R0 -> TODS
+; Register usage:
+;  W destroyed
+;<+add16>
+add16
+	movff POSTDEC0,PRODH ; save hi byte	
+	movf R0,W,0
+	addwf INDF0,F,0
+	movff PRODH,PREINC0 ; rst hi byte
+	movf R0+1,W,0
+	addwfc INDF0,F,0
+	return 0
+;<-> 
+
+
+; 16 bit addition with scale factor of 2
+; TODS + R0*2 -> TODS
+; Register usage: 
+;  W destroyed
+;<+add16x2>
+;<?add16>
+add16x2
+	bcf STATUS,0,0 ; CCF
+	rlcf R0,F,0
+	rlcf R0+1,F,0 ; R0 * 2 -> R0
+	goto add16 
+;<->
+
+; 16 bit addition with scale factor of 4
+; TODS + R0*4 -> TODS
+; Register usage: 
+;  W destroyed
+; TODO : to be tested
+;<+add16x4>
+;<?add16>
+add16x4
+	bcf STATUS,0,0 ; CCF
+	rlcf R0,F,0
+	rlcf R0+1,F,0 ; R0 * 2 -> R0
+	bcf STATUS,0,0 ; CCF
+	rlcf R0,F,0
+	rlcf R0+1,F,0 ; R0 * 2 -> R0
+	goto add16 
+;<->
+
+; 16 bit addition with scale factor of N
+; (TODS-2) + R0*(TODS) -> TODS
+; Register usage: see dependances
+;  W destroyed
+;<+add16_xN>
+;<?mul16>
+;<?popR0>
+;<?add16>
+add16_xN
+	call mul16 ; R0 * TODS -> TODS
+	call popR0  ; N * R0 -> R0
+	IBRA add16
+;<->
+;    TODO              a tester
+; 32 bit add
+; TODS + R0.R1 -> TODS
+; Register usage:
+;  W destroyed, R2.R3 destroyed
+;<+add32>
+add32
+	movff POSTDEC0,R0+7
+	movff POSTDEC0,R0+6
+	movff POSTDEC0,R0+5
+	movf R0,W,0
+	addwf INDF0,F,0 ; byte 0
+
+	movf R0+1,W,0
+	addwfc R0+5,W,0
+	movwf PREINC0,0 ; byte 1
+
+	movf R0+2,W,0
+	addwfc R0+6,W,0
+	movwf PREINC0,0 ; byte 2
+
+	movf R0+3,W,0
+	addwfc R0+7,W,0
+	movwf PREINC0,0 ; byte 3
+
+	return 0
+;<-> 
+
+
+; ----------------------- Substraction -------------------
+
+; 16 bit substract
+; TODS - R0 -> TODS
+; Register usage:
+;  W destroyed
+;<+sub16>
+sub16
+	movff POSTDEC0,PRODH
+	movf R0,W,0
+	subwf INDF0,F,0
+	movff PRODH,PREINC0
+	movf R0+1,W,0
+	subwfb INDF0,F,0
+	return 0
+;<->
+; TODO               a tester
+; 32 bit substact
+; TODS - R0.R1 -> TODS
+; Register usage:
+;  W destroyed, R2.R3 destroyed
+;<+sub32>
+sub32
+	movff POSTDEC0,R0+7
+	movff POSTDEC0,R0+6
+	movff POSTDEC0,R0+5
+	movf R0,W,0
+	subwf INDF0,F,0 ; byte 0
+
+	movf R0+1,W,0
+	subwfb R0+5,W,0
+	movwf PREINC0,0 ; byte 1
+
+	movf R0+2,W,0
+	subwfb R0+6,W,0
+	movwf PREINC0,0 ; byte 2
+
+	movf R0+3,W,0
+	subwfb R0+7,W,0
+	movwf PREINC0,0 ; byte 3
+
+	return 0
+;<-> 
+; 8 bit negate
+; -*FSR1 -> *FSR1
+; Register usage: none
+;<+ipneg8>
+ipneg8
+	comf	INDF1,F,0
+	incf	INDF1,F,0
+	return 0
+;<->
+
+; -TODS -> TODS
+; Register usage: none
+; this code is inlined
+;<+neg8>
+neg8
+	comf	INDF0,F,0
+	incf	INDF0,F,0
+	return 0
+;<->
+
+; 16 bit negate
+; -*FSR1 -> *FSR1
+; Register usage:
+; W is destroyed
+
+;<+ipneg16>
+ipneg16
+	comf	INDF1,F,0
+	movlw	1
+	comf	PLUSW1,F,0	
+	incfsz	INDF1,F,0
+	return 0
+	incf	PLUSW1,F,0
+	return 0
+;<->
+
+; -TODS -> TODS
+; Register usage:
+; W is destroyed
+
+;<+neg16>
+neg16
+	comf	INDF0,F,0
+	movlw	-1
+	negf	PLUSW0,0
+	bnc	neg16_no_carry
+	incf	INDF0,F,0
+neg16_no_carry
+	return 0
+;<->
+
+; 16 bit clear (replaces top of stack value with 0)
+; 0 -> TODS
+
+;<+clr16>
+clr16
+	clrf 	POSTDEC0,0
+	clrf 	POSTINC0,0
+	clrf 	INDF0,0
+	return
+;<->
+
+; 32 bit negate
+; -TODS -> TODS
+; Register usage:
+
+;<+ipneg32>
+ipneg32
+	comf	INDF1,F,0
+	movlw	1
+	comf	PLUSW1,F,0
+	movlw	2
+	comf	PLUSW1,F,0
+	movlw	3
+	comf	PLUSW1,F,0
+	
+	incfsz	INDF1,F,0
+	return 0
+
+	movlw	1
+	incfsz	PLUSW1,F,0
+	return 0
+	 
+	movlw	2
+	incfsz	PLUSW1,F,0
+	return 0
+
+	movlw	3
+	incf	PLUSW1,F,0
+	return 0
+;<->
+
+;<+neg32>
+neg32
+	comf	INDF0,F,0
+	movlw	-1
+	comf	PLUSW0,F,0
+	movlw	-2
+	comf	PLUSW0,F,0
+	movlw	-3
+	comf	PLUSW0,F,0
+
+	incfsz	PLUSW0,F,0
+	return 0
+
+	movlw	-2
+	incfsz	PLUSW0,F,0
+	return 0
+	 
+	movlw	-1
+	incfsz	PLUSW0,F,0
+	return 0
+
+	incf	INDF0,F,0
+	return 0
+;<->
+
+; 32 bit clear (replaces top of stack value with 0)
+; 0 -> TODS
+
+;<+clr32>
+clr32w0
+	movlw	0
+clr32
+	clrf 	POSTDEC0,0
+	clrf 	POSTDEC0,0
+	clrf 	POSTDEC0,0
+	clrf 	POSTINC0,0
+	clrf 	POSTINC0,0
+	clrf 	POSTINC0,0
+	clrf 	INDF0,0
+	return
+;<->
+
+;<+ipclr32>
+ipclr32
+	movlw 3
+	clrf	PLUSW1,0
+	movlw	2
+	clrf	PLUSW1,0
+	clrf	POSTINC1,0
+	clrf	POSTDEC1,0
+	return 0
+;<->
+
+; ----------------------- Division -------------------
+; ====================== 8 bits =========================
+; 8 bit unsigned integer division
+; TODS / W -> TODS      (remainder in PRODL)
+; registers usage:
+; divisor   = PRODH
+; argument  = R0L
+; result    = TODS
+; remainder = PRODL
+; internal counter   = R1L
+
+;<+ipdiv8u>
+ipdiv8u
+	movwf	PRODH,0   ; move divisor to PRODH
+	movff	INDF1,R0L ; move arg to R0L
+	movlw	0
+	movwf	PRODL,0 ; remainder = 0	
+	movwf	INDF1,0	; result = 0
+	movlw	D'8'
+	movwf	R1L,0	; counter = 8
+ipdiv8u_loop	
+	; 1) move msb from arg to remainder's lsb
+	bcf	STATUS,0,0	; clear carry
+	rlcf	R0L,F,0		; arg <<= 1
+	rlcf	PRODL,F,0	; remainder <<= 1
+	; 2) result *= 2
+	bcf	STATUS,0,0	; clear carry
+	rlcf	INDF1,F,0	; result <<= 1
+	; 3) set lsb of result if remainder >= divisor
+	movf	PRODH,W,0
+	subwf	PRODL,W,0	; W = remainder - divisor
+	bn	ipdiv8u_nobit	; jump if negative
+	bsf	INDF1,0,0	; result |= 1
+	movwf	PRODL,0		; validate substraction
+ipdiv8u_nobit
+	decfsz	R1L,F,0
+	bra	ipdiv8u_loop
+	return 0
+;<->
+;<+div8u>
+div8u
+	movff	FSR0L,FSR1L
+	movff	FSR0H,FSR1H
+	IBRA	ipdiv8u
+;<?ipdiv8u>
+;<->
+
+;<+ipmod8u>
+ipmod8u
+  call ipdiv8u
+  movff PRODL,INDF1
+  return 0
+;<?ipdiv8u>
+;<->
+; 8 bit unsigned integer modulo
+; TODS / W -> TODS     
+; registers usage:
+;              see div8u
+;<+mod8u>
+mod8u
+	movff	FSR0L,FSR1L
+	movff	FSR0H,FSR1H
+	call	ipdiv8u
+	movff   PRODL,INDF0
+	return 0
+;<?ipdiv8u>
+;<->
+
+
+; 8 bit signed integer division 
+; args: see unsigned division
+; negative arguments are simply changed to positive
+; and result's sign is setted accordingly 
+; R1H is used as a sign flag (if set, result must be negative)
+;<+ipdiv8>
+;<?ipdiv8u>	
+ipdiv8	movff INDF1,R1H
+	xorwf R1H,F,0 ; R1H bit 7 is result's sign
+	btfsc WREG,7,0
+	negf WREG,0
+	btfsc INDF1,7,0
+	negf INDF1,0
+	call ipdiv8u
+	btfsc R1H,7,0
+	negf INDF1,0
+	btfsc R1H,7,0
+	negf PRODL,0
+	return 0
+;<->
+
+;<+div8>
+;<?ipdiv8>
+div8	
+	movff	FSR0L,FSR1L
+	movff	FSR0H,FSR1H
+	IBRA	ipdiv8
+;<->
+
+
+; 8 bit signed integer modulo
+; TODS / W -> TODS
+; registers usage:
+;              see div8
+;<+ipmod8>
+ipmod8
+  call ipdiv8
+  movff PRODL,INDF1
+  return 0
+;<?ipdiv8>
+;<->
+;<+mod8>
+mod8
+  movff	FSR0L,FSR1L
+  movff	FSR0H,FSR1H
+  call ipdiv8
+  movff PRODL,INDF0
+  return 0
+;<?ipdiv8>
+;<->
+
+; ======================== 16 bit =========================
+; 16 bit unsigned integer division
+; TODS / R0 -> TODS      (remainder in PRODH:PRODL)
+;
+; internal register usage:
+; divisor   = R0
+; argument  = R1
+; remainder = PRODH:PRODL
+; result    = R2
+; internal counter   = TODS
+
+
+;<+ipdiv16u>
+ipdiv16u
+	clrf R2+1, 0
+	clrf R2, 0
+
+	movlw 16
+	movwf PRODL, 0
+
+
+	bcf STATUS, 0, 0 ; Clear Carry
+ipdiv16u_0
+	rlcf INDF1, F, 0
+	movlw 1
+	rlcf PLUSW1, F, 0
+
+	rlcf R2, 1, 0
+	rlcf R2+1, 1, 0
+
+	movf R0,W, 0
+	subwf R2, W, 0
+	movf R0+1, W, 0
+	subwfb R2+1, W, 0
+	bnc ipdiv16u_1
+
+	movf R0, 0, 0
+	subwf R2, F, 0
+	movf R0+1, 0, 0
+	subwfb R2+1, F, 0
+
+	incf INDF1,F,0
+ipdiv16u_1
+	decfsz PRODL,F,0
+	bra ipdiv16u_0
+
+	return 0
+;<->
+
+;<+div16u>
+div16u
+	clrf R2+1, 0
+	clrf R2, 0
+
+	movlw 16
+	movwf PRODL, 0
+
+	
+	bcf STATUS, 0, 0 ; Clear Carry
+div16u_0
+	movlw -1
+	rlcf PLUSW0,F, 0
+	rlcf INDF0,F, 0
+
+	rlcf R2, 1, 0
+	rlcf R2+1, 1, 0
+
+	movf R0,W, 0
+	subwf R2, W, 0
+	movf R0+1, W, 0
+	subwfb R2+1, W, 0
+	bnc div16u_1
+
+	movf R0, 0, 0
+	subwf R2, F, 0
+	movf R0+1, 0, 0
+	subwfb R2+1, F, 0
+
+	movlw -1
+	incf PLUSW0,F,0
+div16u_1
+	decfsz PRODL,F,0
+	bra div16u_0
+
+	return 0
+
+;<->
+
+;
+; 16 bit unsigned modulo
+; TODS % R0 -> TODS
+; register usage : see div16u
+;<+ipmod16u>
+ipmod16u
+  call ipdiv16u
+ipmod16u_getrem
+  movff R2,INDF1
+  movlw 1
+  movff R2+1,PLUSW1
+  return  0
+;<?ipdiv16u>
+;<->
+
+;<+mod16u>
+mod16u
+  call div16u
+mod16u_getrem
+  movff R2+1,INDF0
+  movlw -1
+  movff R2,PLUSW0
+  return  0
+;<?div16u>
+;<->
+
+
+
+; 16 bit signed division
+; TODS / R0 -> TODS      (remainder in PRODH:PRODL)
+; Register usage:
+; R3  and R3+1 = temporary storage for signs
+;<+div16>
+;<?div16u>
+;<?neg16>
+div16
+	; compute sign of result
+	movf	INDF0,W,0
+	xorwf	R0+1,W,0
+	movwf	PRODH,0	; PRODH<7> = sign of result
+
+	; compute abs value of operands
+	bcf	PRODH,6,0 ; pre-clear rem sign
+	btfss	INDF0,7,0
+	bra	div16_2
+	ICALL	neg16   ; negate 1st operand
+	bsf	PRODH,6,0 ; PRODH<6> is remainder sign
+div16_2
+
+	clrf	WREG,0
+	btfss	R0+1,7,0
+	bra	div16_1
+	negf 	R0,0 	; negate 2nd operand
+	comf	R0+1,F,0
+	addwfc  R0+1,F,0
+div16_1
+	ICALL	div16u
+	; negate result, if needed
+	btfsc	PRODH,7,0
+	IBRA	neg16
+	; note : remainder is always positive
+	; the modulo routine must change the sign if needed
+	; by consulting PRODH<6>
+div16_3
+	return 0
+;<->
+
+;<+ipdiv16>
+ipdiv16
+	; compute sign of result
+	movlw   1
+	movf	PLUSW1,W,0
+	xorwf	R0+1,W,0
+	movwf	PRODH,0	; PRODH<7> = sign of result
+
+	; compute abs value of operands
+	bcf	PRODH,6,0 ; pre-clear remainder sign
+	movlw   1
+	btfss	PLUSW1,7,0
+	bra	ipdiv16_2
+	ICALL	ipneg16   ; negate 1st operand
+	bsf	PRODH,6,0 ; PRODH<6> is remainder sign (same as 1st op)
+ipdiv16_2
+	clrf	WREG,0 
+	btfss	R0+1,7,0
+	bra	ipdiv16_1
+	negf 	R0,0 	; negate 2nd operand
+	comf	R0+1,F,0
+	addwfc  R0+1,F,0
+ipdiv16_1
+	ICALL	ipdiv16u
+	; negate result, if needed
+	btfsc	PRODH,7,0
+	ICALL	ipneg16
+	; note : remainder is always positive
+	; the modulo routine must change the sign if needed
+	; by consulting PRODH<6>
+ipdiv16_3
+	return 0
+;<?ipneg16>
+;<?ipdiv16u>
+;<->
+
+
+;<+ipmod16>
+ipmod16
+  call ipdiv16
+ ; remainder is in R2, but its sign 
+ ; is not ajusted yet
+  btfss	PRODH,6,0
+  goto 	ipmod16u_getrem ; part of ipmod16u
+  negf 	R2,0 	; negate remainder
+  comf	R2+1,F,0
+  clrf	WREG,0
+  addwfc  R2+1,F,0
+  goto	ipmod16u_getrem
+;<?ipdiv16>
+;<?ipmod16u>
+;<->
+
+; 16 bit signed modulo
+; TODS % R0 -> TODS
+; register usage : see div16
+;<+mod16>
+mod16
+  call div16
+ ; remainder is in R2, but its sign 
+ ; might need to be changer
+  btfss	PRODH,6,0
+  goto 	mod16u_getrem ; part of mod16u
+  negf 	R2,0 	; negate remainder
+  comf	R2+1,F,0
+  clrf	WREG,0
+  addwfc  R2+1,F,0
+  goto	mod16u_getrem
+  return 0
+;<?mod16u>
+;<?div16>
+;<->
+
+; ======================= 32 bit ========================
+; TOS / R0  -> TOS (32 bit - unsigned )
+; register usage
+; TOS (dividend and result)
+; R0-R1 (divisor)
+; R2-R3 (remainder)
+; PRODL (counter)
+; W used
+
+;<+div32u>
+div32u
+	clrf R2+3, 0
+	clrf R2+2, 0
+	clrf R2+1, 0
+	clrf R2, 0
+
+	movlw 32
+	movwf PRODL, 0
+
+	bcf STATUS, 0, 0 ; Clear Carry
+
+div32u_0
+	movlw -3
+	rlcf PLUSW0, F, 0
+	movlw -2
+	rlcf PLUSW0, F, 0
+	movlw -1
+	rlcf PLUSW0, F, 0
+	rlcf INDF0, F, 0
+
+	rlcf R2, 1, 0
+	rlcf R2+1, 1, 0
+	rlcf R2+2, 1, 0
+	rlcf R2+3, 1, 0
+
+	movf R0,W, 0
+	subwf R2, W, 0
+	movf R0+1, W, 0
+	subwfb R2+1, W, 0
+	movf R0+2, W, 0
+	subwfb R2+2, W, 0
+	movf R0+3, W, 0
+	subwfb R2+3, W, 0
+	bnc div32u_1
+
+	movf R0, 0, 0
+	subwf R2, F, 0
+	movf R0+1, 0, 0
+	subwfb R2+1, F, 0
+	movf R0+2, 0, 0
+	subwfb R2+2, F, 0
+	movf R0+3, 0, 0
+	subwfb R2+3, F, 0
+
+	movlw -3
+	incf PLUSW0,F,0
+div32u_1
+	decfsz PRODL,F,0
+	bra div32u_0
+
+	return 0
+;<->
+; *(FSR1) / R0  -> *(FSR1) (32 bit - unsigned )
+; register usage
+; TOS (dividend and result)
+; R0-R1 (divisor)
+; R2-R3 (remainder)
+; PRODL (counter)
+; W used
+
+;<+ipdiv32u>
+ipdiv32u
+	clrf R2+3, 0
+	clrf R2+2, 0
+	clrf R2+1, 0
+	clrf R2, 0
+
+	movlw 32
+	movwf PRODL, 0
+
+	bcf STATUS, 0, 0 ; Clear Carry
+
+ipdiv32u_0
+	rlcf INDF1, F, 0
+	movlw 1
+	rlcf PLUSW1, F, 0
+	movlw 2
+	rlcf PLUSW1, F, 0
+	movlw 3
+	rlcf PLUSW1, F, 0
+
+	rlcf R2, 1, 0
+	rlcf R2+1, 1, 0
+	rlcf R2+2, 1, 0
+	rlcf R2+3, 1, 0
+
+	movf R0,W, 0
+	subwf R2, W, 0
+	movf R0+1, W, 0
+	subwfb R2+1, W, 0
+	movf R0+2, W, 0
+	subwfb R2+2, W, 0
+	movf R0+3, W, 0
+	subwfb R2+3, W, 0
+	bnc ipdiv32u_1
+
+	movf R0, 0, 0
+	subwf R2, F, 0
+	movf R0+1, 0, 0
+	subwfb R2+1, F, 0
+	movf R0+2, 0, 0
+	subwfb R2+2, F, 0
+	movf R0+3, 0, 0
+	subwfb R2+3, F, 0
+
+	incf INDF1,F,0
+ipdiv32u_1
+	decfsz PRODL,F,0
+	bra ipdiv32u_0
+
+	return 0
+;<->
+
+; TOS / R0-R1 -> TOS (32 bit, signed)
+; register usage : same as div32u
+; PRODH<7> is used for result sign storage
+; PRODH<6> is used for remainder sign storage
+
+;<+div32>
+div32
+	; compute sign of result
+	movf	INDF0,W,0
+	xorwf	R0+3,W,0
+	movwf	PRODH,0	; PRODH<7> = sign of result
+
+	; compute abs value of operands
+	bcf	PRODH,6,0 ; pre-clear rem sign
+	btfss	INDF0,7,0
+	bra	div32_2
+	ICALL	neg32   ; negate 1st operand
+	bsf	PRODH,6,0 ; PRODH<6> is remainder sign
+div32_2
+	clrf	WREG,0
+	btfss	R0+3,7,0
+	bra	div32_1
+	negf 	R0,0 	; negate 2nd operand
+	comf	R0+1,F,0
+	comf	R0+2,F,0
+	comf	R0+3,F,0
+	addwfc  R0+1,F,0
+	addwfc  R0+2,F,0
+	addwfc  R0+3,F,0
+div32_1
+	ICALL	div32u
+	; negate result, if needed
+	btfsc	PRODH,7,0
+	ICALL	neg32
+	; note remainder is alway positive
+	; (correct sign will be computed by modulo function)
+div32_3
+	return 0
+;<?div32u>
+;<?neg32>
+;<->
+
+; *(FSR1) / R0-R1 -> *(FSR1) (32 bit, signed)
+; register usage : same as ipdiv32u
+; PRODH<7> is used for result sign storage
+; PRODH<6> is used for remainder sign storage
+
+;<+ipdiv32>
+ipdiv32
+	; compute sign of result
+	movlw 3
+	movf	PLUSW1,W,0
+	xorwf	R0+3,W,0
+	movwf	PRODH,0	; PRODH<7> = sign of result
+
+	; compute abs value of operands
+	bcf	PRODH,6,0 ; pre-clear rem sign
+	movlw   3
+	btfss	PLUSW1,7,0
+	bra	ipdiv32_2
+	ICALL	ipneg32   ; negate 1st operand
+	bsf	PRODH,6,0 ; PRODH<6> is remainder sign
+ipdiv32_2
+
+	clrf	WREG,0
+	btfss	R0+3,7,0
+	bra	ipdiv32_1
+	negf 	R0,0 	; negate 2nd operand
+	comf	R0+1,F,0
+	comf	R0+2,F,0
+	comf	R0+3,F,0
+	addwfc  R0+1,F,0
+	addwfc  R0+2,F,0
+	addwfc  R0+3,F,0
+ipdiv32_1
+	ICALL	ipdiv32u
+	; negate result, if needed
+	btfsc	PRODH,7,0
+	ICALL	ipneg32
+	; note remainder is alway positive
+	; (correct sign will be computed by modulo function)
+ipdiv32_3
+	return 0
+;<?ipdiv32u>
+;<?ipneg32>
+;<->
+
+
+;
+; 32 bit unsigned modulo
+; TODS % R0 -> TODS
+; register usage : see div32u
+;<+ipmod32u>
+ipmod32u
+  call ipdiv32u
+ipmod32u_getrem
+  ; move remainder to *FSR1
+  movff R2,INDF1
+  movlw 1
+  movff R2+1,PLUSW1
+  movlw 2
+  movff R2+2,PLUSW1
+  movlw 3
+  movff R2+3,PLUSW1
+  return  0
+;<?ipdiv32u>
+;<->
+
+;<+mod32u>
+mod32u
+  call div32u
+mod32u_getrem
+  ; move remainder to stack
+  movlw -3
+  movff R2,PLUSW0
+  movlw -2
+  movff R2+1,PLUSW0
+  movlw -1
+  movff R2+2,PLUSW0
+  movff R2+3,INDF0
+  return  0
+;<?div32u>
+;<->
+;
+; 32 bit signed modulo
+; TODS % R0 -> TODS
+; register usage : see ipdiv32
+;<+ipmod32>
+ipmod32
+  call ipdiv32
+ ; remainder is in R2, but its sign 
+ ; is not ajusted yet
+  btfss	PRODH,6,0
+  bra 	ipmod32u_getrem
+  negf 	R2,0 	; negate remainder
+  comf	R2+1,F,0
+  comf	R2+2,F,0
+  comf	R2+3,F,0
+  clrf	WREG,0
+  addwfc  R2+1,F,0
+  addwfc  R2+2,F,0
+  addwfc  R2+3,F,0
+  goto	ipmod32u_getrem
+;<?ipdiv32>
+;<?ipmod32u>
+;<->
+
+;<+mod32>
+mod32
+  call div32
+ ; remainder is in R2, but its sign 
+ ; is not ajusted yet
+  btfss	PRODH,6,0
+  bra 	mod32u_getrem
+  negf 	R2,0 	; negate remainder
+  comf	R2+1,F,0
+  comf	R2+2,F,0
+  comf	R2+3,F,0
+  clrf	WREG,0
+  addwfc  R2+1,F,0
+  addwfc  R2+2,F,0
+  addwfc  R2+3,F,0
+  goto	mod32u_getrem
+;<?div32>
+;<?mod32u>
+;<->
+
+; ----------------------- Products -------------------
+
+
+; 8 x 8 product (upper 8 bits of result are discarded)
+; TODS * W -> TODS
+; (this code will be certainly inlined)
+;<+ipmul8>
+ipmul8
+  mulwf	INDF1,0
+  movff	PRODL,INDF1
+  return 0
+;<->
+
+;<+mul8>
+mul8
+  mulwf	INDF0,0
+  movff	PRODL,INDF0
+  return 0
+;<->
+
+;
+; 16 bit   product
+; TODS * R0H-R0L -> TODS
+; (upper 16 bits of result are ignored)
+; Register usage:
+; W destroyed
+; R0 not destroyed
+; R1H  : temporary result H	
+
+;<+mul16>
+mul16
+	movf R0,W,0
+	mulwf POSTDEC0
+	movff PRODL,R1+1	; arg1H * arg2L -> resH
+	
+	movf R0+1,W,0
+	mulwf INDF0
+	movf PRODL,W,0 ; arg1L * arg2H -> W
+	
+	addwf R1+1,F,0 ; resH + arg1H * arg2L  -> resH
+	movf R0,W,0	
+	mulwf POSTDEC0 ; arg1L * arg2L (stack is now empty)
+	movf R1+1,W,0
+	addwf PRODH,W,0 ; prodH + resH -> W
+	movff PRODL,PREINC0
+	movwf PREINC0
+	return 0
+;<->
+; 16 bit product *FSR1 + R0 -> *FSR1
+; FSR1 unchanged
+; W altered
+; no temporary used
+;<+ipmul16>
+ipmul16
+	movff POSTINC1,PREINC0 ; save AL
+	movf INDF1,W,0 ; AH
+	mulwf R0 ; AH.BL
+	movff PRODL,INDF1 ; low AH.BL
+	movf INDF0,W,0 ; AL
+	mulwf R0+1 ; AL.BH
+	movf PRODL,W,0 
+	addwf POSTDEC1,F,0 ; low AH.BL + low AL.BH
+	movf POSTDEC0,W,0 ; AL (stack empty)
+	mulwf R0 ; AL.BL
+	movff PRODL,POSTINC1 ; low AL.BL
+	movf PRODH,W,0
+	addwf POSTDEC1,F,0 ;  low AH.BL + low AL.BH + hi AL.BL
+	return 0	
+;<->
+
+;<+ipmul32>
+ipmul32
+	; move data from *SFR1 to work area
+	movff POSTINC1,R2+0 ; low byte
+	movff POSTINC1,R2+1
+	movff POSTINC1,R2+2
+	movff INDF1,R2+3 ; hi byte 
+	call zmul32
+	; get result back
+	movff R4+3,POSTDEC1 ; hi byte
+	movff R4+2,POSTDEC1
+	movff R4+1,POSTDEC1
+	movff R4,INDF1 ; low byte
+
+	return 0 
+;<?zmul32>
+;<-> 
+
+;<+mul32>
+mul32
+	; move data from stack
+	movff POSTDEC0,R2+3 ; hi byte 
+	movff POSTDEC0,R2+2
+	movff POSTDEC0,R2+1
+	movff POSTDEC0,R2+0 ; low byte
+	call zmul32
+	; push result on to stack
+	movff R4,PREINC0
+	movff R4+1,PREINC0
+	movff R4+2,PREINC0
+	movff R4+3,PREINC0
+
+	return 0 
+;<?zmul32>
+;<->
+
+; R2/R3 * R0/R1 -> R4/R5
+;<+zmul32>
+zmul32
+    movf R2+0, 0, 0
+    mulwf R0, 0
+    ;  low byte of both operands, so result adds into the low order
+    ;  result bytes
+    movff PRODL, R4
+    movff PRODH, R4 + 1
+    ;  W still contains AARGB3
+    mulwf R0 + 1, 0
+    ;  BARGB3[1], so result adds into AARGB7[1,2]
+    movf PRODL, 0, 0
+    addwf R4 + 1, 1, 0
+    movlw 0
+    addwfc PRODH, 0, 0
+    movwf R4 + 2, 0
+    ;  reload AARGB3 to continue
+    movf R2+0, 0, 0
+    mulwf R0 + 2, 0
+    ;  BARGB3[2], so result adds into AARGB7[2,3]
+    movf PRODL, 0, 0
+    addwf R4 + 2, 1, 0
+    movlw 0
+    addwfc PRODH, 0, 0
+    movwf R4 + 3, 0
+    ;  reload AARGB3 to continue
+    movf R2+0, 0, 0
+    mulwf R0 + 3, 0
+    ;  BARGB3[3], so result adds into AARGB7[3]. 
+    ;  we don't care about result bytes above AARGB7[3], ignore prodh here.
+    movf PRODL, 0, 0
+    addwf R4 + 3, 1, 0
+    ;  that's the end of all terms involving AARGB3[0].
+    ;  load AARGB3[1] to continue
+    movf R2+0 + 1, 0, 0
+    mulwf R0, 0
+    ;  AARGB3[1], so result adds into AARGB7[1,2]
+    movf PRODL, 0, 0
+    addwf R4 + 1, 1, 0
+    movf PRODH, 0, 0
+    addwfc R4 + 2, 1, 0
+    movlw 0
+    addwfc R4 + 3, 1, 0
+    ;  reload AARGB3[1] to continue
+    movf R2+0 + 1, 0, 0
+    mulwf R0 + 1, 0
+    ;  AARGB3[1] and BARGB3[1], so result adds into AARGB7[2,3]
+    movf PRODL, 0, 0
+    addwf R4 + 2, 1, 0
+    movf PRODH, 0, 0
+    addwfc R4 + 3, 1, 0
+    ;  reload AARGB3[1] to continue
+    movf R2+0 + 1, 0, 0
+    mulwf R0 + 2, 0
+    ;  AARGB3[1] and BARGB3[2], so result adds into AARGB7[3]
+    ;  we don't care about result bytes above AARGB7[3], ignore prodh here.
+    movf PRODL, 0, 0
+    addwf R4 + 3, 1, 0
+    ;  all bytes of the term from the product of AARGB3[1] and BARGB3[3] are
+    ;  above our 32-bit result, don't even need to bother calculating
+    ;  that term.
+    ;  load AARGB3[2] to continue
+    movf R2+0 + 2, 0, 0
+    mulwf R0, 0
+    ;  AARGB3[2] and BARGB3[0], so result adds into AARGB7[2,3]
+    movf PRODL, 0, 0
+    addwf R4 + 2, 1, 0
+    movf PRODH, 0, 0
+    addwfc R4 + 3, 1, 0
+    ;  reload AARGB3[2] to continue
+    movf R2+0 + 2, 0, 0
+    mulwf R0 + 1, 0
+    ;  AARGB3[2] and BARGB3[1], so result adds into AARGB7[3]
+    ;  we don't care about result bytes above AARGB7[3], ignore prodh here.
+    movf PRODL, 0, 0
+    addwf R4 + 3, 1, 0
+    ;  all bytes of the termsfrom the products of AARGB3[2] and BARGB3[2,3] are
+    ;  above our 32-bit result, don't even need to bother calculating
+    ;  those terms.
+    ;  load AARGB3[3] to continue
+    movf R2 + 3, 0, 0
+    mulwf R0, 0
+    ;  AARGB3[3] and BARGB3[0], so result adds into AARGB7[3]
+    movf PRODL, 0, 0
+    addwf R4 + 3, 1, 0
+    return 0 ;
+;<->
+
+; =====================================================
+; Integer Cast routines
+; =====================================================
+
+
+; signed integer cast from 8 bit to 16 bit 
+; TOS 8 -> TOS 16
+; register usage:
+; W is corrupted
+;<+cast8_16>
+cast8_16
+	movf INDF0,W,0
+	clrf PREINC0,0
+	btfsc WREG,7,0
+	decf INDF0,F,0
+	return 0
+;<->
+
+; signed integer cast from 8 bit to 32 bit 
+; TOS 8 -> TOS 32
+; register usage:
+; none
+;<+cast8_32>
+cast8_32
+	btfsc INDF0,7,0
+	bra	cast8_32_neg
+	clrf PREINC0,0
+	clrf PREINC0,0
+	clrf PREINC0,0
+	return 0
+cast8_32_neg
+	setf PREINC0,0
+	setf PREINC0,0
+	setf PREINC0,0
+	return 0
+;<->
+; signed integer cast from 16 bit to 32 bit 
+; TOS 16 -> TOS 32
+; register usage:
+; W is corrupted
+;<+cast16_32>
+cast16_32
+	btfsc INDF0,7,0
+	bra	cast16_32_neg
+	clrf PREINC0,0
+	clrf PREINC0,0
+	return 0
+cast16_32_neg
+	setf PREINC0,0
+	setf PREINC0,0
+	return 0
+;<->
+
+; =====================================================
+; logical  routines
+; =====================================================
+
+; -----------------------------------------
+; logical not, 8 bit
+; tested OK
+;<+lnot8>
+lnot8
+	tstfsz INDF0,0
+	bra	lnot8_nz
+	incf INDF0,F,0
+	return 0
+lnot8_nz
+	clrf INDF0,0
+	return 0
+;<->
+; -----------------------------------------
+; logical not, 16 bit
+; W is destroyed
+; leave 1 on the stack if TOS=0, else 0
+;<+lnot16>
+lnot16
+	movf POSTDEC0,W,0
+	iorwf INDF0,F,0
+	bz lnot16_1
+	clrf INDF0,0
+	return 0
+lnot16_1
+	incf INDF0,F,0
+	return 0
+;<->
+; -----------------------------------------
+; logical not, 32 bit
+; 1(8) -> TOS when TOS(32) == 0, else 0(8) -> TOS
+;<+lnot32>
+lnot32
+	movf POSTDEC0,W,0
+	iorwf POSTDEC0,W,0
+	iorwf POSTDEC0,W,0
+	iorwf INDF0,F,0
+	bz lnot32_1
+	clrf INDF0,0
+	return 0
+lnot32_1
+	incf INDF0,F,0
+	return 0
+;<->
+
+
+; =====================================================
+; increment/decrement  routines
+; =====================================================
+
+; -----------------------------------------
+; 16 bit increment of data 
+; pointed to by FSR1
+; W corrupted, FSR1 unchanged
+; a retester -  peut etre inline
+;<+inc16indirect>
+inc16indirect
+	incf POSTINC1,F,0
+	movlw 0
+	addwfc POSTDEC1,F,0
+	return 0
+;<-> 
+; -----------------------------------------
+; 32 bit increment of data 
+; pointed to by FSR1
+; W corrupted, FSR1 corrupted
+; TODO retester
+;<+inc32indirect>
+inc32indirect
+	incf POSTINC1,F,0
+	movlw 0
+	addwfc POSTINC1,F,0
+	addwfc POSTINC1,F,0
+	addwfc POSTINC1,F,0
+	return 0
+;<-> 
+
+; -----------------------------------------
+; 16 bit decrement of data 
+; pointed to by FSR1
+; W is altered , FSR1 unchanged
+; tested OK
+;<+dec16indirect>
+dec16indirect
+	decf POSTINC1,F,0
+	movlw 0
+	subwfb POSTDEC1,F,0
+	return 0
+;<-> 
+
+; -----------------------------------------
+; 32 bit decrement of data 
+; pointed to by FSR1
+; W is altered , FSR1 altered
+; tested OK
+;<+dec32indirect>
+dec32indirect
+	decf POSTINC1,F,0
+	movlw 0
+	subwfb POSTINC1,F,0
+	subwfb POSTINC1,F,0
+	subwfb POSTINC1,F,0
+	return 0
+;<-> 
+
+; -----------------------------------------
+; 16 bit increment of data 
+; pointed to by FSR1 (scale factor : 2)
+; W is altered
+; tested OK
+;<+inc16x2indirect>
+inc16x2indirect
+	movlw 2
+	addwf INDF1,F,0
+	bnc inc16x2indirect_nocarry
+	incf PREINC1,F,0
+	movf POSTDEC1,F,0 ; restore ptr to low byte
+inc16x2indirect_nocarry	
+	return 0
+;<-> 
+; -----------------------------------------
+; 16 bit decrement of data  
+; pointed to by FSR1 (scale factor : 2)
+; W is altered
+; tested OK
+;<+dec16x2indirect>
+dec16x2indirect
+	movlw 2
+	subwf INDF1,F,0
+	bc dec16x2indirect_noborrow
+	decf PREINC1,F,0
+	movf POSTDEC1,F,0 
+dec16x2indirect_noborrow
+	return 0
+;<->
+
+; =====================================================
+; flow alteration  routines
+; =====================================================
+; -----------------------------------------
+; indirect jump to subroutine whose address
+; is on data stack - this addr is removed from stack
+; W is altered
+; not tested
+;<+indirect_call>
+indirect_call
+; disable IT
+	movlw B'00111111'
+	andwf INTCON,F,0
+;----------------
+	push  ; make room in the stack
+	movf POSTDEC0,W,0
+	movwf TOSH,0
+	movf POSTDEC0,W,0
+	movwf TOSL,0	
+; assume TOSU is constant (16 bit address space)
+; enable IT
+	movf IT_MASK,W,0
+	iorwf INTCON,F,0
+; --------------	
+	return 0 ; jump to stacked addr
+;<->
+; =====================================================
+; Comparison  routines
+; =====================================================
+; comparison routines - seems simple, but signed comparisons are very tricky
+; All routines use R1L and R1H as temporaries
+; on entry of  a <op> b, a is on the stack, b is in W
+;
+; 2 helper functions
+; ------------------
+;<+Is0>
+Is0
+  clrf PREINC0,0
+  return 0;
+;<->
+
+;<+Is1>
+Is1
+  clrf PREINC0,0
+  incf INDF0,F,0
+  return 0
+;<->
+
+; 8 bit unsigned comparisons
+; -----------------------------------------------------------
+; a == b (could be inlined, same code for signed or unsigned)
+;<+UEQ8>	
+UEQ8
+	xorwf 	INDF0,F,0
+	movlw 	1
+	btfss 	STATUS,Z,0
+	movwf 	INDF0,0
+	btg 	INDF0,0,0
+	return 	0
+;<->
+; -----------------------------------------------------------	
+; a != b (could be inlined, same code for signed or unsigned)
+;<+UNE8>	
+UNE8
+	xorwf 	INDF0,F,0
+	movlw 	1
+	btfss 	STATUS,Z,0
+	movwf 	INDF0,0
+	return 	0
+;<->
+; -----------------------------------------------------------
+; a <= b
+;<+LE8>
+LE8
+	btg 	INDF0,7,0
+	btg 	WREG,7,0
+ULE8
+	cpfsgt 	INDF0,0
+	bra	ULE8_1
+	clrf	INDF0,0
+	return 	0
+ULE8_1
+	clrf	INDF0,0
+	btg 	INDF0,0,0
+	return	0	
+;<->
+;<+ULE8>
+;<?LE8>
+;<->
+; -----------------------------------------------------------
+; a >= b
+;<+GE8>
+GE8
+	btg 	INDF0,7,0
+	btg 	WREG,7,0
+UGE8
+	subwf 	INDF0,F,0
+	clrf 	INDF0,0
+	btfsc 	STATUS,C,0
+	btg 	INDF0,0,0
+	return 	0
+;<->	
+;<+UGE8>
+;<?GE8>
+;<->
+; -----------------------------------------------------------
+; a > b
+;<+GT8>
+GT8
+	btg 	INDF0,7,0
+	btg 	WREG,7,0
+UGT8
+	cpfsgt 	INDF0,0
+	bra	UGT8_1
+	clrf	INDF0,0
+	btg 	INDF0,0,0
+	return 	0
+UGT8_1
+	clrf	INDF0,0
+	return	0	
+;<->
+;<+UGT8>
+;<?GT8>
+;<->
+; -----------------------------------------------------------
+; a < b
+;<+LT8>
+LT8
+	btg 	INDF0,7,0
+	btg 	WREG,7,0
+ULT8
+	subwf 	INDF0,F,0
+	clrf 	INDF0,0
+	btfss 	STATUS,C,0
+	btg 	INDF0,0,0
+	return 	0
+;<->
+;<+ULT8>
+;<?LT8>
+;<->
+; -----------------------------------------------------------
+;
+;   compare with zero, source is always in W
+;
+;<+LE8ZERO>
+LE8ZERO	; W <= 0
+	clrf	PREINC0,0
+	incf	INDF0,F,0
+	btfsc	WREG,7,0
+	return	0
+	tstfsz	WREG,0
+	decf	INDF0,F,0
+	return	0
+;<->
+;<+GT8ZERO>
+GT8ZERO ; W > 0
+	clrf	PREINC0,0
+	btfsc	WREG,7,0
+	return	0
+	tstfsz	WREG,0
+	incf	INDF0,F,0
+	return	0
+;<->
+
+; -----------------------------------------------------------
+;
+; 16 bit comparisons
+; -----------------------------------------------------------
+;<+UEQ16>
+UEQ16   ; a == b
+	movf  	POSTDEC0, W
+	xorwf	R0H,F,0
+	movf	INDF0, W
+	clrf	INDF0,0
+	xorwf	R0L,W,0
+	iorwf	R0H,W,0
+	btfsc	STATUS,Z,0
+	incf	INDF0,F,0
+	return 	0	
+;<->
+; -----------------------------------------------------------
+;<+UNE16>
+UNE16   ; a != b
+	movf  	POSTDEC0, W
+	xorwf	R0H,F,0
+	movf	INDF0, W
+	clrf	INDF0,0
+	xorwf	R0L,W,0
+	iorwf	R0H,W,0
+	btfss	STATUS,Z,0
+	incf	INDF0,F,0
+	return 	0	
+;<->
+; -----------------------------------------------------------
+;<+LE16>
+LE16    ; a <= b  , signed
+	btg	INDF0,7,0
+	btg	R0H,7,0
+ULE16   ; a <= b  , unsigned
+	movff  POSTDEC0, R1H ; save a
+	movff  POSTDEC0, R1L
+	; a == R1, b == R0
+	movf   R0H,W,0 ; W = bH
+	cpfsgt R1H,0  ; (aH > bH) ?
+	bra    ULE16_2  ; no : aH <= bH
+	; aH > bH => a > b => false
+	IBRA Is0
+	; test if aH == bH
+ULE16_2
+	cpfseq R1H,0
+	IBRA Is1 ; aH < bH => a < b => true
+	; here, aH == bH => need to test low part
+	; process low part
+	movf   R0L,W,0 ; W = bL
+	cpfsgt R1L,0  ; (aL > bL) ?
+	IBRA Is1  ; no : aL <= bL
+	; aL > bL => a > b => false
+	IBRA Is0
+;<?Is0>
+;<?Is1>
+;<->
+;<+ULE16>
+;<?LE16>
+;<->
+; -----------------------------------------------------------
+;<+GE16>
+GE16    ; a >= b  , signed
+	btg	INDF0,7,0
+	btg	R0H,7,0
+UGE16   ; a >= b , unsigned
+	movff  POSTDEC0, R1H ; save a
+	movff  POSTDEC0, R1L
+	; a == R1, b == R0
+	movf   R0H,W,0 ; W = bH
+	cpfslt R1H,0  ; (aH < bH) ?
+	bra    UGE16_2  ; no : aH >= bH
+	; aH < bH => a < b => false
+	IBRA   Is0
+	; test if aH == bH
+UGE16_2
+	cpfseq R1H,0
+	IBRA   Is1 ; aH > bH => a > b => true
+	; here, aH == bH => need to test low part
+	; process low part
+	movf   R0L,W,0 ; W = bL
+	cpfslt R1L,0  ; (aL < bL) ?
+	IBRA   Is1  ; no : aL >= bL
+	; aL < bL => a > b => false
+	IBRA   Is0
+;<?Is0>
+;<?Is1>
+;<->
+;<+UGE16>
+;<?GE16>
+;<->
+; -----------------------------------------------------------
+;<+LT16>
+LT16    ; a < b  , signed
+	btg	INDF0,7,0
+	btg	R0H,7,0
+ULT16   ; a < b, unsigned version
+	movff  POSTDEC0, R1H ; save a
+	movff  POSTDEC0, R1L
+	; a == R1, b == R0
+	movf   R0H,W,0 ; W = bH
+	cpfslt R1H,0  ; (aH < bH) ?
+	bra    ULT16_eq  ; no : aH >= bH
+	IBRA   Is1  ; aH < bH => a < b => true
+	; test if aH == bH
+ULT16_eq
+	cpfseq R1H,0 ; aH == bH ?
+	IBRA   Is0 ; aH > bH => a > b => false
+	; here, aH == bH => need to test low part
+	movf   R0L,W,0 ; W = bL
+	cpfslt R1L,0  ; (aL < bL) ?
+	IBRA   Is0  ; no : aL >= bL
+	; aL < bL => a < b => false
+	IBRA   Is1
+;<?Is0>
+;<?Is1>
+;<->
+;<+ULT16>
+;<?LT16>
+;<->
+; -----------------------------------------------------------
+;<+GT16>
+GT16    ; a > b  , signed
+	btg	INDF0,7,0
+	btg	R0H,7,0
+UGT16   ; a > b, unsigned version
+	movff  POSTDEC0, R1H ; save a
+	movff  POSTDEC0, R1L
+	; a == R1, b == R0
+
+	movf   R0H,W,0 ; W = bH
+	cpfsgt R1H,0  ; (aH > bH) ?
+	bra    UGT16_eq  ; no : aH <= bH
+	; aH > bH => a > b => true
+	IBRA   Is1
+	; test if aH == bH
+UGT16_eq
+	cpfseq R1H,0
+	IBRA   Is0 ; aH < bH => a < b => false
+	; here, aH == bH => need to test low part
+	; process low part
+	movf   R0L,W,0 ; W = bL
+	cpfsgt R1L,0  ; (aL > bL) ?
+	IBRA   Is0  ; no : aL <= bL
+	IBRA   Is1 ; aL > bL => a > b => true
+;<?Is0>
+;<?Is1>
+;<->
+;<+UGT16>
+;<?GT16>
+;<->
+
+; -----------------------------------------------------------
+;
+;   compare with zero, source is always in R0
+;
+;<+EQ16ZERO>
+;<?LE16ZERO>
+;<->
+;<+LE16ZERO>
+LE16ZERO ; R0 <= 0
+	btfsc	R0+1,7,0
+	IBRA	Is1	
+EQ16ZERO ; R0 == 0
+	clrf	PREINC0,0
+	movf	R0+0,W,0
+	iorwf	R0+1,W,0
+	btfsc	STATUS,Z,0
+	incf	INDF0,F,0
+	return	0
+;<?Is1>      
+;<->
+
+;<+NE16ZERO>
+;<?GT16ZERO>
+;<->
+;<+GT16ZERO>
+GT16ZERO ; R0 > 0
+	btfsc	R0+1,7,0
+	IBRA	Is0	
+NE16ZERO ; R0 != 0
+	clrf	PREINC0,0
+	movf	R0+0,W,0
+	iorwf	R0+1,W,0
+	btfss	STATUS,Z,0
+	incf	INDF0,F,0
+	return	0
+;<?Is0>
+;<->
+
+
+; -----------------------------------------------------------
+; 32 bit comparison routines
+; -----------------------------------------------------------
+;<+UEQ32>
+UEQ32   ; a == b, unsigned AND signed version
+	movf  	POSTDEC0, W
+	xorwf	R0+3,F,0
+	movf  	POSTDEC0, W
+	xorwf	R0+2,W,0
+	iorwf	R0+3,F,0
+	movf  	POSTDEC0, W
+	xorwf	R0+1,W,0
+	iorwf	R0+3,F,0
+	movf	INDF0, W
+	clrf	INDF0,0
+	xorwf	R0+0,W,0
+	iorwf	R0+3,W,0
+	btfsc	STATUS,Z,0
+	incf	INDF0,F,0
+	return 	0	
+;<->
+
+;<+UNE32>
+UNE32   ; a != b, unsigned AND signed version
+	movf  	POSTDEC0, W
+	xorwf	R0+3,F,0
+	movf  	POSTDEC0, W
+	xorwf	R0+2,W,0
+	iorwf	R0+3,F,0
+	movf  	POSTDEC0, W
+	xorwf	R0+1,W,0
+	iorwf	R0+3,F,0
+	movf	INDF0, W
+	clrf	INDF0,0
+	xorwf	R0+0,W,0
+	iorwf	R0+3,W,0
+	btfss	STATUS,Z,0
+	incf	INDF0,F,0
+	return 	0	
+;<->
+
+;<+LT32>
+LT32    ; a < b, signed version
+	btg	INDF0,7,0
+	btg	R0+3,7,0
+ULT32   ; a < b, unsigned   version
+	; a moved to R2/R3
+	movff  POSTDEC0, R2+3 ; save a
+	movff  POSTDEC0, R2+2
+	movff  POSTDEC0, R2+1 ; save a
+	movff  POSTDEC0, R2+0
+
+	movf	R2+3,W,0 ; b3
+	subwf  R0+3,W,0  ; a3-b3
+	bz     ULT32_digit2
+	bc     ULT32_one ; b>a
+	IBRA   Is0
+
+ULT32_digit2
+	movf	R2+2,W,0 ; b2
+	subwf  R0+2,W,0  ; a2-b2
+	bz     ULT32_digit1
+	bc     ULT32_one ; b>a
+	IBRA   Is0
+
+ULT32_digit1
+	movf	R2+1,W,0 ; b1
+	subwf  R0+1,W,0  ; a1-b1
+	bz     ULT32_digit0
+	bc     ULT32_one ; b>a
+	IBRA   Is0
+
+ULT32_digit0
+	movf	R2,W,0 ; b0
+	subwf  R0,W,0  ; a0-b0
+	bz     ULT32_zero
+	bc     ULT32_one ; b>a
+
+ULT32_zero 
+	IBRA   Is0
+
+ULT32_one 
+	IBRA Is1
+;<?Is0>
+;<?Is1>
+;<->
+;<+ULT32>
+;<?LT32>
+;<->
+
+;<+GT32>
+GT32    ; a > b, signed version
+	btg	INDF0,7,0
+	btg	R0+3,7,0
+UGT32   ; a > b, unsigned   version
+	; a moved to R2/R3
+	movff  POSTDEC0, R2+3 ; save a
+	movff  POSTDEC0, R2+2
+	movff  POSTDEC0, R2+1 ; save a
+	movff  POSTDEC0, R2+0
+
+	movf	R2+3,W,0 ; b3
+	subwf  R0+3,W,0  ; a3-b3
+	bz     UGT32_digit2
+	bc     UGT32_zero ; b>a
+	IBRA   Is1
+
+UGT32_digit2
+	movf	R2+2,W,0 ; b2
+	subwf  R0+2,W,0  ; a2-b2
+	bz     UGT32_digit1
+	bc     UGT32_zero ; b>a
+	IBRA   Is1
+
+UGT32_digit1
+	movf	R2+1,W,0 ; b1
+	subwf  R0+1,W,0  ; a1-b1
+	bz     UGT32_digit0
+	bc     UGT32_zero ; b>a
+	IBRA   Is1
+
+UGT32_digit0
+	movf	R2,W,0 ; b0
+	subwf  R0,W,0  ; a0-b0
+	bz     UGT32_zero
+	bc     UGT32_zero ; b>a
+
+UGT32_one
+	IBRA   Is1
+
+UGT32_zero 
+	IBRA Is0
+;<?Is0>
+;<?Is1>
+;<->
+;<+UGT32>
+;<?GT32>
+;<->
+
+;<+GE32>
+GE32    ; a >= b, signed version
+	btg	INDF0,7,0
+	btg	R0+3,7,0
+UGE32   ; a >= b, unsigned version
+	call ULT32
+	btg INDF0,0,0
+	return 0 ;
+;<?ULT32>
+;<->
+;<+UGE32>
+;<?GE32>
+;<->
+
+
+;<+LE32>
+LE32    ; a <= b, signed version
+	btg	INDF0,7,0
+	btg	R0+3,7,0
+ULE32   ; a <= b, unsigned version
+	call UGT32
+	btg INDF0,0,0
+	return 0 ;
+;<?UGT32>
+;<->
+;<+ULE32>
+;<?LE32>
+;<->
+
+; -----------------------------------------------------------
+;
+;   compare with zero, source is always in R0
+;
+;<+EQ32ZERO>
+;<?LE32ZERO>
+;<->
+;<+LE32ZERO>
+LE32ZERO ; R0 <= 0
+	btfsc	R0+3,7,0
+	IBRA	Is1	
+EQ32ZERO ; R0 == 0
+	clrf	PREINC0,0
+	movf	R0+0,W,0
+	iorwf	R0+1,W,0
+	iorwf	R0+2,W,0
+	iorwf	R0+3,W,0
+	btfsc	STATUS,Z,0
+	incf	INDF0,F,0
+	return	0
+;<?Is1>      
+;<->
+
+;<+NE32ZERO>
+;<?GT32ZERO>
+;<->
+;<+GT32ZERO>
+GT32ZERO ; R0 > 0
+	btfsc	R0+3,7,0
+	IBRA	Is0	
+NE32ZERO ; R0 != 0
+	clrf	PREINC0,0
+	movf	R0+0,W,0
+	iorwf	R0+1,W,0
+	iorwf	R0+2,W,0
+	iorwf	R0+3,W,0
+	btfss	STATUS,Z,0
+	incf	INDF0,F,0
+	return	0
+;<?Is0>
+;<->
+
+
+
+
+
+
+
+
+
+
+
+; =====================================================
+; Shift operators
+; =====================================================
+; Shift count is always int
+; W destroyed
+; -----------------------------------------------------------
+; 8 bit left shift
+; TOS << W -> TOS
+; TODO: rewrite branching scheme
+;<+lshift8u>
+lshift8u
+  addlw 0
+  bz  lshift8u_end
+lshift8u_1
+  bcf STATUS,0,0 ; clear carry
+  rlcf  INDF0,F,0
+  decf WREG,W,0
+  bnz  lshift8u_1
+lshift8u_end
+  return 0
+;<->
+
+; *FSR1 << W -> *FSR1
+;<+iplshift8u>
+iplshift8u
+  addlw 0
+  bz  iplshift8u_end
+iplshift8u_1
+  bcf STATUS,0,0 ; clear carry
+  rlcf  INDF1,F,0
+  decf WREG,W,0
+  bnz  iplshift8u_1
+iplshift8u_end
+  return 0
+;<->
+
+; -----------------------------------------------------------
+; unsigned 8 bit right shift
+; TOS >> W -> TOS
+;
+;<+rshift8u>
+rshift8u
+  addlw 0
+  bz  rshift8u_end
+rshift8u_1
+  bcf STATUS,0,0 ; clear carry
+  rrcf  INDF0,F,0
+  decf WREG,W,0
+  bnz  rshift8u_1
+rshift8u_end
+  return 0
+;<->
+
+; *FSR1 >> W -> *FSR1
+;<+iprshift8u>
+iprshift8u
+  addlw 0
+  bz  iprshift8u_end
+iprshift8u_1
+  bcf STATUS,0,0 ; clear carry
+  rrcf  INDF1,F,0
+  decf WREG,W,0
+  bnz  iprshift8u_1
+iprshift8u_end
+  return 0
+;<->
+
+; -----------------------------------------------------------
+; signed 8 bit right shift
+; TOS >> W -> TOS
+;
+;<+rshift8>
+rshift8
+  addlw 0
+  bz  rshift8_end
+  btfss INDF0,7,0
+  IBRA rshift8u_1 ; positive signed
+rshift8_1
+  bsf STATUS,0,0 ; negative, set carry
+  rrcf  INDF0,F,0
+  decf WREG,W,0
+  bnz  rshift8_1
+rshift8_end
+  return 0
+;<?rshift8u>
+;<->
+
+;<+iprshift8>
+iprshift8
+  addlw 0
+  bz  iprshift8_end
+  btfss INDF1,7,0
+  IBRA iprshift8u_1 ; positive signed
+iprshift8_1
+  bsf STATUS,0,0 ; negative, set carry
+  rrcf  INDF1,F,0
+  decf WREG,W,0
+  bnz  iprshift8_1
+iprshift8_end
+  return 0
+;<?iprshift8u>
+;<->
+
+
+; -----------------------------------------------------------
+; 16 bit left shift
+; TOS << W -> TOS
+;
+;<+lshift16u>
+lshift16u
+  movwf PRODL,0 ; save counter
+  sublw 7
+  bc lshift16u_0
+  addlw 8
+  bc lshift16u_8
+  movlw	0  
+  goto clr16
+lshift16u_8
+  movlw -1
+  movff PLUSW0,INDF0
+  clrf PLUSW0,0
+  movlw -8
+  addwf PRODL,F,0
+lshift16u_0
+  movlw -1 ; offset of TOSL
+lshift16u_1
+  decf PRODL,F,0
+  bn lshift16u_end
+
+  bcf STATUS,0,0 ; clear carry
+  rlcf  PLUSW0,F,0
+  rlcf  INDF0,F,0
+  bra  lshift16u_1
+lshift16u_end
+  return 0
+;<?clr16>  
+;<->
+
+; *FSR1 << W -> *FSR1 
+;<+iplshift16u>
+iplshift16u
+  movwf PRODL,0 ; save counter
+  sublw 7
+  bc iplshift16u_0
+  addlw 8
+  bc iplshift16u_8
+  clrf	POSTINC1,0
+  clrf	POSTDEC1,0
+  return 0
+iplshift16u_8
+  movlw 1
+  movff INDF1, PLUSW1
+  clrf  INDF1,0
+  movlw -8
+  addwf PRODL,F,0
+iplshift16u_0
+  movlw 1 ; offset of HI byte
+iplshift16u_1
+  decf PRODL,F,0
+  bn iplshift16u_end
+
+  bcf STATUS,0,0 ; clear carry
+  rlcf  INDF1,F,0
+  rlcf  PLUSW1,F,0
+  bra  iplshift16u_1
+iplshift16u_end
+  return 0
+;<->
+ 
+; 16 bit left shift by 8 bits
+; *FSR1 << 8 -> *FSR1
+;
+;<+iplshift16ub8>
+iplshift16ub8
+  movlw 1
+  movff INDF1, PLUSW1
+  clrf  INDF1,0
+  return 0
+;<->
+  
+; -----------------------------------------------------------
+; unsigned 16 bit right shift
+; TOS >> W -> TOS
+;
+;<+rshift16u>
+rshift16u
+; --TESTED--IT support
+  movwf PRODL,0 ; save counter
+  sublw 7
+  bc rshift16u_0
+  addlw 8
+  bc rshift16u_8
+  movlw	0  
+  goto clr16
+rshift16u_8
+  movff POSTDEC0,POSTINC0
+  clrf INDF0,0
+  movlw -8
+  addwf PRODL,F,0
+rshift16u_0
+  movlw -1 ; offset of TOSL
+rshift16u_1
+  decf PRODL,F,0
+  bn rshift16u_end
+
+  bcf STATUS,0,0 ; clear carry
+  rrcf  INDF0,F,0
+  rrcf  PLUSW0,F,0
+  bra  rshift16u_1
+rshift16u_end
+  return 0
+;<?clr16>  
+;<->
+
+;<+rshift16uxxx>
+rshift16u
+; --TESTED--IT support
+  movwf PRODL,0 ; save counter
+  movlw -1 ; offset of TOSL
+rshift16u_1
+  decf PRODL,F,0
+  bn rshift16u_end
+
+  bcf STATUS,0,0 ; clear carry
+  rrcf  INDF0,F,0
+  rrcf  PLUSW0,F,0
+  bra  rshift16u_1
+rshift16u_end
+  return 0
+;<->
+
+; *FSR1 >> W -> *FSR1
+;<+iprshift16u>
+iprshift16u
+; --TESTED--IT support
+  movwf PRODL,0 ; save counter
+  sublw 7
+  bc iprshift16u_0
+  addlw 8
+  bc iprshift16u_8
+  clrf	POSTINC1,0
+  clrf	POSTDEC1,0
+  return 0
+iprshift16u_8
+  movlw	1
+  movff PLUSW1,INDF1
+  clrf PLUSW1,0
+  movlw -8
+  addwf PRODL,F,0
+iprshift16u_0
+  movlw 1 ; offset of HI byte
+iprshift16u_1
+  decf PRODL,F,0
+  bn iprshift16u_end
+
+  bcf STATUS,0,0 ; clear carry
+  rrcf  PLUSW1,F,0
+  rrcf  INDF1,F,0
+  bra  iprshift16u_1
+iprshift16u_end
+  return 0
+  
+;<->
+
+; 16 bit right shift by 8 bits
+; *FSR1 >> 8 -> *FSR1
+;
+;<+iprshift16ub8>
+iprshift16ub8
+  movlw	1
+  movff PLUSW1,INDF1
+  clrf PLUSW1,0
+  return 0
+;<->
+  
+
+; -----------------------------------------------------------
+; signed 16 bit right shift
+; TOS >> W -> TOS
+;
+;<+rshift16>
+rshift16
+  btfss INDF0,7,0 ; test bit 15
+  IBRA  rshift16u ; shift like unsigned
+  movwf PRODL,0 ; save counter
+  sublw 7
+  bc rshift16_0
+  addlw 8
+  bc rshift16_8
+  setf	POSTDEC0,0
+  setf	POSTINC0,0
+  setf	INDF0,0
+  return 0
+rshift16_8
+  movff POSTDEC0,POSTINC0
+  setf INDF0,0
+  movlw -8
+  addwf PRODL,F,0
+rshift16_0
+  movlw -1 ; offset of TOSL
+rshift16_1
+  decf PRODL,F,0
+  bn rshift16_end
+
+  bsf STATUS,0,0 ; set carry
+  rrcf  INDF0,F,0
+  rrcf  PLUSW0,F,0
+  bra  rshift16_1
+rshift16_end
+  return 0
+;<?rshift16u>
+;<->
+
+; 16 bit signed right shift by more than 15 bits
+; destroys W
+;<+rshift16b16>
+rshift16b16
+  movlw	0
+  btfsc	INDF0,7,0  
+  movlw -1
+  movwf POSTDEC0,0
+  movwf POSTINC0,0
+  movwf INDF0,0
+  return 0
+;<->
+
+; 16 bit signed right shift by 8 bits
+;<+rshift16b8>
+rshift16b8
+  movff POSTDEC0, POSTINC0
+  btfsc INDF0,7,0
+  bra rshift16b8_1
+  clrf	INDF0,0
+  return
+rshift16b8_1
+  setf	INDF0,0
+  return  
+;<->
+
+
+;<+iprshift16>
+iprshift16
+  movwf PRODL,0 ; save counter
+  movf POSTINC1,F,0 ; go to HI byte
+  btfss POSTDEC1,7,0 ; test bit 15
+  IBRA  iprshift16u; shift like unsigned
+  sublw 7
+  bc iprshift16_0
+  addlw 8
+  bc iprshift16_8
+  setf	POSTINC1,0
+  setf	POSTDEC1,0
+  return 0
+iprshift16_8
+  movlw	1
+  movff PLUSW1,INDF1
+  setf PLUSW1,0
+  movlw -8
+  addwf PRODL,F,0
+iprshift16_0
+  movlw 1
+iprshift16_1
+  decf PRODL,F,0
+  bn iprshift16_end
+
+  bsf STATUS,0,0 ; set carry
+  rrcf  PLUSW1,F,0
+  rrcf  INDF1,F,0
+  bra  iprshift16_1
+iprshift16_end
+  return 0
+;<?iprshift16u>
+;<->
+
+; 16 bit right signed shift by 8 bits
+; *FSR1 >> 8 -> *FSR1
+;
+;<+iprshift16b8>
+iprshift16b8
+  movf POSTINC1,F,0 ; go to HI byte
+  btfss POSTDEC1,7,0 ; test bit 15
+  goto	iprshift16ub8
+  movlw	1
+  movff PLUSW1,INDF1
+  setf PLUSW1,0
+  return 0
+;<?iprshift16ub8>  
+;<->
+  
+
+; -----------------------------------------------------------
+; 32 bit left shift
+; TOS << W -> TOS
+;
+;<+lshift32u>
+lshift32u
+  movwf PRODL,0 ; save counter
+  sublw 31
+  btfss STATUS,C,0
+  goto clr32w0
+lshift32u_0
+  movlw	-8
+  addwf	PRODL,W,0
+  bnc lshift32u_1
+  movwf	PRODL,0
+  ICALL lshift32ub8
+  bra lshift32u_0
+  
+lshift32u_1
+  decf PRODL,F,0
+  bn lshift32u_end
+
+  bcf STATUS,0,0 ; clear carry
+  movlw -3 ; offset of TOSL
+  rlcf  PLUSW0,F,0
+  movlw -2
+  rlcf  PLUSW0,F,0
+  movlw -1
+  rlcf  PLUSW0,F,0
+  rlcf  INDF0,F,0
+  bra  lshift32u_1
+lshift32u_end
+  return 0
+;<?clr32>
+;<?lshift32ub8>
+;<->
+
+;<+iplshift32u>
+iplshift32u
+  movwf PRODL,0 ; save counter
+  sublw 31
+  btfss STATUS,C,0
+  goto ipclr32
+iplshift32u_0
+  movlw	-8
+  addwf	PRODL,W,0
+  bnc iplshift32u_1
+  movwf	PRODL,0
+  ICALL iplshift32ub8
+  bra iplshift32u_0
+
+iplshift32u_1
+  decf PRODL,F,0
+  bn iplshift32u_end
+
+  bcf STATUS,0,0 ; clear carry
+  rlcf  INDF1,F,0
+  movlw 1
+  rlcf  PLUSW1,F,0
+  movlw 2
+  rlcf  PLUSW1,F,0
+  movlw 3
+  rlcf  PLUSW1,F,0
+  bra  iplshift32u_1
+iplshift32u_end
+  return 0
+;<?ipclr32>  
+;<?iplshift32ub8>
+;<->
+
+; shift 32bit by 8 bit left
+; register usage: destroys W and PRODH
+;<+lshift32ub8>
+lshift32ub8
+	movlw	-3
+	movff	PLUSW0, INDF0
+	clrf	PLUSW0,0
+	movlw	-2
+	movff	PLUSW0, PRODH
+	movff	INDF0, PLUSW0
+	movlw	-1
+	movff	PLUSW0, INDF0
+	movff	PRODH, PLUSW0
+	return	0
+;<->
+
+; shift 32bit by 8 bit left
+; register usage: none
+;<+iplshift32ub8>
+iplshift32ub8
+	movf	POSTINC1, F, 0
+	movf	POSTINC1, F, 0
+	movff	POSTINC1, POSTDEC1
+	movf	POSTDEC1, F, 0
+	movff	POSTINC1, POSTDEC1
+	movf	POSTDEC1, F, 0
+	movff	POSTINC1, POSTDEC1
+	clrf	INDF1,0
+	return
+;<->
+
+; shift 32bit by 16 bit left
+; register usage: destroys W
+;<+lshift32ub16>
+lshift32ub16
+	movf	POSTDEC0, F, 0
+	movlw	-2
+	movff	PLUSW0, POSTINC0
+	movff	PLUSW0, INDF0
+	clrf	PLUSW0,0
+	movlw	-3
+	clrf	PLUSW0,0
+	return	0
+;<->
+
+; shift 32bit by 16 bit left
+; register usage: destroys W
+;<+iplshift32ub16>
+iplshift32ub16
+	movlw	1
+	movff	POSTINC1, PLUSW1
+	movlw	3
+	movff	POSTDEC1, PLUSW1
+	clrf	POSTINC1,0
+	clrf	POSTDEC1,0
+	return  0
+;<->
+
+; shift 32bit by 24 bit left
+; register usage: destroys W
+;<+lshift32ub24>
+lshift32ub24
+	movlw	-3
+	movff	PLUSW0, INDF0
+	clrf	PLUSW0,0
+	movlw	-2
+	clrf	PLUSW0,0
+	movlw	-1
+	clrf	PLUSW0,0
+	return	0
+;<->
+
+; shift 32bit by 24 bit left
+; register usage: destroys W
+;<+iplshift32ub24>
+iplshift32ub24
+	movlw	2
+	movff	POSTINC1, PLUSW1
+	clrf	POSTDEC1,0
+	clrf	PLUSW1,0
+	clrf	INDF1,0
+	return  0
+;<->
+
+; -----------------------------------------------------------
+; unsigned 32 bit right shift
+; TOS >> W -> TOS
+;
+;<+rshift32u>
+rshift32u
+  movwf PRODL,0 ; save counter
+  sublw 31
+  btfss STATUS,C,0
+  goto clr32w0
+rshift32u_0
+  movlw	-8
+  addwf	PRODL,W,0
+  bnc rshift32u_1
+  movwf	PRODL,0
+  ICALL rshift32ub8
+  bra rshift32u_0
+
+rshift32u_1
+  decf PRODL,F,0
+  bn rshift32u_end
+
+  bcf STATUS,0,0 ; clear carry
+  rrcf  INDF0,F,0
+  movlw -1
+  rrcf  PLUSW0,F,0
+  movlw -2
+  rrcf  PLUSW0,F,0
+  movlw -3
+  rrcf  PLUSW0,F,0
+
+  bra  rshift32u_1
+rshift32u_end
+  return 0
+;<?clr32>  
+;<?rshift32ub8>
+;<->
+
+; *FSR1 >> W -> *FSR1
+;<+iprshift32u>
+iprshift32u_from_iprshift32
+  movf PRODL,W,0
+iprshift32u
+  movwf PRODL,0 ; save counter
+  sublw 31
+  btfss STATUS,C,0
+  goto ipclr32
+iprshift32u_0
+  movlw	-8
+  addwf	PRODL,W,0
+  bnc iprshift32u_1
+  movwf	PRODL,0
+  ICALL iprshift32ub8
+  bra iprshift32u_0
+
+iprshift32u_1
+  decf PRODL,F,0
+  bn iprshift32u_end
+
+  bcf STATUS,0,0 ; clear carry
+  movlw  3
+  rrcf  PLUSW1,F,0
+  movlw 2
+  rrcf  PLUSW1,F,0
+  movlw 1
+  rrcf  PLUSW1,F,0
+  rrcf  INDF1,F,0
+
+  bra  iprshift32u_1
+iprshift32u_end
+  return 0
+;<?ipclr32> 
+;<?iprshift32ub8> 
+;<->
+
+; shift 32bit by 8 bit right (unsigned)
+; register usage: destroys W and PRODH
+;<+rshift32ub8>
+rshift32ub8
+	movlw	-2
+	movff	PLUSW0, PRODH
+	movlw	-3
+	movff	PRODH, PLUSW0
+	movlw	-1
+	movff	PLUSW0, PRODH
+	movlw	-2
+	movff	PRODH, PLUSW0
+	movff	POSTDEC0, POSTINC0
+	clrf	INDF0,0
+	return	0
+;<->
+
+; shift 32bit by 8 bit right (unsigned)
+; register usage: none
+;<+iprshift32ub8>
+iprshift32ub8
+	movf	POSTINC1, F, 0
+	movff	POSTDEC1, POSTINC1
+	movf	POSTINC1, F, 0
+	movff	POSTDEC1, POSTINC1
+	movf	POSTINC1, F, 0
+	movff	POSTDEC1, POSTINC1
+	clrf	POSTDEC1,0
+	movf	POSTDEC1, F, 0
+	movf	POSTDEC1, F, 0
+	return
+;<->
+
+; shift 32bit by 16 bit right unsigned
+; register usage: destroys W
+;<+rshift32ub16>
+rshift32ub16
+	movlw	-1
+	movff	POSTDEC0, PLUSW0
+	movff	POSTDEC0, PLUSW0
+	clrf	PREINC0,0
+	clrf	PREINC0,0
+	return	0
+;<->
+
+; shift 32bit by 16 bit right unsigned
+; register usage: destroys W
+;<+iprshift32ub16>
+iprshift32ub16
+	movlw	2
+	movff	PLUSW1, POSTINC1
+	movff	PLUSW1, INDF1
+	clrf	PLUSW1,0
+	movf	POSTDEC1,F,0
+	clrf	PLUSW1,0
+	return  0
+;<->
+
+; shift 32bit by 24 bit right unsigned
+; register usage: destroys W
+;<+rshift32ub24>
+rshift32ub24
+	movlw	-2
+	movff	POSTDEC0, PLUSW0
+	movlw	-1
+	clrf	PLUSW0,0
+	clrf	POSTINC0,0
+	clrf	INDF0,0
+	return	0
+;<->
+
+; shift 32bit by 24 bit right unsigned 
+; register usage: destroys W
+;<+iprshift32ub24>
+iprshift32ub24
+	movlw	3
+	movff	PLUSW1, POSTINC1
+	movlw	2
+	clrf	PLUSW1,0
+	clrf	POSTDEC1,0
+	clrf	PLUSW1,0
+	return  0
+;<->
+
+; -----------------------------------------------------------
+; signed 32 bit right shift
+; TOS >> W -> TOS
+;
+;<+rshift32>
+rshift32
+  btfss INDF0,7,0 ; test bit 31
+  IBRA  rshift32u ; shift like unsigned
+  movwf PRODL,0 ; save counter
+  sublw 31
+  bc rshift32_0
+  movlw	-3
+  setf	PLUSW0,0
+  movlw -2
+  setf	PLUSW0,0
+  movlw -1
+  setf	PLUSW0,0
+  setf  INDF0,0
+  return 0
+  
+rshift32_0
+  movlw	-8
+  addwf	PRODL,W,0
+  bnc rshift32_1
+  movwf	PRODL,0
+  ICALL rshift32bn8
+  bra rshift32_0
+
+rshift32_1
+  decf PRODL,F,0
+  bn rshift32_end
+
+  bsf STATUS,0,0 ; set carry
+  rrcf  INDF0,F,0
+  movlw -1
+  rrcf  PLUSW0,F,0
+  movlw -2
+  rrcf  PLUSW0,F,0
+  movlw -3
+  rrcf  PLUSW0,F,0
+
+  bra  rshift32_1
+rshift32_end
+  return 0
+;<?rshift32u>
+;<?rshift32bn8>
+;<->
+
+; *FSR1 >> W -> *FSR1 (signed)
+;<+iprshift32>
+iprshift32
+  movwf PRODL,0 ; save counter
+  movlw 3
+  btfss PLUSW1,7,0 ; test bit 31
+  IBRA  iprshift32u_from_iprshift32 ; shift like unsigned
+  movf	PRODL,W,0
+  sublw 31
+  bc iprshift32_0
+  movlw 3
+  setf	PLUSW1,0
+  movlw	2
+  setf	PLUSW1,0
+  setf	POSTINC1,0
+  setf	POSTDEC1,0
+  return 0
+iprshift32_0
+  movlw	-8
+  addwf	PRODL,W,0
+  bnc iprshift32_1
+  movwf	PRODL,0
+  ICALL iprshift32bn8
+  bra iprshift32_0
+
+iprshift32_1
+  decf PRODL,F,0
+  bn iprshift32_end
+
+  bsf STATUS,0,0 ; set carry
+  movlw 3  
+  rrcf  PLUSW1,F,0
+  movlw 2
+  rrcf  PLUSW1,F,0
+  movlw 1
+  rrcf  PLUSW1,F,0
+  rrcf  INDF1,F,0
+
+  bra  iprshift32_1
+iprshift32_end
+  return 0
+;<?iprshift32u>
+;<?iprshift32bn8>
+;<->
+
+; shift 32bit by 8 bit right (negative)
+; register usage: destroys W and PRODH
+;<+rshift32bn8>
+rshift32bn8
+	movlw	-2
+	movff	PLUSW0, PRODH
+	movlw	-3
+	movff	PRODH, PLUSW0
+	movlw	-1
+	movff	PLUSW0, PRODH
+	movlw	-2
+	movff	PRODH, PLUSW0
+	movff	POSTDEC0, POSTINC0
+	setf	INDF0,0
+	return	0
+;<->
+
+; shift 32bit by 8 bit right (negative)
+; register usage: none
+;<+iprshift32bn8>
+iprshift32bn8
+	movf	POSTINC1, F, 0
+	movff	POSTDEC1, POSTINC1
+	movf	POSTINC1, F, 0
+	movff	POSTDEC1, POSTINC1
+	movf	POSTINC1, F, 0
+	movff	POSTDEC1, POSTINC1
+	setf	POSTDEC1,0
+	movf	POSTDEC1, F, 0
+	movf	POSTDEC1, F, 0
+	return
+;<->
+
+; =====================================================
+; Binary op routines
+; =====================================================
+; TOS and R0/R1 -> TOS
+; W and FSR2 corrupted
+;<+band32>
+band32
+  movff FSR0L, FSR2L
+  movff FSR0H, FSR2H
+  movf 	R0+3,W,0
+  andwf POSTDEC2,F,0
+  movf 	R0+2,W,0 
+  andwf POSTDEC2,F,0
+  movf 	R0+1,W,0
+  andwf POSTDEC2,F,0
+  movf 	R0,W,0
+  andwf POSTDEC2,F,0
+  return 0
+;<->
+;<+ipband32>
+ipband32
+  movf 	R0,W,0
+  andwf POSTINC1,F,0
+  movf 	R0+1,W,0 
+  andwf POSTINC1,F,0
+  movf 	R0+2,W,0
+  andwf POSTINC1,F,0
+  movf 	R0+3,W,0
+  andwf POSTDEC1,F,0
+  movf POSTDEC1,F,0
+  movf POSTDEC1,F,0
+  return 0
+;<->
+
+; TOS or R0/R1 -> TOS
+; W and FSR2 corrupted
+;<+bor32>
+bor32
+  movff FSR0L, FSR2L
+  movff FSR0H, FSR2H
+  movf 	R0+3,W,0
+  iorwf POSTDEC2,F,0
+  movf 	R0+2,W,0 
+  iorwf POSTDEC2,F,0
+  movf 	R0+1,W,0
+  iorwf POSTDEC2,F,0
+  movf 	R0,W,0
+  iorwf POSTDEC2,F,0
+  return 0
+;<->
+
+;<+ipbor32>
+ipbor32
+  movf 	R0,W,0
+  iorwf POSTINC1,F,0
+  movf 	R0+1,W,0 
+  iorwf POSTINC1,F,0
+  movf 	R0+2,W,0
+  iorwf POSTINC1,F,0
+  movf 	R0+3,W,0
+  iorwf POSTDEC1,F,0
+  movf POSTDEC1,F,0
+  movf POSTDEC1,F,0
+  return 0
+;<->
+
+
+; TOS xor R0/R1 -> TOS
+; W and FSR2 corrupted
+;<+bxor32>
+bxor32
+  movff FSR0L, FSR2L
+  movff FSR0H, FSR2H
+  movf 	R0+3,W,0
+  xorwf POSTDEC2,F,0
+  movf 	R0+2,W,0 
+  xorwf POSTDEC2,F,0
+  movf 	R0+1,W,0
+  xorwf POSTDEC2,F,0
+  movf 	R0,W,0
+  xorwf POSTDEC2,F,0
+  return 0
+;<->
+
+;<+ipbxor32>
+ipbxor32
+  movf 	R0,W,0
+  xorwf POSTINC1,F,0
+  movf 	R0+1,W,0 
+  xorwf POSTINC1,F,0
+  movf 	R0+2,W,0
+  xorwf POSTINC1,F,0
+  movf 	R0+3,W,0
+  xorwf POSTDEC1,F,0
+  movf POSTDEC1,F,0
+  movf POSTDEC1,F,0
+  return 0
+;<->
+
+
+; =====================================================
+; Data move routines
+; =====================================================
+; -----------------------------------------------------
+; push on  stack data block pointed to by FSR1
+; W = block size ( 0 < W < 128)
+; FSR1 = adr of first byte of block
+; -> block on stack, first byte pushed first
+; Altered : PRODL, W
+; NOTE: FSR1 is not altered
+; CAUTION: block of zero bytes are NOT correctly processed !!
+;<+pushSmallBlock>
+pushSmallBlock
+  movwf PRODL,0
+  clrf WREG,0
+pushSmallBlock_loop
+  movff PLUSW1,PREINC0
+  incf WREG,F,0
+  decf PRODL,F,0
+  bnz pushSmallBlock_loop
+  return 0
+;<->
+
+; -----------------------------------------------------
+; pop   data block from stack and copy it to block pointed to by FSR1
+; W = block size ( 0 < W < 128) 
+; FSR1 = adr of first byte of block
+; Altered :  W, 
+; NOTE: FSR1 is not altered
+;<+popSmallBlock>
+popSmallBlock
+  decf WREG,F,0
+  movff POSTDEC0,PLUSW1
+  bnz popSmallBlock
+  return 0
+;<->
+
+; -----------------------------------------------------
+; copy block pointed to by FSR1 to block pointed to by FSR2
+; W = block size ( 0 < W < 128) 
+; FSR1 = adr of first byte of block
+; Altered :  W, 
+; NOTE: FSR1 is not altered
+; NOTE: FSR2 is not altered
+;<+movSmallBlock>
+movSmallBlock
+  decf WREG,F,0
+  movff PLUSW1,PLUSW2
+  bnz movSmallBlock
+  return 0
+;<->
+
+; -----------------------------------------------------
+; copy block pointed to by FSR0+W to block pointed to by FSR1
+; PRODL = block size ( 0 < PRODL < 128) 
+; Altered :  W, PRODL, FSR1
+; NOTE: FSR0 is not altered
+;<+movSmallBlockFromStack>
+movSmallBlockFromStack
+  movff PLUSW0,POSTINC1
+  incf WREG,F,0
+  decf PRODL,F,0
+  bnz movSmallBlockFromStack
+  return 0
+;<->
+
+; -----------------------------------------------------
+; copy block pointed to by FSR1 to block pointed to by FSR0+W
+; PRODL = block size ( 0 < PRODL < 128) 
+; Altered :  W, PRODL, FSR1
+; NOTE: FSR0 is not altered
+;<+movSmallBlockToStack>
+movSmallBlockToStack
+  movff POSTINC1,PLUSW0
+  incf WREG,F,0
+  decf PRODL,F,0
+  bnz movSmallBlockToStack
+  return 0
+;<->
+
+; -----------------------------------------------------
+; copy block pointed to by FSR0+W to block pointed to by FSR0+PRODH
+; ATTENTION: W offset is signed (and <0) 
+; but PRODH offset is unsigned (always >0) so this routine 
+; compute FSR1 = FSR0 - PRODH
+; PRODL = block size ( 0 < PRODL < 128) 
+; Altered :  W, PRODL, PRODH, FSR1
+; NOTE: FSR0 is not altered
+;<+movSmallBlockFromStackToStack>
+movSmallBlockFromStackToStack
+  movff FSR0L,FSR1L
+  movff FSR0H,FSR1H
+  movwf PREINC0,0
+  movf PRODH,W,0
+  subwf FSR1L,F,0 
+  bc movSmallBlockFromStackToStack_1
+  decf FSR1H,F,0
+movSmallBlockFromStackToStack_1
+  movf POSTDEC0,W,0
+movSmallBlockFromStackToStack_2
+  movff PLUSW0,POSTINC1
+  incf WREG,F,0
+  decf PRODL,F,0
+  bnz movSmallBlockFromStackToStack_2
+  return 0
+;<->
+;
+
+; ----------------------------------------
+; helper to apply standard scale factors
+; R0 = R0 X 4 -> R0
+;<+R0x4>
+R0x4
+  bcf STATUS,C,0
+  rlcf R0,F,0
+  rlcf R0+1,F,0
+  bcf STATUS,C,0
+  rlcf R0,F,0
+  rlcf R0+1,F,0
+  return 0
+;<->
+
+; =====================================================
+; Default routines
+; ie: used by linker if not provided by user
+; =====================================================
+	
+; startup module for C program
+;
+;<+cstart>
+cstart  
+  clrf  IT_MASK,0
+  ICALL C18___udata_clear
+  ICALL C18___static_loader
+  movlw LOW(soft_stack_start)
+  movwf FSR0L,0
+  movff WREG,C18___stack
+  movlw HIGH(soft_stack_start)
+  movwf FSR0H,0
+  movff WREG,C18___stack+1
+  clrf C18_errno,0
+  IBRA C18_main
+;<?C18_main>
+;<?C18___stack>
+;<->
+
+; -----------------------------------------
+; default interrupt routines
+; (W, STATUS and BSR are restored from their shadow registers)
+;
+;<+C18_hi_pri_ISR> 
+C18_hi_pri_ISR
+  retfie 0
+;<->
+;<+C18_lo_pri_ISR>
+C18_lo_pri_ISR
+  retfie 0
+;<->
+; -------------------------------------------
+; System variable containing inital value of stack pointer
+;<+C18___stack>
+	CBLOCK
+	C18___stack:2
+	ENDC
+;<->
+
+; -------------------------------------------
+; Module for config bits
+; (these values can be replaced by config  pragma from user program)
+
+;<+__config>
+       __CONFIG  _CONFIG1H, -1
+       __CONFIG  _CONFIG2L, -1
+       __CONFIG  _CONFIG2H, -1
+       __CONFIG  _CONFIG3H, -1
+       __CONFIG  _CONFIG4L, -1
+       __CONFIG  _CONFIG5L, -1
+       __CONFIG  _CONFIG5H, -1
+       __CONFIG  _CONFIG6L, -1
+       __CONFIG  _CONFIG6H, -1
+       __CONFIG  _CONFIG7L, -1
+       __CONFIG  _CONFIG7H, -1
+;<->
+; -------------------------------------------
+; Module for config bits
+; (these values can be replaced using the  "idlocs"  pragma from user program)
+;<+__idlocs>
+	__IDLOCS _IDLOC0,'c'
+	__IDLOCS _IDLOC1,'p'
+	__IDLOCS _IDLOC2,'i'
+	__IDLOCS _IDLOC3,'k'
+	__IDLOCS _IDLOC4,'0'
+	__IDLOCS _IDLOC5,'7'
+	__IDLOCS _IDLOC6,'2'
+	__IDLOCS _IDLOC7, 0
+;<->
+
+; ---------------------------------------------
+; Static data initializer - Uses the __static_init_table
+;  void __static_loader() ;
+; registers used
+; R0 == byte count
+; FSR1 == dest addr
+;<+C18___static_loader>
+C18___static_loader
+
+ 	ifdef EECON1
+ 	movff EECON1,PREINC0 ; save EECON1
+	bsf EECON1,EEPGD,0
+	bcf EECON1,CFGS,0
+        endif
+	
+	clrf	TBLPTRU ; 16 bit address space
+  	movlw LOW __static_init_table
+	movwf TBLPTRL,0
+  	movlw HIGH __static_init_table
+	movwf TBLPTRH,0
+
+C18___static_loader_loop0
+; get byte count 
+	TBLRD *+
+	movff TABLAT,R0L
+	TBLRD *+
+	movf TABLAT,W,0
+; test byte count  
+	bz C18___static_loader_FINISH
+; get dest addr
+	TBLRD *+
+	movff TABLAT,FSR1L
+	TBLRD *+
+	movff TABLAT,FSR1H
+; move data
+C18___static_loader_loop1
+	TBLRD *+
+	movff TABLAT,POSTINC1
+  	decfsz R0L,F,0
+  	bra C18___static_loader_loop1
+  	decfsz WREG,F,0
+  	bra C18___static_loader_loop1
+; skip filler, if any
+  	btfsc TBLPTRL,0,0
+  	TBLRD *+
+  	bra C18___static_loader_loop0
+;
+C18___static_loader_FINISH
+
+	ifdef EECON1
+  	movff POSTDEC0,EECON1
+        endif
+
+  	return 0
+;<->
+
+
+; fill UDATA segment with 0 
+;<+C18___udata_clear>
+C18___udata_clear
+	movlw	HIGH _UDATA_BEGIN
+	movwf	FSR1H,0
+	movlw	LOW _UDATA_BEGIN
+	movwf	FSR1L,0	
+	movlw	(HIGH (_UDATA_SIZE-1))+1
+	movwf	R0H,0
+	movlw	LOW (_UDATA_SIZE)
+C18___udata_clear_loop
+	clrf	POSTINC1,0
+  	decfsz 	WREG,F,0
+  	bra 	C18___udata_clear_loop
+  	decfsz 	R0H,F,0
+  	bra 	C18___udata_clear_loop
+	return  0
+;<->
+
+; ---------------------------------------------
+; Run-time support for access to ROM data
+; ---------------------------------------------
+; get a 8 bit value pointed to by TBLRPTR, 
+; indexed by (INDF0) (ie: the offset is on top of stack)
+; the fetched value is returned in R0
+;<+getROM8indexed>
+getROM8indexed	
+
+	IFDEF EEPGD
+	bsf 	EECON1,EEPGD,0;
+	ENDIF
+	
+	IFDEF CFGS
+	bcf 	EECON1,CFGS,0;
+	ENDIF
+	
+	clrf	TBLPTRU
+	movf	INDF0,W,0
+	addwf 	TBLPTRL,F,0
+	bnz	getROM8indexed_1
+	incf	TBLPTRH,F,0
+getROM8indexed_1
+	TBLRD 	*+
+	movff	TABLAT,R0
+	return	0
+;<->
+
+; get a 16 bit value pointed to by TBLRPTR, 
+; indexed by (INDF0) (ie: the offset is on top of stack)
+; the fetched value is returned in R0
+;<+getROM16indexed>
+getROM16indexed	
+
+	IFDEF EEPGD
+	bsf 	EECON1,EEPGD,0;
+	ENDIF
+	
+	IFDEF CFGS
+	bcf 	EECON1,CFGS,0;
+	ENDIF
+	
+	clrf	TBLPTRU
+	movf	INDF0,W,0
+	addwf 	TBLPTRL,F,0
+	bnz	getROM16indexed_1
+	incf	TBLPTRH,F,0
+getROM16indexed_1
+	addwf 	TBLPTRL,F,0
+	bnz	getROM16indexed_2
+	incf	TBLPTRH,F,0
+getROM16indexed_2
+	TBLRD 	*+
+	movff	TABLAT,R0
+	TBLRD 	*+
+	movff	TABLAT,R0+1
+	return	0
+;<->
+; move a ROMptr to TBLPTR a set the cotrol bits to access ROM
+;
+;<+C18__make_rom_pointer_>
+C18__make_rom_pointer_
+
+	IFDEF EEPGD
+	bsf 	EECON1,EEPGD,0;
+	ENDIF
+	
+	IFDEF CFGS
+	bcf 	EECON1,CFGS,0;
+	ENDIF
+	
+	clrf	TBLPTRU ; assume 16 bit address space
+	movff INDF0,TBLPTRH
+	movlw -1
+	movff PLUSW0,TBLPTRL
+	return 0
+;<->
+
+
+; ---------------------------------------------
+; Run-time support for switch instruction (Josef Pavlik)
+; ---------------------------------------------
+; jumps to addres from table located after the call and indexed by W (24 bit address compatible)
+; i.e.:
+;	call tableJump
+;table
+;     	dw	label_case0 - table
+;	dw	label_case1 - table
+;
+;<+tableJump>
+tableJump
+
+	IFDEF EEPGD
+	bsf 	EECON1,EEPGD,0;
+	ENDIF
+	
+	IFDEF CFGS
+	bcf 	EECON1,CFGS,0;
+	ENDIF
+	
+	movff TOSU,TBLPTRU
+	movff TOSH,TBLPTRH
+	movff TOSL,TBLPTRL
+	addwf WREG,f,0
+	bnc tableSwitch_1
+	infsnz TBLPTRH,f,0
+	incf  TBLPTRU,f,0
+tableSwitch_1  
+	addwf TBLPTRL,f,0
+	movlw 0
+	addwfc  TBLPTRH,f,0
+	addwfc  TBLPTRU,f,0
+; we have pointer to offset to desired label offset
+	tblrd *+
+	movf  TABLAT,w,0
+	addwf TOSL,f,0
+	tblrd *
+	movf  TABLAT,w,0  
+	addwfc TOSH,f,0
+	movlw 0
+	addwfc TOSU,f,0
+	return 0  ; jumps to the desired label
+;<->
+
+; jumps to address from table located after the call and indexed by W (16 bit address compatible)
+; i.e.:
+;	call tableJump
+;     	dw	label_case0
+;	dw	label_case1
+;
+;<+tableJump16>
+tableJump16
+
+	IFDEF EEPGD
+	bsf 	EECON1,EEPGD,0;
+	ENDIF
+	
+	IFDEF CFGS
+	bcf 	EECON1,CFGS,0;
+	ENDIF
+	
+	clrf  TBLPTRU,0
+	movff TOSH,TBLPTRH
+	movff TOSL,TBLPTRL
+	addwf WREG,f,0
+	btfsc STATUS,C,0
+	incf  TBLPTRH,f,0
+	addwf TBLPTRL,f,0
+	movlw 0
+	addwfc  TBLPTRH,f,0
+; we have pointer to offset to desired label offset
+	tblrd *+
+	movf  TABLAT,w,0
+	movwf TOSL,0
+	tblrd *
+	movf  TABLAT,w,0
+	movwf TOSH  ,0
+	return 0  ; jumps to the desired label
+;<->
+
+
+
+; ---------------------------------------------
+  end

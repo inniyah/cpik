@@ -208,7 +208,7 @@ ResultLocation  Flatten::flattenAffectationBF ( Cexpr *e, Position pos )
   ResultLocation loc ( ResultLocation::Stack )  ;
   int sz = e->sizeOf() ; // same as left->sizeOf() ;
 
-  ResultLocation rloc = flatten ( right, Left ) ;
+  /*ResultLocation rloc = */ flatten ( right, Left ) ;
 
   int size, offset ;
   left->exprType()->isBitField ( size, offset ) ;
@@ -693,7 +693,7 @@ ResultLocation  Flatten::flattenTest ( Cexpr *e, Position )
   }
   else
   {
-    ResultLocation loc = flatten ( arg, Left ) ;
+    /*ResultLocation loc = */ flatten ( arg, Left ) ;
     insertOp ( Operation ( sz , Operation::PopTestN,0,0 ) ) ;
   }
   return  ResultLocation ( ResultLocation::ZBit ) ;
@@ -792,16 +792,16 @@ ResultLocation  Flatten::flattenPlusMinus ( Cexpr *e, Position pos )
   else if ( ltyp->isIntegral() )
   {
     // normal integer op
-    ResultLocation lloc = flatten ( e->arg ( 0 ), Left ) ;
-    ResultLocation rloc = flatten ( e->arg ( 1 ), Right ) ;
+    /*ResultLocation lloc = */ flatten ( e->arg ( 0 ), Left ) ;
+    /* ResultLocation rloc = */ flatten ( e->arg ( 1 ), Right ) ;
 
     insertOp ( Operation ( sz, xxx ,0,0 ) ) ;
   }
   else if ( ltyp->isFloatingPoint() )
   {
     // FP op
-    ResultLocation lloc = flatten ( e->arg ( 0 ), Left ) ;
-    ResultLocation rloc = flatten ( e->arg ( 1 ), Right ) ;
+    /*ResultLocation lloc = */ flatten ( e->arg ( 0 ), Left ) ;
+    /*ResultLocation rloc = */ flatten ( e->arg ( 1 ), Right ) ;
 
     insertOp ( Operation ( sz, xxxFP ,0,0 ) ) ;
   }
@@ -1370,7 +1370,7 @@ ResultLocation Flatten::flattenShifts ( Cexpr * exp, Position pos )
 {
   int k ,sz ;
   bool cst1 ;
-  ResultLocation r0 = flatten ( exp->arg ( 0 ), Left ) ;
+  /* ResultLocation r0 = */ flatten ( exp->arg ( 0 ), Left ) ;
   // ResultLocation r1 = flatten(exp->arg(1), Right) ;
   ResultLocation r ( ResultLocation::Stack ) ;
 

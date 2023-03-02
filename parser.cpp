@@ -2163,7 +2163,7 @@ bool Parser::parseStruct ( Ctype& t , type::Code what )
       {
         // no it doesn't -- however, this is legal
         // just create a 0 sized struct
-        t = Ctype ( type::Struct, 0, constness ) ;
+          t = Ctype ( /* type::Struct ++gib-25/3/2013 : union bug */  what , 0, constness ) ;
         t->structName() = id ;
         t->completed() = false ;
       }
@@ -2171,7 +2171,7 @@ bool Parser::parseStruct ( Ctype& t , type::Code what )
       {
         // duplicate the struct descriptor to permit different constness
         // for different variables and pointers to the same structure
-        Ctype t2 ( type::Struct, t->sizeOf(), constness ) ;
+        Ctype t2 ( what , t->sizeOf(), constness ) ;
         t2->structName() = id;
         t2->members() =t->members();
         t2->completed() = true;
@@ -2201,11 +2201,11 @@ bool Parser::parseEnum ( Ctype& t )
 
   // the "enum" keyword has been parsed
   string id ;
-  bool withid ;
+  // bool withid ;
   int value ;
 
   lx->blk() ;
-  withid = lx->ident ( id ) ; // has identifier? currently ignored
+  /*withid = */ lx->ident ( id ) ; // has identifier? currently ignored
   lx->blk() ;
 
   value=0;

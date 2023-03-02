@@ -20,7 +20,8 @@ using namespace std ;
 
 
 Compiler::Compiler()
-    : lexer_() , parser_()  , fl_ ( 0 ) , cg_ ( 0 ), uniqueID_ ( 0 ), version_ ( "0.7.1" ), uniqueLitID_ ( 0 )
+    : lexer_() , parser_()  , fl_ ( 0 ) , cg_ ( 0 ), uniqueID_ ( 0 ),
+    version_ ( "0.7.2" ), uniqueLitID_ ( 0 )
 {
   inFileName = outFileName = justFileName = "" ;
   // 16 first bytes are reserved for Compiler
@@ -437,12 +438,17 @@ string Compiler::uniqueLabel()
   return u ;
 }
 /** No descriptions */
-map<string,string>& Compiler::pragmas()
+multimap<string,string>& Compiler::pragmas()
 {
   return pragmas_ ;
 }
-/** Generates __config section if #pragma are used for
-defining config bits */
+/**
+    Generates __config section if #pragma _CONFIG are used for
+    defining config bits.
+    This pragma is still supporded for backward-compatibility but
+    #pragma CONFIG is now the normal way to define config bits
+    See outputNewStyleConfig()
+*/
 const char * Compiler::outputConfig()
 {
   bool noconfig = true ;
@@ -455,7 +461,7 @@ const char * Compiler::outputConfig()
     if ( pragmas().find ( "_CONFIG"+utility::toString ( i ) +"L" ) != pragmas().end() ) noconfig = false ;
     if ( pragmas().find ( "_CONFIG"+utility::toString ( i ) +"H" ) != pragmas().end() ) noconfig = false ;
   }
-  if ( noconfig ) return 0 ;
+  if ( noconfig ) return outputNewStyleConfig()   ;
 
   // generate __config psect
   cg_->emitTxt ( ";<+__config>" ) ;
@@ -463,13 +469,40 @@ const char * Compiler::outputConfig()
   for ( int i=1 ; i <= 7 ;++i )
   {
     key = "_CONFIG"+utility::toString ( i ) +"L" ;
-    if ( pragmas().find ( key ) != pragmas().end() )
-      cg_->emitTxt ( "\t"+config+key+", "+pragmas() [key] ) ;
+    multimap<string,string>::iterator ikey = pragmas().find ( key ) ;
+    if ( ikey != pragmas().end() )
+      cg_->emitTxt ( "\t"+config+key+", "+ (*ikey).second ) ;
 
     key = "_CONFIG"+utility::toString ( i ) +"H" ;
-    if ( pragmas().find ( key ) != pragmas().end() )
-      cg_->emitTxt ( "\t"+config+key+", "+pragmas() [key] ) ;
+    ikey = pragmas().find ( key ) ;
+    if ( ikey != pragmas().end() )
+      cg_->emitTxt ( "\t"+config+key+", "+ (*ikey).second  ) ;
 
+  }
+  cg_->emitTxt ( ";<->" ) ;
+  return 0 ;
+}
+
+/**
+    Generates __config section if #pragma CONFIG are used for
+    defining config bits
+*/
+const char * Compiler::outputNewStyleConfig()
+{
+  // search for config pragmas
+  if ( pragmas().find ( "config") == pragmas().end()  ) return 0  ;
+
+  // generate __config psect
+  cg_->emitTxt ( ";<+__config>" ) ;
+  // search for config pragmas
+  pair< multimap<string,string>::iterator,  multimap<string,string>::iterator> range  ;
+  range =  pragmas().equal_range( "config" ) ;
+
+  multimap<string,string>::iterator ikey1 = range.first , ikey2 = range.second ;
+
+  for (   ;  ikey1 != ikey2  ; ++ikey1  )
+  {
+      cg_->emitTxt ( "\tCONFIG "+(*ikey1).second ) ;
   }
   cg_->emitTxt ( ";<->" ) ;
   return 0 ;
@@ -490,14 +523,15 @@ const char * Compiler::outputIdlocs()
   }
   if ( noid ) return 0 ;
 
-  // generate __config psect
+  // generate __idlocs  psect
   cg_->emitTxt ( ";<+__idlocs>" ) ;
   // search for config pragmas
   for ( int i=0 ; i <= 7 ;++i )
   {
     key = "_IDLOC"+utility::toString ( i ) ;
-    if ( pragmas().find ( key ) != pragmas().end() )
-      cg_->emitTxt ( "\t__IDLOCS " + key +", "+pragmas() [key] ) ;
+    multimap<string,string>::iterator ikey = pragmas().find ( key ) ;
+    if ( ikey != pragmas().end() )
+      cg_->emitTxt ( "\t__IDLOCS " + key +", "+ (*ikey).second  ) ;
   }
   cg_->emitTxt ( ";<->" ) ;
   return 0 ;

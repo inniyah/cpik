@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Link</TITLE>
+<META NAME="description" CONTENT="Link">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node15.html">
+<LINK REL="previous" HREF="node13.html">
+<LINK REL="up" HREF="node12.html">
+<LINK REL="next" HREF="node15.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html369"
+  HREF="node15.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html365"
+  HREF="node12.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html359"
+  HREF="node13.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html367"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html370"
+  HREF="node15.html">Final assembly and jump</A>
+<B> Up:</B> <A NAME="tex2html366"
+  HREF="node12.html">Command syntax</A>
+<B> Previous:</B> <A NAME="tex2html360"
+  HREF="node13.html">Compilation</A>
+ &nbsp; <B>  <A NAME="tex2html368"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00092000000000000000">
+Link</A>
+</H2>
+
+<P>
+<PRE>
+cpik [-v] [-o output_file] [-L path] [-p device] input_file [input_file..]
+</PRE>
+
+<P>
+<code>-v</code> : prints version number, then exit immediatly.
+
+<P>
+<code>-o output_file</code> : specifies the output file name.
+By default, this name is <TT>a.asm</TT>. This file can be immediatly processed by the assembler and does not require any additionnal support.
+
+<P>
+<code>-L path</code> : specifies the path to libraries (<TT>.slb</TT>) files. This option  follows the traditionnal behaviour of Unix C linkers.  
+You can specify any number of lib path, and they will be searched 
+in the order of <TT>-L</TT> options.
+The default include path always contains <code>/usr/share/cpik/&lt;version&gt;/lib/</code> that is searched in last position.
+Note that &#171;<TT>-L path1,path2</TT>&#187; is a shortcut for  &#171;<TT>-L path1 -L path2</TT>&#187;
+
+<P>
+<code>-p device</code> : specifies the target pic device name. <TT>device</TT> must be a valid
+pic 18 name like <TT>p18xxxx</TT>. An invalid device will cause the final assembly to fail.
+By default, the selected device is <TT>p18f1220</TT>.
+
+<P>
+<code>input_file [input_file..]</code> : any number of <TT>.slb</TT> files. 
+The library <BR>
+<TT>/usr/share/cpik/&lt;version&gt;/lib/rtl.slb</TT>
+(run time library) contains low-level modules 
+ and is automatically referenced as the <I>last</I> library. Please do not reference this library explicitly
+because it will change the scanning order of libraries, and might cause undesirable effects. 
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html369"
+  HREF="node15.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html365"
+  HREF="node12.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html359"
+  HREF="node13.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html367"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html370"
+  HREF="node15.html">Final assembly and jump</A>
+<B> Up:</B> <A NAME="tex2html366"
+  HREF="node12.html">Command syntax</A>
+<B> Previous:</B> <A NAME="tex2html360"
+  HREF="node13.html">Compilation</A>
+ &nbsp; <B>  <A NAME="tex2html368"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+AG
+2013-04-10
+</ADDRESS>
+</BODY>
+</HTML>

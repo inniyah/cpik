@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Source library structure</TITLE>
+<META NAME="description" CONTENT="Source library structure">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node95.html">
+<LINK REL="previous" HREF="node73.html">
+<LINK REL="up" HREF="cpik-doc.html">
+<LINK REL="next" HREF="node95.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1409"
+  HREF="node95.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1405"
+  HREF="cpik-doc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1399"
+  HREF="node93.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1407"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1410"
+  HREF="node95.html">Needed software</A>
+<B> Up:</B> <A NAME="tex2html1406"
+  HREF="cpik-doc.html">cpik C compiler for</A>
+<B> Previous:</B> <A NAME="tex2html1400"
+  HREF="node93.html">Timer 0</A>
+ &nbsp; <B>  <A NAME="tex2html1408"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION000150000000000000000">
+Source library structure</A>
+</H1>
+
+<P>
+A source library is an assembly language source file, with special comments
+interpreted by <B>cpik</B> linker. 
+Each special comment begins with <TT>";&lt;"</TT>, located at first column, and ends with <TT>"&gt;"</TT>. Any information inserted after the final <TT>"&gt;"</TT> are really comments and will be ignored by the linker.
+
+<P>
+Source libraries are structured in <I>modules</I>, each module can contains either data or code.
+
+<P>
+Here is the list of recognized special comments:
+
+<P>
+
+<OL>
+<LI><B>Begin of module definition</B> : the specified module follows the comment.
+<PRE>
+;&lt;+module_name&gt;
+</PRE>
+
+<P>
+The module name can be optionally followed by the specification of a program section, with the following syntax:
+
+<P>
+<PRE>
+;&lt;+module_name|section_type&gt;
+</PRE>
+
+<P>
+The <TT>cpik</TT> linker supports 4 types of program sections&nbsp;:
+
+<OL>
+<LI><TT>CDATA</TT> 
+
+<P>
+This segment is dedicated to const data. 
+Such data will be located  at begin of ROM and will not copied to RAM
+
+<P>
+</LI>
+<LI><TT>IDATA</TT> 
+
+<P>
+This segment is dedicated to initialized data. The module must contain the &#171;<TT>;&lt;=</TT>&#187; tag (see below) with exact number of bytes to be used for initialization
+
+<P>
+</LI>
+<LI><TT>UDATA</TT> 
+
+<P>
+This segment is dedicated to  uninitialized data and is <I>filled with nul bytes during boot</I>.
+
+<P>
+</LI>
+<LI><TT>CODE</TT> 
+
+<P>
+This segment contains all other kind of modules (code, symbols, etc.)
+
+<P>
+</LI>
+</OL>
+
+<P>
+A module with no section specification will be included in the <TT>CODE</TT> program section.
+
+<P>
+</LI>
+<LI><B>End of module definition</B>
+<PRE>
+;&lt;-&gt;
+</PRE>
+</LI>
+<LI><B>Module reference</B> : the specified module is needed by the current module.
+<PRE>
+;&lt;?module_name&gt;
+</PRE>
+</LI>
+<LI><B>Static initializer</B> : the specified data must be used by the linker
+to initialize the current module (this module corresponds to an array or structure). A module can contain several static initializers.
+<PRE>
+;&lt;= byte1 byte2 ... &gt;
+</PRE>
+</LI>
+</OL>
+
+<P>
+Example:
+
+<P>
+<PRE>
+int table[3] = { 1, 2 } ;
+
+unsigned char x2(unsigned char c)
+{
+  return c * 2 ;
+}
+</PRE>
+will generate:
+
+<P>
+<PRE>
+;&lt;+C18_table|IDATA&gt;
+  CBLOCK
+  C18_table:3
+  ENDC
+;&lt;= 1 2 0 &gt;
+;&lt;-&gt;
+
+;&lt;+C18_x2&gt; unsigned char x2(unsigned char c@0)
+C18_x2
+;         return c * 2 ;
+  movff INDF0,PREINC0
+  movlw 2
+  ICALL mul8u
+  movff POSTDEC0,R0
+; }
+L18_main_x2_0
+  return 0
+;&lt;?mul8u&gt;
+;&lt;-&gt;
+</PRE>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1409"
+  HREF="node95.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1405"
+  HREF="cpik-doc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1399"
+  HREF="node93.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1407"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1410"
+  HREF="node95.html">Needed software</A>
+<B> Up:</B> <A NAME="tex2html1406"
+  HREF="cpik-doc.html">cpik C compiler for</A>
+<B> Previous:</B> <A NAME="tex2html1400"
+  HREF="node93.html">Timer 0</A>
+ &nbsp; <B>  <A NAME="tex2html1408"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+AG
+2013-04-10
+</ADDRESS>
+</BODY>
+</HTML>

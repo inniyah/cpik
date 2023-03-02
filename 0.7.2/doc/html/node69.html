@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>pin.h</TITLE>
+<META NAME="description" CONTENT="pin.h">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node70.html">
+<LINK REL="previous" HREF="node68.html">
+<LINK REL="up" HREF="node65.html">
+<LINK REL="next" HREF="node70.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html1087"
+  HREF="node70.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1083"
+  HREF="node65.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1077"
+  HREF="node68.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1085"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1088"
+  HREF="node70.html">stdarg.h</A>
+<B> Up:</B> <A NAME="tex2html1084"
+  HREF="node65.html">Headers</A>
+<B> Previous:</B> <A NAME="tex2html1078"
+  HREF="node68.html">macro.h</A>
+ &nbsp; <B>  <A NAME="tex2html1086"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000134000000000000000">
+<TT>pin.h</TT></A>
+</H2>
+
+<P>
+<TT>pin.h</TT> provides a set of very handy macros that allow to use the bit of each port thru symbolic names. This header has been written by Josef Pavlik.
+
+<P>
+The first step to use them is to specify the logical name of each bit to be used. The general form of this specification is:
+<PRE>
+#define &lt;logical name&gt; &lt;port name&gt;&lt;bit number&gt;
+</PRE>
+for example, the following declare <TT>LED</TT> to be the logical name corresponding to the bit <TT>3</TT> of port <TT>C</TT>.
+<PRE>
+#define LED PORTC3
+</PRE>
+Such a logical name can be defined for ports <TT>A,B,C,D</TT> or <TT>E</TT> and must be used with the following macros:
+
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="LEFT"><B>Macro           </B></TD>
+<TD ALIGN="LEFT"><B>Role</B></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_SET_INPUT(name)</code></TD>
+<TD ALIGN="LEFT">declare <TT>name</TT> as input bit</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_SET_OUTPUT(name)</code></TD>
+<TD ALIGN="LEFT">declare <TT>name</TT> as output bit</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_SET_OUTPUT0(name)</code></TD>
+<TD ALIGN="LEFT">declare <TT>name</TT> as output bit, and force it to 0</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_SET_OUTPUT1(name)</code></TD>
+<TD ALIGN="LEFT">declare <TT>name</TT> as output bit, and force it to 1</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_SET(name)</code></TD>
+<TD ALIGN="LEFT">force <TT>name</TT> to 1</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_1(name)</code></TD>
+<TD ALIGN="LEFT">synonym for <TT>PIN_SET</TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_CLR(name)</code></TD>
+<TD ALIGN="LEFT">force  <TT>name</TT> to 0</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_0(name)</code></TD>
+<TD ALIGN="LEFT">synonym for <TT>PIN_CLR</TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_TOGGLE(name)</code></TD>
+<TD ALIGN="LEFT">toggle  <TT>name</TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_READ(name)</code></TD>
+<TD ALIGN="LEFT">return 0 when <TT>name</TT> is clear, else return a non-nul value</TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_TST(name)</code></TD>
+<TD ALIGN="LEFT">synonym for <TT>PIN_READ</TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><code>PIN_WRITE(name,value)</code></TD>
+<TD ALIGN="LEFT">clear <TT>name</TT> when value is 0, else set it</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1087"
+  HREF="node70.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1083"
+  HREF="node65.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1077"
+  HREF="node68.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1085"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1088"
+  HREF="node70.html">stdarg.h</A>
+<B> Up:</B> <A NAME="tex2html1084"
+  HREF="node65.html">Headers</A>
+<B> Previous:</B> <A NAME="tex2html1078"
+  HREF="node68.html">macro.h</A>
+ &nbsp; <B>  <A NAME="tex2html1086"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+AG
+2013-04-10
+</ADDRESS>
+</BODY>
+</HTML>

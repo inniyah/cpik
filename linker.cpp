@@ -450,26 +450,37 @@ bool Linker::isFound ( const string& n )
  search for information about a specific memory zone
  in the lnk device file
  returns true is information found, else false
+
+ Since gputils 1.0.0, it is tricky to read this file
+ because it must be preprocessed.
+ Hopefully the non relevant lines contain symbolic values that will make the
+ line decoding to fail : these lines will be ignored
 */
 bool Linker::getDeviceMap ( const string& key, int& min, int& max )
 {
   string name ( deviceName(),1 )  ; // remove the first letter (p)
-  name = Portability::cpikLkrDir() +Portability::dirSeparator() +name+".lkr" ;
+  // uses .lkr files from gputils 1.0.0
+  name = Portability::cpikLkrDir() +Portability::dirSeparator() +name+"_g.lkr" ;
 
   ifstream in ( name.c_str() ) ;
 
   if ( in.is_open() )
   {
     string line ;
-    char zone[30]  ;
+    char zone[30], codepage[30] ;
+
     int mini, maxi ;
 
     for ( ; getline ( in, line ) ; )
     {
-      int k = sscanf ( line.c_str(), "%*s%*[ \t]NAME=%29s%*[ \n]START=0x%x%*[ \n]END=0x%x", zone, &mini,&maxi ) ;
-      if ( k == 3 && key==zone )
+//        CODEPAGE   NAME=page       START=0x0               END=0x7FF7
+      int k = sscanf ( line.c_str(),
+           "%29s%*[ \t]NAME=%29s%*[ \n]START=0x%x%*[ \n]END=0x%x",
+          codepage,  zone, &mini,&maxi ) ;
+      if ( k == 4 && key==zone  && string(codepage) == "CODEPAGE")
       {
         // found !!
+ //         cout << "memory information found in " << name << endl ;
         min = mini ; max = maxi ; return true ;
       }
     }

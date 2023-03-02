@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>What is new in version 0.7.2 ?</TITLE>
+<META NAME="description" CONTENT="What is new in version 0.7.2 ?">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node4.html">
+<LINK REL="previous" HREF="node2.html">
+<LINK REL="up" HREF="cpik-doc.html">
+<LINK REL="next" HREF="node4.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html233"
+  HREF="node4.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html229"
+  HREF="cpik-doc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html223"
+  HREF="node2.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html231"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html234"
+  HREF="node4.html">What is new in</A>
+<B> Up:</B> <A NAME="tex2html230"
+  HREF="cpik-doc.html">cpik C compiler for</A>
+<B> Previous:</B> <A NAME="tex2html224"
+  HREF="node2.html">Introduction</A>
+ &nbsp; <B>  <A NAME="tex2html232"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00030000000000000000">
+What is new in version 0.7.2 ?</A>
+</H1>
+
+<P>
+
+<OL>
+<LI><B>Support for <TT>CONFIG</TT> directive</B> 
+<BR>
+The old &#171;<code>_CONFIGxy value</code>&#187; assembler directive was deprecated for several years, but was still supported by <TT>gpasm</TT> with a warning message. Unfortunately, the <TT>.inc</TT> files coming with new PIC18 devices don't define the <TT>CONFIGxy</TT> symbols anymore, so the <code>_CONFIG</code> directive cannot be used for these devices.
+
+<P>
+This is why <TT>cpik</TT> now offers a new pragma that allows to use the new <TT>CONFIG</TT> directive&nbsp;:
+<PRE>
+#pragma config key=symbol,...
+</PRE>
+
+<P>
+Please refer to the section <A HREF="node56.html#new-config">10.12.7</A> for details.
+
+<P>
+Note that the new pragma is also supported by pikdev 1.4, the new version of my IDE.
+
+<P>
+</LI>
+<LI><B>New supported devices</B>
+<BR><TT>cpik</TT> now supports all the PIC18 devices that are supported by the new <TT>gputils&nbsp;1.0.0</TT> suite. It means that many new device-headers  are provided.
+
+<P>
+</LI>
+<LI><B>Support for devices with SFR out of access bank</B> 
+<BR>
+Some (rare) new devices contain Special Function Registers that cannot be reached in access bank<A NAME="tex2html1"
+  HREF="footnode.html#foot79"><SUP><SPAN CLASS="arabic">1</SPAN></SUP></A>. Such devices did not exist when <TT>cpik</TT> has been designed, so the generated code was wrong for them. The fix 
+for this issue has been to change the <TT>firstsfr</TT> pragma in device-header files.
+A new version of the <TT>inc2h</TT> utility has been written for this purpose.
+See section <A HREF="node103.html#inc2h">19</A> for details.
+
+<P>
+</LI>
+<LI><B>Bug fix in structure support</B>
+<BR>
+The code generated for some access to structure members was wrong, due to a missing pair of parentheses.
+
+<P>
+</LI>
+<LI><B>Other minor bug fixes</B>
+</LI>
+</OL>
+
+<P>
+Thank you to Jon Hilt who has reported the two previous problems, and fixed one of them.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html233"
+  HREF="node4.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html229"
+  HREF="cpik-doc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html223"
+  HREF="node2.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html231"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html234"
+  HREF="node4.html">What is new in</A>
+<B> Up:</B> <A NAME="tex2html230"
+  HREF="cpik-doc.html">cpik C compiler for</A>
+<B> Previous:</B> <A NAME="tex2html224"
+  HREF="node2.html">Introduction</A>
+ &nbsp; <B>  <A NAME="tex2html232"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+AG
+2013-04-10
+</ADDRESS>
+</BODY>
+</HTML>

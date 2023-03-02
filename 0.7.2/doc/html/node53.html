@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Interrupt service routines</TITLE>
+<META NAME="description" CONTENT="Interrupt service routines">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="next" HREF="node54.html">
+<LINK REL="previous" HREF="node52.html">
+<LINK REL="up" HREF="node49.html">
+<LINK REL="next" HREF="node54.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html886"
+  HREF="node54.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html882"
+  HREF="node49.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html876"
+  HREF="node52.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html884"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html887"
+  HREF="node54.html">Why and how to</A>
+<B> Up:</B> <A NAME="tex2html883"
+  HREF="node49.html">Extensions</A>
+<B> Previous:</B> <A NAME="tex2html877"
+  HREF="node52.html">Assembler code</A>
+ &nbsp; <B>  <A NAME="tex2html885"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION0001112400000000000000"></A>
+<A NAME="ISR"></A>
+<BR>
+Interrupt service routines
+</H3>
+Two empty interrupt service routines are provided by the run-time library <BR>
+(<TT>/usr/share/cpik/&lt;version&gt;/lib/rtl.slb</TT>).
+
+<UL>
+<LI><code>hi_pri_ISR</code> for high priority interrupts,
+</LI>
+<LI><code>lo_pri_ISR</code> for low priority interrupts.
+</LI>
+</UL>
+
+<P>
+A user specific interrupt service routine can be written at C level by using 
+the (non-standard) <code>__interrupt__</code> keyword:
+<PRE>
+__interrupt__ void hi_pri_ISR()
+{
+  /* interrupt service code */
+}
+</PRE>
+Note that this routine will replace the default one, because user libraries are scanned before <code>rtl.slb</code>.
+
+<P>
+The keyword  <code>__interrupt__</code> insures that 
+
+<P>
+
+<UL>
+<LI>
+<TT>W, BSR, FSR1, FSR2,  STATUS</TT>, registers are properly saved and restored
+on the data stack. <TT>FSR0</TT> is not saved because it is the stack pointer itself.
+
+<P>
+
+</LI>
+<LI> <TT>retfie 0</TT> is used as return instruction instead of <code>return 0</code> <A NAME="tex2html14"
+  HREF="footnode.html#foot1398"><SUP><SPAN CLASS="arabic">13</SPAN></SUP></A>.
+
+<P>
+</LI>
+</UL>
+
+<P>
+The body of an ISR routine can be written in pure assembly language, using the <code>__asm__</code> directive.
+
+<P>
+In this case, all previously mentionned registers can be freely altered, as long as  <TT>FSR0</TT> (the software stack pointer) is not altered when the ISR exits<A NAME="tex2html15"
+  HREF="footnode.html#foot684"><SUP><SPAN CLASS="arabic">14</SPAN></SUP></A>.
+<BR>
+<P>
+When the interrupt code is written in C (or mix of C and asm code), registers used by the run-time library and user code <B>must be saved and restored using the <code>SAVE_REGS</code> and <code>RESTORE_REGS</code> macros</B>. Here is a typical example:
+<PRE>
+__interrupt__ void hi_pri_ISR()
+{ 
+   SAVE_REGS ;  /* MANDATORY */
+
+   if (INTCON &amp; (1 &lt;&lt; TMR0IF))
+   { // IT has occured on timer 0
+      timer0_ISR() ; // any code can be used here
+   }
+
+   RESTORE_REGS ; /* MANDATORY */
+}
+</PRE>
+
+<P>
+The <TT>SAVE_REGS</TT> and <TT>RESTORE_REGS</TT> macro are defined in the <TT>&lt;interrupt.h&gt;</TT> header, that should be included. These macros save the registers that are used by integer arthmetic routines, but <I>do not</I> save the registers that are used for floating point calculation. For this reason, <I>do not use</I> floating point data in an interrupt routine. However, if you really need to handle FP data in an interrupt routine, it is easy to write your own macro to save the FP context. See section <A HREF="node18.html#memory-layout">9.2</A> for details about the registers usage.
+
+<P>
+It is possible to take a full control of context saving. In this case, just omit the  <code>__interrupt__</code> keyword and insert  yourself the code you need with  <code>__asm__</code> instructions. Beware! in this case you must know what you are doing.
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html886"
+  HREF="node54.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html882"
+  HREF="node49.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html876"
+  HREF="node52.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html884"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html887"
+  HREF="node54.html">Why and how to</A>
+<B> Up:</B> <A NAME="tex2html883"
+  HREF="node49.html">Extensions</A>
+<B> Previous:</B> <A NAME="tex2html877"
+  HREF="node52.html">Assembler code</A>
+ &nbsp; <B>  <A NAME="tex2html885"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+AG
+2013-04-10
+</ADDRESS>
+</BODY>
+</HTML>

@@ -70,7 +70,9 @@ bool File::getLine()
 		}
 		else if ( sscanf ( buffer.c_str() ,"#pragma %s %[^\n]", key,value ) == 2 )
 		{
-			c18.pragmas() [key] = value ; 	++current_line ;
+                        c18.pragmas().insert(pair<string,string>(key,value)) ;
+                        //c18.pragmas() [key] = value ;
+                        ++current_line ;
 		}
 		return getLine() ;
 	}

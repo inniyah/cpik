@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>cpik under Windows</TITLE>
+<META NAME="description" CONTENT="cpik under Windows">
+<META NAME="keywords" CONTENT="cpik-doc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cpik-doc.css">
+
+<LINK REL="previous" HREF="node10.html">
+<LINK REL="up" HREF="node8.html">
+<LINK REL="next" HREF="node12.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html330"
+  HREF="node12.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html326"
+  HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html322"
+  HREF="node10.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html328"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html331"
+  HREF="node12.html">Command syntax</A>
+<B> Up:</B> <A NAME="tex2html327"
+  HREF="node8.html">Installation of cpik</A>
+<B> Previous:</B> <A NAME="tex2html323"
+  HREF="node10.html">Build using qmake</A>
+ &nbsp; <B>  <A NAME="tex2html329"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00083000000000000000">
+<TT>cpik</TT> under Windows</A>
+</H2>
+
+<P>
+<TT>cpik</TT> can be built under Windows, using the <TT>qmake</TT> tool and the gcc for windows toolchain.
+No installation procedure is provided but you can
+use the   following instructions to install to the   <code>C:\cpik</code> directory:
+
+<P>
+
+<OL>
+<LI><TT>qmake -o Makefile cpik&lt;version&gt;.pro</TT>
+</LI>
+<LI><TT>make</TT>
+</LI>
+<LI>Copy the directory <TT>0.6.0</TT> to  <code>C:\cpik</code>
+</LI>
+<LI>Create a <code>C:\cpik\bin</code> directory 
+</LI>
+<LI>Copy the <TT>cpik&lt;version&gt;</TT> executable to  <code>C:\cpik\bin</code>
+</LI>
+</OL>
+
+<P>
+Do not copy the executable to any other place, because <TT>cpik</TT> uses its own location to find the files it needs.
+
+<P>
+
+<BR><HR>
+<ADDRESS>
+AG
+2013-04-10
+</ADDRESS>
+</BODY>
+</HTML>
