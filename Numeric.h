@@ -46,6 +46,9 @@ class Numeric
     operator bool() const ; // true if not a nan
     int32_t value() const;
 
+    // assignment operator
+    Numeric& operator=( const Numeric& n );
+
     // binary  operators
     Numeric operator* ( const Numeric& ) const ;
     Numeric operator/ ( const Numeric& ) const ;

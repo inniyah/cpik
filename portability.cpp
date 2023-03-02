@@ -35,7 +35,7 @@ string Portability::cpikDir()
   if ( size != 0 ) // security against GetModuleFileNameA() failure
   {
     char* c = buffer + size ;
-	// eliminer \nom_programme
+    // eliminer \nom_programme
     while ( ( *c != '\\' ) && ( *c != ':' ) && (c > buffer) ) --c; 
     *c = 0; //Marquer la fin de la chaine pointee par buffer
     //enlever \bin (repertoire parent)
@@ -47,7 +47,7 @@ string Portability::cpikDir()
 #if defined PREFIX
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
-	return QUOTE(PREFIX) ;
+  return QUOTE(PREFIX) ;
 #undef QUOTE
 #undef QUOTE_
 #else

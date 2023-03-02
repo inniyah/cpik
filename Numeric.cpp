@@ -134,6 +134,17 @@ Numeric::operator float() const
     return ( float ) value_ ;
 }
 /**
+ Universal = operator
+*/
+Numeric& Numeric::operator=( const Numeric& n )
+{
+  value_ = n.value_  ;
+  is_float_ = n.is_float_ ;
+  is_unsigned_ = n.is_unsigned_ ;
+  is_nan_ = false ;
+  return *this;
+}
+/**
  Universal * operator
 */
 Numeric Numeric::operator* ( const Numeric& r ) const

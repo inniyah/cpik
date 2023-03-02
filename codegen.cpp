@@ -5566,6 +5566,7 @@ void CodeGen::emitStackToBF ( Centity& e, int  off,  int sz , bool dopop )
         {
         case 2:
             gen ( "rlncf WREG,F,0" ) ; // intentionally no break
+            // fall through
         case 1:
             gen ( "rlncf WREG,F,0" ) ; break ;
         case 4:
@@ -5900,6 +5901,7 @@ void CodeGen::emitUnpackUBF ( int offset, int size )
     case 0: break ;
     case 2:
         gen ( "rrncf INDF0,F,0" ) ; // no break ;
+        // fall through
     case 1:
         gen ( "rrncf INDF0,F,0" ) ; break ;
     case 3:
@@ -5912,6 +5914,7 @@ void CodeGen::emitUnpackUBF ( int offset, int size )
         gen ( "rrncf INDF0,F,0" ) ; break ;
     case 6:
         gen ( "rlncf INDF0,F,0" ) ;// no break ;
+        // fall through
     case 7:
         gen ( "rlncf INDF0,F,0" ) ; break ;
     }
@@ -5946,6 +5949,7 @@ void CodeGen::emitUnpackBF ( int offset, int size )
         case 0: break ;
         case 2:
             gen ( "rrncf INDF0,F,0" ) ; // no break ;
+            // fall through
         case 1:
             gen ( "rrncf INDF0,F,0" ) ; break ;
         case 3:
@@ -5958,6 +5962,7 @@ void CodeGen::emitUnpackBF ( int offset, int size )
             gen ( "rrncf INDF0,F,0" ) ; break ;
         case 6:
             gen ( "rlncf INDF0,F,0" ) ;
+            // fall through
         case 7:
             gen ( "rlncf INDF0,F,0" ) ; break ;
         }

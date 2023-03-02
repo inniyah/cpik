@@ -34,11 +34,11 @@ xtype.cpp \
 utility.cpp \
 whileinstr.cpp \
 switchinstr.cpp \
- structmember.cpp \
- initializer.cpp \
- portability.cpp \
- assembler_optimizer.cpp \
- Numeric.cpp
+structmember.cpp \
+initializer.cpp \
+portability.cpp \
+assembler_optimizer.cpp \
+Numeric.cpp
 
 
 HEADERS += asminstr.h \
@@ -74,11 +74,11 @@ xtype.h \
 utility.h \
 whileinstr.h \
 switchinstr.h \
- structmember.h \
- initializer.h \
- portability.h \
- assembler_optimizer.h \
- Numeric.h
+structmember.h \
+initializer.h \
+portability.h \
+assembler_optimizer.h \
+Numeric.h
 
 
 TEMPLATE = app
@@ -105,7 +105,7 @@ unix {
     TARGET = cpik-$${cpik_version}
 
     count(PREFIX,1) {
-	target.path = $$PREFIX/bin
+        target.path = $$PREFIX/bin
     }
     isEmpty(PREFIX) {
         PREFIX = /usr/share/cpik/$${cpik_version}
@@ -145,4 +145,3 @@ win32 {
     TARGET = cpik-$${cpik_version}
     target.path = C:/cpik/$${cpik_version}/bin/
 }
-

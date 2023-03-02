@@ -256,12 +256,12 @@ bool Lexer::fnumber ( float& f )
         buf += gch() ;
       }
       if ( ch() == 'f' || ch() == 'F' ) gch() ; // optional
-      if ( nexp ) return utility::stringTo<float>( buf,f ) ;
+      if ( nexp ) return utility::stringTo<float>( buf, f ) ;
     }
     else 
     {
       if ( ch() == 'f' || ch() == 'F' ) gch() ; // optional
-      bool b = utility::stringTo<float>( buf,f ) ;
+      bool b = utility::stringTo<float>( buf, f ) ;
       return b ;
     }
   }

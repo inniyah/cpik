@@ -42,7 +42,7 @@ void type::dump ( ostream& os )
 {
     list<StructMember>::iterator mi ;
 
-    if ( this == 0 )
+    if ( this == NULL )
     {
         os << "NULL type" ;
         return ;

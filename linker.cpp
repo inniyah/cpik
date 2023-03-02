@@ -305,8 +305,8 @@ const char * Linker::makeProlog()
   _out << "; (alain.gibaud@free.fr)" << endl ;
   _out << ";" << endl ;
 
-  _out << "\tPROCESSOR  "<<   deviceName()  << endl ;
-  _out << "\tinclude \"" <<  deviceName() << ".inc\"" <<endl ;
+  _out << "\tPROCESSOR  "<< deviceName() << endl ;
+  _out << "\tinclude \"" << deviceName() << ".inc\"" <<endl ;
 
   return includeFile ( "cpik.prolog" ) ? 0 : "Can't open \"cpik.prolog\"" ;
 }

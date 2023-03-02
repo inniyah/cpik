@@ -750,6 +750,7 @@ const char * Cexpr::propagateTypes()
 
     case Aff:
         if ( s0->constness()) return "Assignment to constant.";
+        // fall through
     case AffInit:
         exprType() = s0 ;
 
@@ -785,7 +786,6 @@ const char * Cexpr::propagateTypes()
 
         if ( s0->isIntegral() && s1->isDereferencable() )
             return "Assignment makes integer from pointer without a cast." ;
-
 
         break ;
 
@@ -1461,6 +1461,7 @@ const char * Cexpr::makeCasts()
             return utility::setMessage ( msg ) ;
         }
         // !!! intentionally no break here
+        // fall through
 
     case AffInit: // ++Gib
         // affectation from non pointer to pointer is forbidden

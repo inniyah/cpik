@@ -1,7 +1,7 @@
 /***************************************************************************
                           utility.h  -  description
                              -------------------
-    begin                : mer déc 8 2004
+    begin                : mer dec 8 2004
     copyright            : (C) 2004 by Gibaud Alain
     email                : alain.gibaud@free.fr
  ***************************************************************************/
@@ -75,7 +75,8 @@ class utility
     static bool stringTo ( const string& s, T& result )
     {
       istringstream is ( s ) ;
-      return is >> result ;
+      is >> result ;
+      return !is.fail() ;
     }
 
     /** generic conversion from T to string  */
