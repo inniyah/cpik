@@ -1,0 +1,161 @@
+<!DOCTYPE Project SYSTEM "http://www.slickedit.com/dtd/vse/8.1/vpj.dtd">
+<Project
+	Version="8.1"
+	VendorName="SlickEdit"
+	WorkingDir=".">
+	<Config
+		Name="Release"
+		OutputFile="">
+		<Menu>
+			<Target
+				Name="Compile"
+				MenuCaption="&amp;Compile"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveCurrent"
+				RunFromDir="%rw">
+				<Exec/>
+			</Target>
+			<Target
+				Name="Build"
+				MenuCaption="&amp;Build"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec CmdLine="make"/>
+			</Target>
+			<Target
+				Name="Rebuild"
+				MenuCaption="&amp;Rebuild"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec/>
+			</Target>
+			<Target
+				Name="Debug"
+				MenuCaption="&amp;Debug"
+				SaveOption="SaveNone"
+				RunFromDir="%rw">
+				<Exec/>
+			</Target>
+			<Target
+				Name="Execute"
+				MenuCaption="E&amp;xecute"
+				SaveOption="SaveNone"
+				RunFromDir="%rw">
+				<Exec CmdLine='"cpik.exe"'/>
+			</Target>
+		</Menu>
+	</Config>
+	<Files>
+		<Folder
+			Name="Source Files"
+			Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl">
+			<F N="asminstr.cpp"/>
+			<F N="assembler_optimizer.cpp"/>
+			<F N="breakinstr.cpp"/>
+			<F N="centity.cpp"/>
+			<F N="cexpr.cpp"/>
+			<F N="codegen.cpp"/>
+			<F N="compiler.cpp"/>
+			<F N="continueinstr.cpp"/>
+			<F N="dowhileinstr.cpp"/>
+			<F N="entity.cpp"/>
+			<F N="exprinstr.cpp"/>
+			<F N="fctctx.cpp"/>
+			<F N="file.cpp"/>
+			<F N="flatten.cpp"/>
+			<F N="forinstr.cpp"/>
+			<F N="gotoinstr.cpp"/>
+			<F N="ifinstr.cpp"/>
+			<F N="initializer.cpp"/>
+			<F N="instruction.cpp"/>
+			<F N="lexer.cpp"/>
+			<F N="linker.cpp"/>
+			<F N="locator.cpp"/>
+			<F N="main.cpp"/>
+			<F N="Numeric.cpp"/>
+			<F N="operation.cpp"/>
+			<F N="optimizer.cpp"/>
+			<F N="parser.cpp"/>
+			<F N="portability.cpp"/>
+			<F N="resultlocation.cpp"/>
+			<F N="returninstr.cpp"/>
+			<F N="staticbuffer.cpp"/>
+			<F N="stringlist.cpp"/>
+			<F N="structmember.cpp"/>
+			<F N="switchinstr.cpp"/>
+			<F N="symtab.cpp"/>
+			<F N="utility.cpp"/>
+			<F N="whileinstr.cpp"/>
+			<F N="xctype.cpp"/>
+			<F N="xtype.cpp"/>
+		</Folder>
+		<Folder
+			Name="Header Files"
+			Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.inc;*.sh;*.cpy;*.if">
+			<F N="asminstr.h"/>
+			<F N="assembler_optimizer.h"/>
+			<F N="breakinstr.h"/>
+			<F N="centity.h"/>
+			<F N="cexpr.h"/>
+			<F N="codegen.h"/>
+			<F N="compiler.h"/>
+			<F N="continueinstr.h"/>
+			<F N="dowhileinstr.h"/>
+			<F N="entity.h"/>
+			<F N="exprinstr.h"/>
+			<F N="fctctx.h"/>
+			<F N="file.h"/>
+			<F N="flatten.h"/>
+			<F N="forinstr.h"/>
+			<F N="gotoinstr.h"/>
+			<F N="ifinstr.h"/>
+			<F N="initializer.h"/>
+			<F N="instruction.h"/>
+			<F N="lexer.h"/>
+			<F N="linker.h"/>
+			<F N="locator.h"/>
+			<F N="Numeric.h"/>
+			<F N="operation.h"/>
+			<F N="parser.h"/>
+			<F N="portability.h"/>
+			<F N="position.h"/>
+			<F N="resultlocation.h"/>
+			<F N="returninstr.h"/>
+			<F N="staticbuffer.h"/>
+			<F N="stringlist.h"/>
+			<F N="structmember.h"/>
+			<F N="switchinstr.h"/>
+			<F N="symtab.h"/>
+			<F N="utility.h"/>
+			<F N="whileinstr.h"/>
+			<F N="xctype.h"/>
+			<F N="xtype.h"/>
+		</Folder>
+		<Folder
+			Name="Resource Files"
+			Filters="*.ico;*.cur;*.dlg"/>
+		<Folder
+			Name="Bitmaps"
+			Filters="*.bmp"/>
+		<Folder
+			Name="Other Files"
+			Filters="">
+			<F N="Changelog"/>
+			<F N="0.7.1/lib/cpik.prolog"/>
+			<F N="cpik052.pro"/>
+			<F N="0.7.1/lib/float.slb"/>
+			<F N="0.7.1/lib/lcd.slb"/>
+			<F
+				N="Makefile"
+				Type="Makefile"/>
+			<F N="0.7.1/lib/math.slb"/>
+			<F N="notes.txt"/>
+			<F N="0.7.1/lib/rtl.slb"/>
+			<F N="0.7.1/lib/stdio-small.slb"/>
+			<F N="0.7.1/lib/stdio.slb"/>
+			<F N="0.7.1/lib/stdlib.slb"/>
+		</Folder>
+	</Files>
+</Project>

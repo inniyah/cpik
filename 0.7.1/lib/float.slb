@@ -1,0 +1,1408 @@
+
+;
+; floating point library for cpik 0.6.x
+; -------------------------------------
+;
+
+;   Copyright (C) 2011, Alain Gibaud   alain.gibaud@free.fr
+;   ------------------------------------------------------- 
+;   This library is free software; you can redistribute it and/or modify it
+;   under the terms of the GNU General Public License as published by the
+;   Free Software Foundation; either version 2.1, or (at your option) any
+;   later version.
+ 
+;   This library is distributed in the hope that it will be useful,
+;   but WITHOUT ANY WARRANTY; without even the implied warranty of
+;   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;   GNU General Public License for more details.
+ 
+;  You should have received a copy of the GNU General Public License 
+;   along with this library; see the file COPYING. If not, write to the
+;   Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
+;   MA 02110-1301, USA.
+ 
+;   As a special exception, if you link this library with other files,
+;   some of which are compiled with CPIK, to produce an executable,
+;   this library does not by itself cause the resulting executable to
+;   be covered by the GNU General Public License. This exception does
+;   not however invalidate any other reasons why the executable file
+;   might be covered by the GNU General Public License.
+
+
+; ----------------------------------
+; USED MACROS
+; ----------------------------------
+
+;  Branch to "target" if "reg1" < "reg2"
+;  (compute 32 bit signed result)
+;  Only works when no overflow 
+;  (so it's OK for 23 bit mantissa)
+; Note: W corrupted
+;
+BLT32 macro reg1,reg2,target
+  movf reg2+0,W,0 ; reg1<reg2 <=> (reg1-reg2)<0
+  subwf reg1+0,W,0
+  movf reg2+1,W,0
+  subwfb reg1+1,W,0
+  movf reg2+2,W,0
+  subwfb reg1+2,W,0
+  movf reg2+3,W,0
+  subwfb reg1+3,W,0
+  btfsc WREG,7,0 ; test sign bit
+  bra target 
+  endm
+  
+;  Skip next instruction if "reg1" < "reg2"
+;  (compute 32 bit signed result)
+;  Only works when no overflow 
+;  (so it's OK for 23 bit mantissa)
+; Note: W corrupted
+;
+SLT32 macro reg1,reg2
+  movf reg2+0,W,0 ; reg1<reg2 <=> (reg1-reg2)<0
+  subwf reg1+0,W,0
+  movf reg2+1,W,0
+  subwfb reg1+1,W,0
+  movf reg2+2,W,0
+  subwfb reg1+2,W,0
+  movf reg2+3,W,0
+  subwfb reg1+3,W,0
+  btfss WREG,7,0 ; test sign bit
+  endm
+;
+;  Branch to "target" if "reg" != 0
+;
+BNZ32 macro reg,target
+  movf reg+0,W,0
+  iorwf reg+1,W,0
+  iorwf reg+2,W,0
+  iorwf reg+3,W,0
+  bnz target
+  endm
+;
+;  Branch to "target" if "reg" != 0.0
+;  detection of FP negative zero
+;  (***  -0 == 0x80000000 ****)
+BNZF32 macro reg,target
+  movf reg+0,W,0
+  iorwf reg+1,W,0
+  iorwf reg+2,W,0
+  bnz target
+  iorwf reg+3,W,0
+  bcf WREG,7,0 ; mask b7
+  bnz target
+  endm
+;
+;  Branch to "target" if "reg" != 0
+;
+BZ32 macro reg,target
+  movf reg+0,W,0
+  iorwf reg+1,W,0
+  iorwf reg+2,W,0
+  iorwf reg+3,W,0
+  bz target
+  endm
+;
+; clear "dst"
+;
+CLR32 macro dst
+  clrf dst+0,0
+  clrf dst+1,0
+  clrf dst+2,0
+  clrf dst+3,0
+  endm
+;
+; Load "dst" from "src"
+;
+LOAD32 macro dst,src
+  movff src+0,dst+0
+  movff src+1,dst+1
+  movff src+2,dst+2
+  movff src+3,dst+3
+  endm
+;
+; Extract the exponent from "src" 
+; and store it in "dst" byte
+;
+LOADEXP macro dst,src
+  movff src+3,dst
+  bcf STATUS,0,0
+  rlcf dst,F,0 ; discard sign bit and clears b0
+  btfsc src+2,7,0 ; copy src b23 to b0
+  bsf  dst,0,0
+  endm
+;
+;  "reg" = -"reg"
+;
+NEG32 macro reg
+  bsf STATUS,0,0 ; set C
+  clrf WREG,0
+  subfwb reg+0,1,0
+  subfwb reg+1,1,0
+  subfwb reg+2,1,0
+  subfwb reg+3,1,0
+  endm
+
+;
+; branch to "label" if !(aa > bb+25)
+; aa and bb are 8 bit, unsigned 
+;  PRODL corrupted
+;
+NOT_AsupBp25 macro aa,bb,label
+ movf bb,W,0 ; W=bb
+ cpfsgt aa,0 ; computes unsigned aa-bb 
+ bra label ; aa <= bb, cond cannot be satisfied
+ ; here aa > bb
+ subwf aa,W,0 ; W=aa-bb (result always positive)
+ movwf PRODL,0
+ movlw 25
+ cpfsgt PRODL,0
+ bra label ; (aa-bb) <= 25
+; (aa-bb) > 25
+ endm
+
+; 
+; branch to "label" if !(aa > bb)
+; aa and bb are unsigned 8bit
+;
+NOT_AsupB macro aa,bb,label
+ movf bb,W,0 ; W=bb
+ cpfsgt aa,0 ; 
+ bra label ; aa <= bb
+ ; here, aa > bb
+ endm
+; 
+; shift "reg" one bit right 
+; (W not destoyed)
+; ***this a signed shift !! ****
+SHIFTR32 macro reg
+  bcf STATUS,0,0 ; copy b7 to carry
+  btfsc reg+3,7,0
+  bsf STATUS,0,0 ; done
+  rrcf reg+3,F,0
+  rrcf reg+2,F,0
+  rrcf reg+1,F,0
+  rrcf reg+0,F,0
+  endm
+; 
+; shift "reg" one bit right 
+; (W not destoyed)
+; ***UNsigned shift !! ****
+SHIFTR32U macro reg
+  bcf STATUS,0,0 ; copy b7 to carry
+  rrcf reg+3,F,0
+  rrcf reg+2,F,0
+  rrcf reg+1,F,0
+  rrcf reg+0,F,0
+  endm
+; 
+; shift "reg" one bit left
+; (W not destroyed)
+SHIFTL32 macro reg
+  bcf STATUS,0,0 ; clear carry
+  rlcf reg+0,F,0
+  rlcf reg+1,F,0
+  rlcf reg+2,F,0
+  rlcf reg+3,F,0
+  endm
+;
+; add constant "K" to "reg"
+;
+ADD_K_32 macro reg,K
+  movlw K
+  addwf reg+0,F,0
+  movlw 0
+  addwfc reg+1,F,0
+  addwfc reg+2,F,0
+  addwfc reg+3,F,0
+  endm
+
+
+; ----------------------------------
+; low-level routines
+; ----------------------------------
+
+;<+zfpadd32>
+; F1 = F1+F2            TESTED: OK
+zfpadd32
+
+  BNZF32 F1,fpadd32_1
+
+  LOAD32 F1,F2
+  BNZF32 F1,fpadd32_20
+
+  bcf F1+3,7,0
+fpadd32_20
+  return 0
+fpadd32_1
+
+
+  BNZF32 F2,fpadd32_2
+  return 0
+fpadd32_2
+; save exponent to 8 bit integer
+
+  LOADEXP F1_EXP,F1
+  LOADEXP F2_EXP,F2
+
+   NOT_AsupBp25 F1_EXP, F2_EXP,fpadd32_3
+  return 0 
+fpadd32_3
+
+  NOT_AsupBp25 F2_EXP, F1_EXP, fpadd32_4
+  LOAD32 F1,F2
+  return 0 
+fpadd32_4
+
+
+  clrf F1_SIGN,0
+  btfsc F1+3,7,0
+  bsf F1_SIGN,7,0
+
+  clrf F2_SIGN,0
+  btfsc F2+3,7,0
+  bsf F2_SIGN,7,0
+
+  clrf F1+3
+  bsf F1+2,7,0
+
+  clrf F2+3
+  bsf F2+2,7,0
+
+  btfss F1_SIGN,7,0
+  bra fpadd32_5
+  NEG32 F1
+  clrf F1_SIGN,0
+fpadd32_5
+
+  btfss F2_SIGN,7,0
+  bra fpadd32_6
+  NEG32 F2
+fpadd32_6
+
+
+  NOT_AsupB F1_EXP, F2_EXP, fpadd32_7
+  movf F2_EXP,W
+  subwf F1_EXP,W,0 ; W=exp(f1) - exp(f2)
+fpadd32_8
+  decf WREG,W,0
+  bn fpadd32_9
+  SHIFTR32 F2
+  bra fpadd32_8
+fpadd32_7
+  movf F1_EXP,W,0
+  subwf F2_EXP,W,0 ; W=exp(f2) - exp(f1)
+fpadd32_10
+  decf WREG,W,0
+  bn fpadd32_9a
+  SHIFTR32 F1
+  bra fpadd32_10
+fpadd32_9a
+  movff F2_EXP,F1_EXP
+fpadd32_9
+  movf F2+0,W,0
+  addwf F1+0,F,0
+  movf F2+1,W,0
+  addwfc F1+1,F,0
+  movf F2+2,W,0
+  addwfc F1+2,F,0
+  movf F2+3,W,0
+  addwfc F1+3,F,0
+
+  btfss F1+3,7,0
+  bra  fpadd32_11
+  NEG32 F1
+  movlw 0x80
+  movwf F1_SIGN,0
+  bra fpadd32_12
+fpadd32_11
+  BNZ32 F1,fpadd32_12
+  return 0
+
+fpadd32_12
+  movf F1+2,W,0
+  andlw 0x80
+  iorwf F1+3,W,0
+  bnz fpadd32_13
+  SHIFTL32 F1
+  movlw 0xFF
+  addwf F1_EXP,F,0
+  addwfc F1_EXP+1,F,0
+  bra fpadd32_12
+fpadd32_13
+
+
+fpadd32_16
+  movf F1+3,W,0
+  bz fpadd32_14
+  btfss F1+0,0,0
+  bra fpadd32_15
+  ADD_K_32 F1,2
+fpadd32_15
+  SHIFTR32 F1
+  incf F1_EXP,F,0
+  bra fpadd32_16
+fpadd32_14
+
+  bcf F1+2,7,0
+
+
+  movf F1_EXP,W,0
+  bcf STATUS,0,0
+  rrcf WREG,W,0
+  movwf F1+3,0
+
+  btfsc F1_EXP,0,0
+  bsf F1+2,7,0
+
+  movf F1_SIGN,W,0
+  iorwf F1+3,F,0
+; end of fpadd32
+  return 0
+;<->
+
+; F1 = F1-F2   TESTED  -  OK 
+;<+zfpsub32>
+zfpsub32 
+;  /* check for zero args */
+  BNZF32 F2,fpsub32_1
+  BNZF32 F1,fpsub32_3
+  ; here, F1==F2==+-0
+  bcf F1+3,7,0 ; ensure positive zero
+fpsub32_3
+  return 0
+fpsub32_1
+
+  BNZF32 F1,fpsub32_2
+  LOAD32 F1,F2
+  btg F1+3,7,0
+  return 0
+fpsub32_2
+
+  btg F2+3,7,0
+  IBRA zfpadd32
+
+;<?zfpadd32>
+;<->
+
+
+; F1 = F1 * F2   ---   TESTED OK
+;<+zfpmul32>
+zfpmul32
+
+  BNZF32 F1,fpmul_1
+fpmul_2
+  clrf F1+0,0
+  clrf F1+1,0
+  clrf F1+2,0
+  clrf F1+3,0
+  return 0
+fpmul_1  
+  BNZF32 F2,fpmul_3
+  bra fpmul_2
+fpmul_3
+
+  movf F1+3,W,0
+  xorwf F2+3,W,0
+  andlw 0x80
+  movwf F1_SIGN,0
+
+  LOADEXP F1_EXP,F1 ; low byte
+  clrf F1_EXP+1,0 ; hi byte (use F2_EXP)
+  movlw D'126'
+  subwf F1_EXP,F,0
+  movlw 0
+  subwfb F1_EXP+1,F,0
+  LOADEXP WREG,F2
+  addwf F1_EXP,F,0
+  movlw 0
+  addwfc F1_EXP+1,F,0
+
+  clrf F1+3,0
+  bsf F1+2,7,0
+
+  clrf F2+3,0
+  bsf F2+2,7,0
+
+  clrf F3+0,0
+  clrf F3+1,0
+  clrf F3+2,0
+  clrf F3+3,0
+
+  ICALL xmul24_full ; optimized for precision
+
+  btfss F3+3,7,0
+  bra fpmul_4
+  movlw 0x80
+  addwf F3+0,F,0
+  movlw 0
+  addwfc F3+1,F,0
+  addwfc F3+2,F,0
+  addwfc F3+3,F,0
+  movff F3+1,F3
+  movff F3+2,F3+1
+  movff F3+3,F3+2
+  clrf F3+3,0
+  bra fpmul_5
+fpmul_4
+  movlw 0x40
+  addwf F3+0,F,0
+  movlw 0
+  addwfc F3+1,F,0
+  addwfc F3+2,F,0
+  addwfc F3+3,F,0
+
+  rlcf F3+0,F,0 ; b7 -> C
+  movff F3+1,F3+0
+  rlcf F3+0,F,0 ; b7-old -> b0-new and b7-new -> C
+  movff F3+2,F3+1
+  rlcf F3+1,F,0 ; b7-old -> b0-new and b7-new -> C
+  movff F3+3,F3+2
+  rlcf F3+2,F,0 ; b7-old -> b0-new and b7-new -> C
+  clrf F3+3
+  rlcf F3+3,F,0 ; b7-old -> b0-new and b7-new -> C
+
+  setf WREG,0 ; add -1
+  addwf F1_EXP,F,0
+  addwfc F1_EXP+1,F,0
+
+fpmul_5
+  IBRA f32packup
+;<?f32packup>
+;<?xmul24_full>
+;<->
+
+;
+;
+; Implementation of 24 x 24 bit product for FP product, optimized for precision
+; The result is 48 bit wide, but the 16 less significant bits
+; are discarded. However, these bits are computed because they can generate a carry  
+; This implementation is more accurate that the ones that ignore the lower byte
+; of operands (the rounding error resulting from this troncature is multiplied)
+; NOTE: use a temporary byte, allocated on stack
+
+; F1<0-2> * F2<0-2> -> F3<0-3>
+
+;<+xmul24_full>
+xmul24_full
+; populate non-overlapping parts of result
+; A = a2*b2 << 16
+  movf F1+2,W,0
+  mulwf F2+2,0
+  movff PRODL,F3+2
+  movff PRODH,F3+3
+; B = a0 * b2 << 0
+  movf F1+0,W,0
+  mulwf F2+2,0
+  movff PRODL,F3+0
+  movff PRODH,F3+1
+; this part computes low bytes : they are not part of the result
+; but may generate carry, so we have to compute them to get accuracy
+; C = a0 * b0 >> 16
+  mulwf F2+0,0 ; W already loaded 
+  movff PRODH,PREINC0 ; this a temporary 
+; note; PRODL does not impact the result, so ignored
+; D = a0 * b1 >> 8
+  mulwf F2+1,0 ; W already loaded
+  movf PRODL,W,0
+  addwf INDF0,F,0
+  rcall xmul24_full_carry3
+; E = a1 * b0 >> 8
+  movf F1+1,W,0
+  mulwf F2+0,0
+  movf PRODL,W,0
+  addwf POSTDEC0,W,0 ; temporary no longer used past the point
+  rcall xmul24_full_carry3
+
+; F = a1 * b1 << 0
+  movf F1+1,W,0
+  mulwf F2+1,0
+  rcall xmul24_full_carry2
+; G = a2 * b0 << 0
+  movf F1+2,W,0
+  mulwf F2+0,0
+  rcall xmul24_full_carry2
+; H = a1 * b2 << 8
+  movf F1+1,w,0
+  mulwf F2+2,0
+  rcall xmul24_full_carry1
+; I = a2 * b1 << 8
+  movf F1+2,W,0
+  mulwf F2+1,0
+xmul24_full_carry1
+  movf PRODL,W,0
+  addwf F3+1,F,0
+  movf PRODH,W,0
+  addwfc F3+2,F,0
+  movlw 0
+  addwfc F3+3,F,0
+  return 0
+xmul24_full_carry2
+  movf PRODL,W,0
+  addwf F3+0,F,0
+  movf PRODH,W,0
+  addwfc F3+1,F,0
+  movlw 0
+  addwfc F3+2,F,0
+  addwfc F3+3,F,0
+  return 0
+xmul24_full_carry3
+  movf PRODH,W,0
+  addwfc F3+0,F,0
+  movlw 0 
+  addwfc F3+1,F,0
+  addwfc F3+2,F,0
+  addwfc F3+3,F,0
+  return 0
+;<->
+
+
+;
+; Common code for  multiplication and division
+;
+;<+f32packup>
+f32packup
+  bcf F3+2,7,0
+  btfss F1_EXP+1,7,0
+  bra fpmul_6
+  CLR32 F1
+  bra fpmul_7
+fpmul_6
+
+  movf F1_EXP+1,W,0
+  bz fpmul_8
+  clrf F1+0,0
+  clrf F1+1,0
+  movlw 0x80
+  movwf F1+2,0
+  movlw 0x7F
+  movwf F1+3,0
+  movf F1_SIGN,W,0
+  iorwf F1+3,F,0
+  bra fpmul_7
+fpmul_8
+  movff F3+0,F1+0
+  movff F3+1,F1+1
+  movff F3+2,F1+2
+  movf F1_EXP,W,0
+  bcf STATUS,0,0
+  rrcf WREG,W,0
+  movwf F1+3,0
+  btfsc F1_EXP,0,0
+  bsf F1+2,7,0
+  movf F1_SIGN,W,0
+  iorwf F1+3,F,0  
+fpmul_7
+  return 0
+;<->
+
+; F1 = F1 / F2  -- tested OK
+;<+zfpdiv32>
+zfpdiv32
+
+  LOADEXP F1_EXP,F1
+  clrf F1_EXP+1,0
+  LOADEXP WREG,F2
+  subwf F1_EXP+0,F,0
+  movlw 0
+  subwfb F1_EXP+1,F,0
+  movlw D'126'
+  addwf F1_EXP+0,F,0
+  movlw 0
+  addwfc F1_EXP+1,F,0
+
+  movf F1+3,W,0
+  xorwf F2+3,W,0
+  andlw 0x80
+  movwf F1_SIGN,0
+ 
+  BNZ32 F2, fpdiv32_1
+  clrf F1+0,0
+  clrf F1+1,0
+  movlw 0xC0
+  movwf F1+2,0
+  movlw 0x7F
+  movwf F1+3,0
+  return 0
+fpdiv32_1
+
+  BNZ32 F1, fpdiv32_2
+  return 0
+fpdiv32_2
+
+  clrf F1+3,0
+  bsf F1+2,7,0
+
+  clrf F2+3,0
+  bsf F2+2,7,0
+
+  SLT32 F1,F2
+  bra fpdiv32_3
+fpdiv32_4
+  SHIFTL32 F1  
+  movlw 0xFF
+  addwf F1_EXP,F,0
+  addwfc F1_EXP+1,F,0
+fpdiv32_3
+
+  clrf FMASK+0,0
+  clrf FMASK+1,0
+  clrf FMASK+2,0
+  movlw 1
+  movwf FMASK+3,0
+
+  CLR32 F3
+
+
+fpdiv32_20
+  BZ32 FMASK, fpdiv32_6
+  BLT32 F1,F2,fpdiv32_5 
+
+  movf FMASK+0,W,0
+  iorwf F3+0,F,0
+  movf FMASK+1,W,0
+  iorwf F3+1,F,0
+  movf FMASK+2,W,0
+  iorwf F3+2,F,0
+  movf FMASK+3,W,0
+  iorwf F3+3,F,0
+
+  movf F2+0,W,0
+  subwf F1+0,F,0
+  movf F2+1,W,0
+  subwfb F1+1,F,0
+  movf F2+2,W,0
+  subwfb F1+2,F,0
+  movf F2+3,W,0
+  subwfb F1+3,F,0
+
+fpdiv32_5
+
+  SHIFTL32 F1
+
+  SHIFTR32 FMASK
+  bra fpdiv32_20
+
+fpdiv32_6
+
+  incf F3+0,F,0
+  movlw 0
+  addwfc F3+1,F,0
+  addwfc F3+2,F,0
+  addwfc F3+3,F,0
+ 
+  incf F1_EXP+0,F,0
+  addwfc F1_EXP+1,F,0 ; assume that W is already 0
+
+  SHIFTR32 F3
+; this code is common with fmul32's epilogue
+  IBRA f32packup
+;<?f32packup>
+;<-> 
+;
+; ---------------------------------------------
+; Convert int32_t in F1 to float in F1
+; **signed**
+;<+I32toF32>
+I32toF32
+	btfss F1+3,7,0 ; <0 ?
+	IBRA UI32toF32
+	NEG32 F1
+	ICALL UI32toF32
+	bsf F1+3,7,0
+	return 0 
+;<?UI32toF32>
+;<->
+
+;
+; Convert uint32_t in F1 to float in F1
+; **unsigned**
+;<+UI32toF32>
+UI32toF32
+
+	movlw 23+127
+	movwf F1_EXP,0
+	BNZ32 F1, UI32toF32_1
+	return 0
+UI32toF32_1
+  
+UI32toF32_3
+	movf F1+3,W,0
+	bz UI32toF32_2
+	SHIFTR32U F1 
+	incf F1_EXP+0,F,0	
+	bra UI32toF32_3
+UI32toF32_2
+
+UI32toF32_5
+	btfsc F1+2,7,0
+	bra UI32toF32_4
+	SHIFTL32 F1
+	decf  F1_EXP+0,F,0
+	bra UI32toF32_5
+UI32toF32_4  
+	movf F1+0,W,0
+	xorlw 0xff
+	bnz UI32toF32_6
+	movf F1+1,W,0
+	xorlw 0xff
+	bnz UI32toF32_6
+	movf F1+2,W,0
+	andlw 0x7F
+	xorlw 0x7F
+	bnz UI32toF32_6
+	CLR32 F1
+	incf F1_EXP+1,F,0
+UI32toF32_6
+
+	movf F1_EXP+0,W,0
+	movwf F1+3,0
+	bcf STATUS,0,0
+	rrcf F1+3,F,0
+
+	bcf F1+2,7,0
+	btfsc F1_EXP+0,0,0
+	bsf F1+2,7,0
+	return 0
+;}
+;<->
+;
+;
+; Convert float in F1 to uint32_t in F1
+; **signed**
+;<+F32toI32>
+F32toI32
+	BNZF32 F1,F32toI32_1 ; because of negative zero
+	CLR32 F1
+	return 0 
+F32toI32_1
+	btfss F1+3,7,0
+	IBRA F32toUI32 ; >0
+	bcf F1+3,7,0 ; -float
+	ICALL F32toUI32
+	NEG32 F1 ; -long32
+	return  0
+;<?F32toUI32>
+;<->
+
+;
+; Convert float in F1 to uint32_t in F1
+; **unsigned**
+;<+F32toUI32>
+F32toUI32
+  BNZF32 F1,F32toUI32_1
+F32toUI32_12
+  CLR32 F1 
+  return 0
+F32toUI32_1
+  btfsc F1+3,7,0
+  bra  F32toUI32_12
+  LOADEXP F1_EXP+0,F1
+  clrf F1_EXP+1,0
+
+  movlw 0x6A
+  addwf F1_EXP+0,F,0
+  movlw 0xFF
+  addwfc F1_EXP+1,F,0
+
+  clrf F1+3
+  bsf F1+2,7,0
+
+  btfss F1_EXP+0,7,0
+  bra F32toUI32_2
+  movf F1_EXP+0,W,0 ; set Z bit
+F32toUI32_3
+  bz F32toUI32_4
+  SHIFTR32U F1 ; Hi bit is zero, unsigned/signed shift is equivalent
+  incf F1_EXP+0,F,0
+  bra F32toUI32_3
+F32toUI32_2
+
+  movf F1_EXP+0,W,0
+F32toUI32_5
+  bz F32toUI32_4
+  SHIFTL32 F1
+  decf F1_EXP+0,F,0
+  bra F32toUI32_5
+F32toUI32_4
+  return 0
+
+;<->
+
+
+
+
+
+; =======================
+; RTL entry points
+; =======================
+
+;---------------------------------
+; int(s) to  float    conversions
+;---------------------------------
+
+; convert  uint32_t to float
+;<+cast32U_F>
+cast32U_F
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL UI32toF32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?UI32toF32>
+;<->
+
+; convert  int32_t to float
+;<+cast32_F>
+cast32_F
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL I32toF32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?I32toF32>
+;<->
+
+; convert  uint16_t to float
+;<+cast16U_F>
+cast16U_F
+  clrf F1+3,0
+  clrf F1+2,0
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL UI32toF32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?UI32toF32>
+;<->
+
+; convert  int16_t to float
+;<+cast16_F>
+cast16_F
+  clrf F1+3,0
+  clrf F1+2,0
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  btfss F1+1,7,0 ; < 0 ?
+  bra  cast16_F_1
+  setf F1+3,0 ; extends sign
+  setf F1+2,0
+cast16_F_1
+  ICALL I32toF32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?I32toF32>
+;<->
+
+; convert  uint8_t to float
+;<+cast8U_F>
+cast8U_F
+  clrf F1+3,0
+  clrf F1+2,0
+  clrf F1+1,0
+  movff POSTDEC0,F1+0
+  ICALL UI32toF32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?UI32toF32>
+;<->
+
+; convert  int8_t to float
+;<+cast8_F>
+cast8_F
+  clrf F1+3,0
+  clrf F1+2,0
+  clrf F1+1,0
+  movff POSTDEC0,F1+0
+  btfss F1+0,7,0 ; < 0 ?
+  bra  cast8_F_1
+  setf F1+3,0 ; extends sign
+  setf F1+2,0
+  setf F1+1,0
+cast8_F_1
+  ICALL I32toF32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?I32toF32>
+;<->
+
+;---------------------------------
+; float to  int(s)   conversions
+;---------------------------------
+
+; float to uint32_t
+;<+castF_32U>
+castF_32U
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL F32toUI32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?F32toUI32>
+;<->
+
+; float to int32_t
+;<+castF_32>
+castF_32
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL F32toI32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?F32toI32>
+;<->
+
+; float to uint16_t
+;<+castF_16U>
+castF_16U
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL F32toUI32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  return 0
+;<?F32toUI32>
+;<->
+
+; float to int16_t
+;<+castF_16>
+castF_16
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL F32toI32
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  return 0
+;<?F32toI32>
+;<->
+
+; float to uint8_t
+;<+castF_8U>
+castF_8U
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL F32toUI32
+  movff F1+0,PREINC0
+  return 0
+;<?F32toUI32>
+;<->
+
+; float to int8_t
+;<+castF_8>
+castF_8
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL F32toI32
+  movff F1+0,PREINC0
+  return 0
+;<?F32toI32>
+;<->
+
+
+; -------------------------------------
+; Basic operators 
+; -------------------------------------
+
+; TOS = -TOS
+; TODO: make sure that opposite of positive zero
+;       is positive zero 
+;<+negFP>
+negFP
+  btg INDF0,7,0
+  return 0
+;<->
+
+; TOS = 1 when TOS==+0.0 || TOS==-0.0, else 0
+;<+lnotFP>
+lnotFP
+  bcf INDF0,7,0
+  IBRA lnot32
+;<?lnot32>
+;<->
+
+;
+; TOS + F2 -> TOS 
+; Note: For avoiding data moves
+; F2 should be the R0/R1 pair
+;
+;<+addFP>
+addFP 
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL zfpadd32 ; performs F1 = F1+F2
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?zfpadd32>
+;<->
+;
+; TOS - F2 -> TOS 
+; Note: For avoiding data moves
+; F2 should be the R0/R1 pair
+;
+;<+subFP>
+subFP
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL zfpsub32 ; performs F1 = F1-F2
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?zfpsub32>
+;<->
+
+;
+; TOS * F2 -> TOS 
+; Note: For avoiding data moves
+; F2 should be the R0/R1 pair
+;
+;<+mulFP>
+mulFP
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL zfpmul32 ; performs F1 = F1*F2
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?zfpmul32>
+;<->
+
+;
+; TOS / F2 -> TOS 
+; Note: For avoiding data moves
+; F2 should be the R0/R1 pair
+;
+;<+divFP>
+divFP
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  ICALL zfpdiv32 ; performs F1 = F1/F2
+  movff F1+0,PREINC0
+  movff F1+1,PREINC0
+  movff F1+2,PREINC0
+  movff F1+3,PREINC0
+  return 0
+;<?zfpdiv32>
+;<->
+
+;
+; "In place"  operators
+;
+;<+ipaddFP>
+ipaddFP
+  ; move data from *SFR1 to work area
+  movff POSTINC1,F1+0 ; low byte
+  movff POSTINC1,F1+1
+  movff POSTINC1,F1+2
+  movff INDF1,F1+3 ; hi byte 
+  ICALL  zfpadd32
+  ; get result back
+  movff F1+3,POSTDEC1 ; hi byte
+  movff F1+2,POSTDEC1
+  movff F1+1,POSTDEC1
+  movff F1,INDF1 ; low byte
+  return 0 
+;<?zfpadd32>
+;<-> 
+
+;<+ipsubFP>
+ipsubFP
+  ; move data from *SFR1 to work area
+  movff POSTINC1,F1+0 ; low byte
+  movff POSTINC1,F1+1
+  movff POSTINC1,F1+2
+  movff INDF1,F1+3 ; hi byte 
+  ICALL  zfpsub32
+  ; get result back
+  movff F1+3,POSTDEC1 ; hi byte
+  movff F1+2,POSTDEC1
+  movff F1+1,POSTDEC1
+  movff F1,INDF1 ; low byte
+  return 0 
+;<?zfpsub32>
+;<-> 
+
+;<+ipmulFP>
+ipmulFP
+  ; move data from *SFR1 to work area
+  movff POSTINC1,F1+0 ; low byte
+  movff POSTINC1,F1+1
+  movff POSTINC1,F1+2
+  movff INDF1,F1+3 ; hi byte 
+  ICALL  zfpmul32
+  ; get result back
+  movff F1+3,POSTDEC1 ; hi byte
+  movff F1+2,POSTDEC1
+  movff F1+1,POSTDEC1
+  movff F1,INDF1 ; low byte
+  return 0 
+;<?zfpmul32>
+;<-> 
+
+;<+ipdivFP>
+ipdivFP
+  ; move data from *SFR1 to work area
+  movff POSTINC1,F1+0 ; low byte
+  movff POSTINC1,F1+1
+  movff POSTINC1,F1+2
+  movff INDF1,F1+3 ; hi byte 
+  ICALL  zfpdiv32
+  ; get result back
+  movff F1+3,POSTDEC1 ; hi byte
+  movff F1+2,POSTDEC1
+  movff F1+1,POSTDEC1
+  movff F1,INDF1 ; low byte
+  return 0 
+;<?zfpdiv32>
+;<-> 
+
+
+;
+; Comparison operators
+;
+; Leave 1 on the stack when F1 == F2, else 0 
+;<+eqFP>
+eqFP
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  clrf PREINC0,0 ; preset to false
+;    if (UINT32(f1)  == UINT32(f2) )
+;        return 1 ;
+  movf F1+0,W,0
+  xorwf F2+0,W,0
+  bnz eqFP_1
+  movf F1+1,W,0
+  xorwf F2+1,W,0
+  bnz eqFP_1
+  movf F1+2,W,0
+  xorwf F2+2,W,0
+  bnz eqFP_1
+  movf F1+3,W,0
+  xorwf F2+3,W,0
+  bnz eqFP_1
+eqFP_leave_one
+  incf INDF0,F,0
+  return 0 ;
+eqFP_1
+;    // comparison of +0 an -0
+;    if(f2[0] | f1[0] ) return 0 ;
+  movf F1+0,W,0
+  iorwf F2+0,W,0
+  bz eqFP_2
+  return 0
+;    if(f2[1] | f1[1] ) return 0 ;
+eqFP_2
+  movf F1+1,W,0
+  iorwf F2+1,W,0
+  bz eqFP_3
+  return 0
+eqFP_3
+;    if(f2[2] | f1[2] ) return 0 ;
+  movf F1+2,W,0
+  iorwf F2+2,W,0
+  bz eqFP_4
+eqFP_leave_zero
+  return 0
+;    if( (f2[3] | f1[3]) & 0x7F ) return 0 ;
+eqFP_4
+  movf F1+3,W,0
+  iorwf F2+3,W,0
+  andlw 0x7F
+  bnz eqFP_leave_zero
+  incf INDF0,F,0
+  return 0 ;
+;<-> 
+
+;<+neFP>
+neFP
+  ICALL eqFP
+  btg INDF0,0,0
+  return 0
+;<?eqFP>
+;<->
+
+
+;
+; leave 1 on the stack when F1 < F2, else 0
+;
+;<+ltFP>
+ltFP
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  clrf PREINC0,0 ; preset to false
+;    if( f1[3] &  f2[3] & 0x80)
+  movf F1+3,W,0
+  andwf F2+3,W,0
+  andlw 0x80
+  bz ltFP_1 
+; here F1 and F2 are both negative
+ ; 	      return ( INT32( f2) < INT32(f1))  ;
+ BLT32 F2,F1,ltFP_one
+  return 0
+ltFP_1
+; force zeros to be positive
+ ICALL fixF1F2NegZero
+;<?fixF1F2NegZero>
+; compare signs of operands
+  movf F1+3,W,0
+  xorwf F2+3,W,0
+  andlw 0x80
+  bz ltFP_2
+; signs  differ => F1 and  F2 cannot be 0
+  btfsc F1+3,7,0
+  IBRA ltFP_one ; F1 < 0 and F2 >0 so F1 < F2
+  return 0 ; F1 >0 and F2 < 0 so F1 > F2
+; same sign , so BLT32 is OK
+ltFP_2  
+;    return ( INT32( f1) < INT32(f2))   ;
+  SLT32 F1,F2
+  return 0
+ltFP_one
+  incf INDF0,F,0
+  return 0 ;
+;<->
+
+;<+geFP>
+geFP
+  ICALL ltFP
+  btg INDF0,0,0
+  return 0
+;<?ltFP>
+;<->
+
+;;
+; leave 1 on the stack when F1 > F2, else 0
+; 
+;<+gtFP>
+gtFP
+  movff POSTDEC0,F1+3
+  movff POSTDEC0,F1+2
+  movff POSTDEC0,F1+1
+  movff POSTDEC0,F1+0
+  clrf PREINC0,0 ; preset to false
+;    if( f1[3] &  f2[3] & 0x80)
+  movf F1+3,W,0
+  andwf F2+3,W,0
+  andlw 0x80
+  bz gtFP_1 
+; here F1 and F2 are both negative
+ ; 	      return ( INT32( f2) > INT32(f1))  ;
+ BLT32 F1,F2,gtFP_one
+  return 0
+gtFP_1
+; force zeros to be positive
+ ICALL fixF1F2NegZero
+;<?fixF1F2NegZero>
+; compare signs of operands
+  movf F1+3,W,0
+  xorwf F2+3,W,0
+  andlw 0x80
+  bz gtFP_2
+; signs  differ => F1 and  F2 cannot be 0
+  btfsc F2+3,7,0
+  IBRA gtFP_one 
+  return 0 
+; same sign , so BLT32 is OK
+gtFP_2  
+;    return ( INT32( f1) > INT32(f2))   ;
+  SLT32 F2,F1
+  return 0
+gtFP_one
+  incf INDF0,F,0
+  return 0 ;
+;<->
+
+;<+leFP>
+leFP
+  ICALL gtFP
+  btg INDF0,0,0
+  return 0
+;<?gtFP>
+;<->
+
+
+; Change negative zero in F1 and F2 to positive 0
+; W destroyed
+;<+fixF1F2NegZero>
+fixF1F2NegZero
+;  if f1 is -0, change it to +0
+  movf F1+3,W,0
+  bnn fixF1F2NegZero_1
+  andlw 0x7F 
+  iorwf F1+2,W,0
+  iorwf F1+1,W,0
+  iorwf F1+0,W,0
+  bnz  fixF1F2NegZero_1
+  bcf  F1+3,7,0 
+fixF1F2NegZero_1
+;  if f2 is -0, change it to +0
+  movf F2+3,W,0
+  bnn fixF1F2NegZero_2
+  andlw 0x7F 
+  iorwf F2+2,W,0
+  iorwf F2+1,W,0
+  iorwf F2+0,W,0
+  bnz  fixF1F2NegZero_2
+  bcf  F2+3,7,0 
+fixF1F2NegZero_2
+  return 0
+;<->
+  end
