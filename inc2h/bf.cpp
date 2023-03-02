@@ -68,7 +68,7 @@ bool bfblock::make_alias( bfblock& alias)
 string bfblock::checkSanity() 
 {
   char image = 0 ;
-  for( int i = 0 ; i < size() ; ++i)
+  for( unsigned int i = 0 ; i < size() ; ++i)
   {
     bf& field = (*this)[i] ;
     for(int  b = field.offset ; b < (field.offset + field.size) ; ++b)
