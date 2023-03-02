@@ -4,7 +4,7 @@
 */
 
 #include <p18f2525.h>
-#include <types.h>
+#include <sys/types.h>
 #include <macros.h>
 #include <interrupt.h>
 
@@ -66,25 +66,24 @@ void MCU_init()
 void IT_init()
 {
    // INT0 on falling edge
-   BIT_0(INTCON2, INTEDG0) ;
+   INTCON2bits.INTEDG0 = 0;
    // INT1 on falling edge
-   BIT_0(INTCON2, INTEDG1) ;
+   INTCON2bits.INTEDG1 = 0;
    // INT2 on falling edge
-   BIT_0(INTCON2, INTEDG2) ;
+   INTCON2bits.INTEDG2 = 0;
 
    // set IT hi priority
-   BIT_1(INTCON3, INT1P) ;
+   INTCON3bits.INT1P = 1;
    // set IT hi priority
-   BIT_1(INTCON3, INT2P) ;
+   INTCON3bits.INT2P = 1;
    // note: INT0 has always hi priority
 
-
    // enable INT0
-   BIT_1(INTCON, INT0E) ;
+   INTCONbits.INT0E = 1;
    // enable INT1
-   BIT_1(INTCON3, INT1E) ;
+   INTCON3bits.INT1E = 1;
    // enable INT2
-   BIT_1(INTCON3, INT2E) ;
+   INTCON3bits.INT2E = 1;
 }
 
 uint8_t blink_delay = 10;
@@ -102,25 +101,23 @@ void delay( uint8_t i )
 
 __interrupt__ void hi_pri_ISR()
 {
-   SAVE_REGS ; //  defined in interrupt.h
+#pragma saved_regs _r0,_r0+1,_r1,_r1+1,_r2,_r2+1,_r3,_r3+1,_r4,_r4+1,_r5,_r5+1,PRODL,PRODH 
 
-   if ( BIT_TST(INTCON, INT0F) )
+   if ( INTCONbits.INT0F )
    {
       ++blink_delay;
-      BIT_0(INTCON, INT0F) ;
+      INTCONbits.INT0F = 0 ;
    }
-   else if ( BIT_TST(INTCON3, INT1F) )
+   else if ( INTCON3bits.INT1F )
    {
       blink_delay = 10;
-      BIT_0(INTCON3, INT1F) ;
+      INTCON3bits.INT1F = 0 ;
    }
-   else if ( BIT_TST(INTCON3, INT2F) )
+   else if ( INTCON3bits.INT2F )
    {
       --blink_delay ;
-      BIT_0(INTCON3, INT2F) ;
+      INTCON3bits.INT2F = 0 ;
    }
-
-   RESTORE_REGS ;
 }
 
 

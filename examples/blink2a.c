@@ -4,7 +4,7 @@
 */
 
 #include <p18f2525.h>
-#include <types.h>
+#include <sys/types.h>
 #include <macros.h>
 
 // internal 8Mhz clock, both RA6 anf RA7 are usable as I/O

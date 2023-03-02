@@ -4,7 +4,7 @@
 */
 
 #include <p18f2525.h>
-#include <types.h>
+#include <sys/types.h>
 #include <macros.h>
 #include <lcd.h>
 #include <stdio.h>

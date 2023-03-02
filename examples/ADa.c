@@ -4,7 +4,7 @@
 */
 
 #include <p18f2525.h>
-#include <types.h>
+#include <sys/types.h>
 #include <macros.h>
 #include <lcd.h>
 #include <stdio.h>
@@ -60,7 +60,7 @@ void MCU_init()
 
    OSCCON = 0b01110010 ; // internal clock 8Mhz (no crystal) see also config bits
 
-   PIE1 = 0 ; 		// disable all interrupts
+   PIE1 = 0 ; // disable all interrupts
 }
 
 #define LCD_COLS 20
@@ -89,9 +89,9 @@ void AD_init()
    TRISA |= 0b11111111 ;
 
    /* no AD conversion termination interrupt */
-   BIT_0(PIE1, ADIE) ;
+   PIE1bits.ADIE = 0 ;
    /* enable  AD */
-   BIT_1(ADCON0, ADON) ;
+   ADCON0bits.ADON = 1 ;
 }
 
 // 16 bit SFR registers
@@ -106,9 +106,9 @@ uint16_t  AD_get( uint8_t channel)
 
 
    /* lance la mesure */
-   BIT_1(ADCON0, GO);
+   ADCON0bits.GO = 1;
 
-   while( BIT_TST(ADCON0, GO) ) ;
+   while( ADCON0bits.GO ) ;
 
    // CAUTION: symbol ADRES exported by p18f2525.h is an unsigned int (should be unsigned long)!!
    return ADRESHL ;
